@@ -4,18 +4,23 @@ version = "0.0.0"
 edition = "2021"
 description = "A no_std, no_alloc TUI library"
 categories = ["no_std", "tui"]
+documentation = "https://docs.rs/crate/tuit"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 bitflags = "1.3.2"
-thiserror = { version = "1.0.30", package="thiserror-core" }
+thiserror = { version = "1.0.30", package = "thiserror-core" }
 anyhow = "1.0.69"
+owo-colors = { version = "3.5.0" }
 
 [features]
-default = [ "widgets" ]
-std = [ "alloc" ]
+default = ["widgets"]
+std = ["alloc"]
 alloc = []
 widgets = []
-ansi_terminal = [ "std" ]
+ansi_terminal = ["std"]
+
+[package.metadata.docs.rs]
+all-features = true

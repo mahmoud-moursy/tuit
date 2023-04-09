@@ -9,7 +9,8 @@ fn main() {
         style: Default::default(),
     };
 
-    let mut my_vec: Vec<&TerminalCell> = Vec::with_capacity(1);
-
-    terminal.view(0, 0, 1, 1, &mut my_vec).unwrap();
+    terminal.characters_mut()[1] = TerminalCell {
+        character: 'h',
+        style: Default::default(),
+    };
 }

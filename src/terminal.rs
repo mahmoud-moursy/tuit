@@ -2,11 +2,16 @@
 //!
 //! This module encompasses the main traits needed to implement a Tuit Terminal.
 
+use core::array;
 use core::borrow::BorrowMut;
-use core::ops::BitOr;
+use core::fmt::Formatter;
+use core::ops::{BitOr, DerefMut};
 use core::time::Duration;
 
+use owo_colors::{DynColor, DynColors, Effect, OwoColorize, XtermColors};
+
 use crate::Error;
+use crate::prelude::*;
 
 /// Represents a 4-bit ANSI terminal colour.
 ///
@@ -14,7 +19,7 @@ use crate::Error;
 /// of a foreground and a background.
 ///
 /// Note: Ansi4 was decided upon instead of Ansi16 in order to avoid name collisions when importing
-/// both tuit::terminal::Ansi4 and tuit::terminal::TerminalColours::*
+/// both [`Ansi4`] and when glob-importing [`TerminalColour`]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[repr(u8)]
 #[allow(missing_docs)]
@@ -27,15 +32,15 @@ pub enum Ansi4 {
     Blue = 4,
     Magenta = 5,
     Cyan = 6,
-    Gray = 7,
-    DarkGray = 8,
+    White = 7,
+    BrightBlack = 8,
     BrightRed = 9,
     BrightGreen = 10,
     BrightYellow = 11,
     BrightBlue = 12,
     BrightMagenta = 13,
     BrightCyan = 14,
-    BrightWhite = 15
+    BrightWhite = 15,
 }
 
 impl BitOr for Ansi4 {
@@ -73,11 +78,9 @@ pub enum TerminalColour {
     Ansi16(Ansi4),
     /// ANSI 256-colour terminal colours
     Ansi256(u8),
+    #[default]
     /// Use the terminal's default colour
     TerminalDefault,
-    #[default]
-    /// Use the last colour by the terminal
-    None,
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
@@ -171,7 +174,149 @@ pub struct TerminalCell {
     /// The character inside the cell
     pub character: char,
     /// The character's styling.
-    pub style: TerminalStyle
+    pub style: TerminalStyle,
+}
+
+#[cfg(feature = "ansi_terminal")]
+impl core::fmt::Display for TerminalCell {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let owo_style: owo_colors::Style = self.style.into();
+
+        write!(f, "{}", self.character.style(owo_style))
+    }
+}
+
+impl From<Ansi4> for owo_colors::AnsiColors {
+    fn from(value: Ansi4) -> Self {
+        use owo_colors::AnsiColors;
+
+        match value {
+            Ansi4::Black => AnsiColors::Black,
+            Ansi4::Red => AnsiColors::Red,
+            Ansi4::Green => AnsiColors::Green,
+            Ansi4::Yellow => AnsiColors::Yellow,
+            Ansi4::Blue => AnsiColors::Blue,
+            Ansi4::Magenta => AnsiColors::Magenta,
+            Ansi4::Cyan => AnsiColors::Cyan,
+            Ansi4::White => AnsiColors::White,
+            Ansi4::BrightBlack => AnsiColors::BrightBlack,
+            Ansi4::BrightRed => AnsiColors::BrightRed,
+            Ansi4::BrightGreen => AnsiColors::BrightGreen,
+            Ansi4::BrightYellow => AnsiColors::BrightYellow,
+            Ansi4::BrightBlue => AnsiColors::BrightBlue,
+            Ansi4::BrightMagenta => AnsiColors::Magenta,
+            Ansi4::BrightCyan => AnsiColors::BrightCyan,
+            Ansi4::BrightWhite => AnsiColors::BrightWhite
+        }
+    }
+}
+
+impl From<TerminalColour> for DynColors {
+    fn from(value: TerminalColour) -> Self {
+        match value {
+            TerminalColour::Rgb24(r, g, b) => DynColors::Rgb(r, g, b),
+            TerminalColour::Luma8(brightness) => DynColors::Rgb(brightness, brightness, brightness),
+            TerminalColour::Ansi16(fg) => {
+                DynColors::Ansi(fg.into())
+            }
+            TerminalColour::Ansi256(fg) => {
+                DynColors::Xterm(XtermColors::from(fg))
+            }
+            TerminalColour::TerminalDefault => {
+                DynColors::Ansi(owo_colors::AnsiColors::Default)
+            }
+        }
+    }
+}
+
+impl DynColor for TerminalColour {
+    fn fmt_ansi_fg(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let dyn_color: DynColors = (*self).into();
+
+        dyn_color.fmt_ansi_fg(f)
+    }
+
+    fn fmt_ansi_bg(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let dyn_color: DynColors = (*self).into();
+
+        dyn_color.fmt_ansi_bg(f)
+    }
+
+    fn fmt_raw_ansi_fg(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let dyn_color: DynColors = (*self).into();
+
+        dyn_color.fmt_raw_ansi_bg(f)
+    }
+
+    fn fmt_raw_ansi_bg(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let dyn_color: DynColors = (*self).into();
+
+        dyn_color.fmt_raw_ansi_bg(f)
+    }
+
+    fn get_dyncolors_fg(&self) -> DynColors {
+        let dyn_color: DynColors = (*self).into();
+
+        dyn_color
+    }
+
+    fn get_dyncolors_bg(&self) -> DynColors {
+        let dyn_color: DynColors = (*self).into();
+
+        dyn_color
+    }
+}
+
+impl From<TerminalStyle> for owo_colors::Style {
+    fn from(value: TerminalStyle) -> Self {
+        let TerminalStyle {
+            fg_colour,
+            bg_colour,
+            font_weight,
+            underline,
+            invert
+        } = value;
+
+        let mut style = owo_colors::Style::new();
+
+        if let Some(fg_colour) = fg_colour {
+            let color: Result<DynColors, _> = fg_colour.try_into();
+
+            color.map(|res| style = style.color(res)).ok();
+        }
+
+        if let Some(bg_colour) = bg_colour {
+            let color: Result<DynColors, _> = bg_colour.try_into();
+
+            color.map(|res| style = style.on_color(res)).ok();
+        }
+
+        if let Some(font_weight) = font_weight {
+            if font_weight >= 700 {
+                style = style.bold()
+            } else {
+                style = style.remove_effect(Effect::Bold)
+            }
+        }
+
+        if let Some(underline) = underline {
+            if underline {
+                style = style.underline()
+            } else {
+                style = style.remove_effect(Effect::Underline)
+            }
+        }
+
+        if let Some(invert) = invert {
+            if invert {
+                style = style.blink();
+            } else {
+                style = style.remove_effect(Effect::Blink)
+            }
+        }
+
+        style
+    }
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
@@ -197,12 +342,14 @@ pub enum KeyState {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Hash)]
-/// `UpdateInfo` encapsulates the
+/// `UpdateInfo` encapsulates the information sent after an update
 pub enum UpdateInfo {
     /// This event triggers when a cell (character) gets clicked. It includes the X co-ordinate,
     /// Y co-ordinate, and the mouse button that was clicked.
     ///
-    /// The variables are as follows: CellClicked(x_coord, y_coord, mouse_button)
+    /// <br>
+    /// The variables are as follows:
+    /// `CellClicked(x_coord, y_coord, mouse_button)`
     CellClicked(usize, usize, MouseButton),
     /// This can be sent to widgets to inform them of a printable keyboard key being
     /// pressed.
@@ -212,6 +359,19 @@ pub enum UpdateInfo {
     /// This can be used to inform widgets of how much time has passed since they have
     /// last been updated.
     TimeDelta(Duration),
+    /// This is used to inform widgets that the terminal has been resized so that they can
+    /// re-calculate their dimensions and any cached data reliant on the terminal's size.
+    TerminalResized,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Hash)]
+/// `UpdateResult` includes information about the object's status. Objects are unable to destruct themselves,
+/// and thus are reliant on the implementor to get rid of them once their lifecycle is over.
+pub enum UpdateResult {
+    /// No event has occurred, the object will continue to live.
+    NoEvent,
+    /// The object's lifecycle has ended, and it should now be destructured.
+    LifecycleEnd,
 }
 
 /// This trait defines the minimum requirements for a type to be capable
@@ -227,13 +387,15 @@ pub enum UpdateInfo {
 /// }
 ///
 /// impl TerminalObject for MyObject {
-///     fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) {
+///     fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> Result<(), tuit::Error> {
 ///         match update_info {
 ///             // Change my_char to the last key that was pressed
 ///             UpdateInfo::KeyboardCharacter(character,_) => { self.my_char = character }
 ///             // Don't worry about anything else :)
 ///             _ => {}
 ///         }
+///
+///         Ok(())
 ///     }
 ///
 ///     fn draw(&mut self, mut terminal: impl Terminal) {
@@ -241,12 +403,23 @@ pub enum UpdateInfo {
 ///         terminal.character_mut(0, 0).map(|x| x.character = self.my_char);
 ///     }
 /// }
-
 pub trait TerminalObject {
     /// This method is called by the implementor once the terminal receives an update.
     ///
+    /// ```no_test
+    /// use tuit::terminal::{ConstantSizeTerminal, UpdateInfo};
+    ///
+    /// let mut  my_terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
+    /// let my_terminal_object = MyObject;
+    ///
+    /// loop {
+    ///     let input_magic: UpdateInfo = await_input();
+    ///
+    ///     my_terminal_object.update(input_magic, &mut my_terminal)
+    /// }
+    ///
     /// ```
-    fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<()>;
+    fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult>;
 
     /// This method is called by the implementor whenever a frame redraw is requested.
     fn draw(&mut self, terminal: impl Terminal);
@@ -284,8 +457,9 @@ pub trait Terminal {
 
     /// Retrieves a mutable reference to a terminal cell
     ///
-    /// ```
-    /// use tuit::terminal::{ConstantSizeTerminal, Terminal};
+    /// ```rust,feature="ansi_terminal"
+    /// use tuit::terminal::{ConstantSizeTerminal};
+    /// use tuit::prelude::*;
     ///
     /// let mut terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
     ///
@@ -294,7 +468,10 @@ pub trait Terminal {
     /// // Set the top-right character to 'h'.
     /// my_character_ref.character = 'h';
     ///
-    /// terminal.display(std_out);
+    /// // NOTE: You need to enable the "ansi_terminal" feature for Stdout to implement TerminalDisplayTarget
+    /// let std_out = std::io::stdout();
+    ///
+    /// terminal.display(std_out).expect("Failed to display terminal");
     /// ```
     fn character_mut(&mut self, x: usize, y: usize) -> Option<&mut TerminalCell> {
         let width = self.width();
@@ -308,9 +485,44 @@ pub trait Terminal {
 
         self.characters().get((width * y) + x)
     }
+
+    /// You can pass any value that implements TerminalDrawTarget to get the terminal to update.
+    ///
+    /// Inversely, you can call TerminalDrawTarget::render on any Terminal and draw the screen
+    ///
+    /// ```no_test
+    /// use tuit::terminal::ConstantSizeTerminal;
+    /// use tuit::prelude::*;
+    ///
+    /// let mut  my_terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
+    ///
+    /// let my_gpu = MyGpu;
+    ///
+    /// my_terminal.display(&mut my_gpu).expect("Failed to display the terminal");
+    /// ```
+    fn display(&mut self, mut display: impl TerminalDrawTarget) -> crate::Result<()>
+        where Self: Sized + 'static {
+        display.render(self as &mut (dyn Terminal))
+    }
 }
 
-impl<T: Terminal> TerminalExtended for T {}
+impl<T: DerefMut<Target: Terminal>> Terminal for T {
+    fn dimensions(&self) -> (usize, usize) {
+        (**self).dimensions()
+    }
+
+    fn default_style(&self) -> TerminalStyle {
+        (**self).default_style()
+    }
+
+    fn characters_mut(&mut self) -> &mut [TerminalCell] {
+        (**self).characters_mut()
+    }
+
+    fn characters(&self) -> &[TerminalCell] {
+        (**self).characters()
+    }
+}
 
 /// **All types that implement Terminal will automatically implement TerminalExtended**
 /// <br /> <br />
@@ -319,52 +531,56 @@ impl<T: Terminal> TerminalExtended for T {}
 /// your terminal objects into trait objects, so therefore TerminalExtended has been broken off into
 /// its own trait that accepts generics.
 pub trait TerminalExtended: Terminal {
-    /// This method returns an immutable reference to the TerminalCells within the specified area.
+    /// Returns a copied view to the TerminalCells within the specified area.
     ///
-    /// It requires that you provide the collection to collect into yourself, since the library
-    /// cannot use allocators to create a collection like Vec for you.
-    fn view<'a>(&'a self, x_offset: usize, y_offset: usize, height: usize, width: usize, collection: &'a mut impl Extend<&'_ TerminalCell>) -> crate::Result<()>
-    where Self: 'a
-    {
-        let characters = self.characters();
+    /// ```
+    /// use tuit::terminal::{ConstantSizeTerminal, TerminalCell};
+    /// use tuit::prelude::*;
+    ///
+    /// let my_terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
+    ///
+    /// // A get a view of height 2 and width 2, at x-y coords (1,1).
+    /// let cells: [[TerminalCell; 2]; 2] = my_terminal.copied_view::<2, 2>(1, 1).expect("This should never fail!");
+    /// ```
+    fn copied_view<const WIDTH: usize, const HEIGHT: usize>(&self, x_offset: usize, y_offset: usize) -> crate::Result<[[TerminalCell; WIDTH]; HEIGHT]> {
         let (terminal_height, terminal_width) = self.dimensions();
+        let characters = self.characters();
 
-        if y_offset+height > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset+width, y_offset+height))
+        if y_offset + HEIGHT > terminal_height {
+            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
         }
 
-        if x_offset+width > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset+width, y_offset+height))
+        if x_offset + WIDTH > terminal_width {
+            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
         }
 
-        let view = (0..height).flat_map(|y| {
-            let start = x_offset + ((y_offset + y) * terminal_width);
-            let end = start + width;
-
-            characters[start..end].iter()
-        });
-
-        view.collect_into(collection);
-
-        Ok(())
+        Ok(array::from_fn(|y|
+            array::from_fn(|x|
+                characters[x_offset + x + (y_offset + y) * terminal_width]
+            )
+        )
+        )
     }
 }
+
+impl<T: Terminal> TerminalExtended for T {}
 
 /// A zero-allocation terminal of constant size. The terminal's size is determined at compile time,
 /// and can't be changed at runtime.
 ///
-/// ```
+/// ```no_test
 /// use tuit::terminal::ConstantSizeTerminal;
+/// use tuit::prelude::*;
 ///
 /// let mut terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
 ///
-/// let widget: Prompt = Prompt::new("Hello world!");
+/// let widget: CustomPrompt = CustomPrompt::new("Hello world!");
 ///
 /// widget.draw(&mut terminal);
 ///
 /// let std_out = std::io::stdout();
 ///
-/// terminal.display(std_out)
+/// terminal.display(std_out).expect("Failed to draw terminal");
 /// ```
 pub struct ConstantSizeTerminal<const WIDTH: usize, const HEIGHT: usize> {
     characters: [[TerminalCell; WIDTH]; HEIGHT],
@@ -392,11 +608,11 @@ impl<const WIDTH: usize, const HEIGHT: usize> ConstantSizeTerminal<WIDTH, HEIGHT
     /// ```
     pub fn new() -> Self {
         ConstantSizeTerminal {
-            characters: core::array::from_fn(|_| core::array::from_fn(|_| TerminalCell {
+            characters: [[TerminalCell {
                 character: ' ',
                 style: TerminalStyle::default(),
-            })),
-            default_style: Default::default()
+            }; WIDTH]; HEIGHT],
+            default_style: Default::default(),
         }
     }
 }
@@ -416,5 +632,86 @@ impl<const WIDTH: usize, const HEIGHT: usize> Terminal for ConstantSizeTerminal<
 
     fn characters(&self) -> &[TerminalCell] {
         self.characters.flatten()
+    }
+}
+
+/// A zero-allocation re-scalable terminal that allocates the maximum size that it can scale to.
+pub struct MaxSizeTerminal<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> {
+    characters: [[TerminalCell; MAX_WIDTH]; MAX_HEIGHT],
+    default_style: TerminalStyle,
+    dimensions: (usize, usize),
+}
+
+impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Default for MaxSizeTerminal<MAX_WIDTH, MAX_HEIGHT> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> MaxSizeTerminal<MAX_WIDTH, MAX_HEIGHT> {
+    /// Creates a new MaxSizeTerminal at its maximum size.
+    pub fn new() -> Self {
+        Self {
+            characters: array::from_fn(|_| array::from_fn(|_| Default::default())),
+            default_style: Default::default(),
+            dimensions: (MAX_WIDTH, MAX_HEIGHT),
+        }
+    }
+
+    /// Rescales the terminal if the new specified width and height are below the maximum limits.
+    /// Otherwise, it will return an Err, containing the values put into it.
+    ///
+    /// It is wise to redraw the terminal after doing this, since MaxSizeTerminal will hide away
+    /// currently characters from objects
+    ///
+    /// ```
+    /// use tuit::terminal::MaxSizeTerminal;
+    /// use tuit::prelude::*;
+    ///
+    /// let mut my_max_terminal: MaxSizeTerminal<20, 20> = MaxSizeTerminal::new();
+    ///
+    /// my_max_terminal.rescale(10, 10).expect("This mustn't fail!");
+    ///
+    /// let (overflowing_width, overflowing_height) = my_max_terminal.rescale(21, 10).expect_err("This must always be an error!");
+    ///
+    /// assert_eq!(overflowing_width, 21);
+    /// assert_eq!(overflowing_height, 10);
+    /// ```
+    pub fn rescale(&mut self, new_width: usize, new_height: usize) -> Result<(), (usize, usize)> {
+        if new_width > MAX_WIDTH {
+            return Err((new_width, new_height))
+        }
+
+        if new_height > MAX_HEIGHT {
+            return Err((new_width, new_height))
+        }
+
+        self.dimensions = (new_width, new_height);
+
+        Ok(())
+    }
+}
+
+impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Terminal for MaxSizeTerminal<MAX_WIDTH, MAX_HEIGHT> {
+    fn dimensions(&self) -> (usize, usize) {
+        self.dimensions
+    }
+
+    fn default_style(&self) -> TerminalStyle {
+        self.default_style
+    }
+
+    fn characters_mut(&mut self) -> &mut [TerminalCell] {
+        let acting_height = self.dimensions.1;
+        let acting_width = self.dimensions.0;
+
+        self.characters[0..acting_height][0..acting_width].flatten_mut()
+    }
+
+    fn characters(&self) -> &[TerminalCell] {
+        let acting_height = self.dimensions.1;
+        let acting_width = self.dimensions.0;
+
+        self.characters[0..acting_height][0..acting_width].flatten()
     }
 }
