@@ -1,0 +1,21 @@
+[package]
+name = "twinkle"
+version = "0.1.0"
+edition = "2021"
+description = "A no_std, no_alloc TUI library"
+categories = ["no_std", "tui"]
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bitflags = "1.3.2"
+thiserror = { version = "1.0.30", package="thiserror-core" }
+anyhow = "1.0.69"
+
+[features]
+default = [ "widgets" ]
+std = [ "alloc" ]
+alloc = []
+widgets = []
+ansi_terminal = [ "std" ]
