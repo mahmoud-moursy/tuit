@@ -67,9 +67,9 @@ dependencies = [
 name = "tuit"
 version = "0.0.0"
 dependencies = [
-    "anyhow",
-    "bitflags",
-    "thiserror-core",
+ "anyhow",
+ "bitflags",
+ "thiserror-core",
 ]
 
 [[package]]

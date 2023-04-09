@@ -4,5 +4,6 @@
 
 #[cfg(feature = "alloc")]
 pub mod alloc {
-    //! This module is for widgets that rely upon allocation to function
+    //! This module is for widgets that rely upon allocation to function.
+    //! It is currently empty!
 }
