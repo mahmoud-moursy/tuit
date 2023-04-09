@@ -1,12 +1,12 @@
 //! # Draw module
 //!
-//! Twinkle itself does not handle I/O by itself. This means that Twinkle users are left responsible
+//! Tuit itself does not handle I/O by itself. This means that Tuit users are left responsible
 //! for rendering the terminal as well as handling input and output.
 //!
 //! ## Example
 //! ```
-//! use twinkle::errors::Error;
-//! use twinkle::prelude::*;
+//! use tuit::errors::Error;
+//! use tuit::prelude::*;
 //!
 //! #[derive(GpuMagic)]
 //! struct MyGPU {}

@@ -1,6 +1,6 @@
 [package]
-name = "twinkle"
-version = "0.1.0"
+name = "tuit"
+version = "0.0.0"
 edition = "2021"
 description = "A no_std, no_alloc TUI library"
 categories = ["no_std", "tui"]

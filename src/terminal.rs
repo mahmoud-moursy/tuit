@@ -1,10 +1,11 @@
 //! # Terminals
 //!
-//! This module encompasses the main traits needed to implement a Twinkle Terminal.
+//! This module encompasses the main traits needed to implement a Tuit Terminal.
 
 use core::borrow::BorrowMut;
 use core::ops::BitOr;
 use core::time::Duration;
+
 use crate::Error;
 
 /// Represents a 4-bit ANSI terminal colour.
@@ -13,7 +14,7 @@ use crate::Error;
 /// of a foreground and a background.
 ///
 /// Note: Ansi4 was decided upon instead of Ansi16 in order to avoid name collisions when importing
-/// both twinkle::terminal::Ansi4 and twinkle::terminal::TerminalColours::*
+/// both tuit::terminal::Ansi4 and tuit::terminal::TerminalColours::*
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[repr(u8)]
 #[allow(missing_docs)]
@@ -46,7 +47,7 @@ impl BitOr for Ansi4 {
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
-/// These are the possible terminal colours covered by Twinkle.
+/// These are the possible terminal colours covered by Tuit.
 ///
 ///
 /// `TerminalColour` supports many terminal colour schemes; some terminals may not be capable of
@@ -88,7 +89,7 @@ pub enum TerminalColour {
 /// includes information about whether the foreground and background colours are switched.
 ///
 /// ```
-/// use twinkle::terminal::{Ansi4, TerminalColour, TerminalStyle};
+/// use tuit::terminal::{Ansi4, TerminalColour, TerminalStyle};
 ///
 /// let default_style = TerminalStyle::new()
 ///     .fg_ansi4(Ansi4::Green)
@@ -125,7 +126,7 @@ impl TerminalStyle {
     /// Used to set the background colour of the terminal style.
     ///
     /// ```
-    /// use twinkle::terminal::{Ansi4, TerminalColour, TerminalStyle};
+    /// use tuit::terminal::{Ansi4, TerminalColour, TerminalStyle};
     ///
     /// // Note: there are individual methods for every TerminalColour variant,
     /// // but if you need to determine change the colour at runtime this method may be useful.
@@ -142,7 +143,7 @@ impl TerminalStyle {
     /// Used to set the background colour of the terminal style to a 4-bit ANSI colour.
     ///
     /// ```
-    /// use twinkle::terminal::{Ansi4, TerminalStyle};
+    /// use tuit::terminal::{Ansi4, TerminalStyle};
     ///
     /// let blue_bg_style = TerminalStyle::new()
     ///                             .bg_ansi4(Ansi4::Blue);
@@ -154,7 +155,7 @@ impl TerminalStyle {
     /// Used to set the foreground colour of the terminal style to a 4-bit ANSI colour.
     ///
     /// ```
-    /// use twinkle::terminal::{Ansi4, TerminalStyle};
+    /// use tuit::terminal::{Ansi4, TerminalStyle};
     ///
     /// let blue_fg_style = TerminalStyle::new()
     ///                             .fg_ansi4(Ansi4::Blue);
@@ -218,8 +219,8 @@ pub enum UpdateInfo {
 /// ## Example
 ///
 /// ```
-/// use twinkle::prelude::Terminal;
-/// use twinkle::terminal::{TerminalObject, UpdateInfo};
+/// use tuit::prelude::Terminal;
+/// use tuit::terminal::{TerminalObject, UpdateInfo};
 ///
 /// struct MyObject {
 ///     my_char: char
@@ -284,7 +285,7 @@ pub trait Terminal {
     /// Retrieves a mutable reference to a terminal cell
     ///
     /// ```
-    /// use twinkle::terminal::{ConstantSizeTerminal, Terminal};
+    /// use tuit::terminal::{ConstantSizeTerminal, Terminal};
     ///
     /// let mut terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
     ///
@@ -353,7 +354,7 @@ pub trait TerminalExtended: Terminal {
 /// and can't be changed at runtime.
 ///
 /// ```
-/// use twinkle::terminal::ConstantSizeTerminal;
+/// use tuit::terminal::ConstantSizeTerminal;
 ///
 /// let mut terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
 ///
@@ -385,7 +386,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> ConstantSizeTerminal<WIDTH, HEIGHT
     /// ## Example
     ///
     /// ```
-    /// use twinkle::terminal::ConstantSizeTerminal;
+    /// use tuit::terminal::ConstantSizeTerminal;
     ///
     /// let my_terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new(); // does not require arguments.
     /// ```

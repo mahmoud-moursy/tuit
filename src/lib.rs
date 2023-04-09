@@ -1,8 +1,8 @@
-//! # Twinkle is a no_std TUI library intended for use in bare-metal applications
+//! # Tuit is a no_std TUI library intended for use in bare-metal applications
 //!
-//! Twinkle is meant to be the successor to my (very infant) library made to fill the same gap called Tooey.
+//! Tuit is meant to be the successor to my (very infant) library made to fill the same gap called Tooey.
 //!
-//! Tooey relied upon `alloc` and was generally not very easy-to-use, well-documented or extensible. Twinkle
+//! Tooey relied upon `alloc` and was generally not very easy-to-use, well-documented or extensible. Tuit
 //! is made to change that, using the lessons learnt from Tooey.
 //!
 //!
@@ -27,7 +27,7 @@
 
 pub use errors::Error;
 
-/// This is a type alias used by `twinkle` for its errors.
+/// This is a type alias used by `tuit` for its errors.
 pub type Result<T> = core::result::Result<T, Error>;
 
 pub mod terminal;
@@ -38,30 +38,31 @@ pub mod widgets;
 
 pub mod prelude {
     //! The crate's prelude includes items that you'd usually want imported in a project that uses
-    //! Twinkle.
+    //! Tuit.
     //!
     //! This module is intended to be glob-imported.
     pub use crate::{
+        draw::TerminalDrawTarget,
         terminal::{
             Terminal,
             TerminalExtended,
             TerminalObject,
         },
-        draw::TerminalDrawTarget,
     };
 }
 
 #[doc(hidden)]
 #[cfg(test)]
 mod test {
-    use crate::terminal::TerminalCell;
-    use super::terminal::ConstantSizeTerminal;
+    use std::prelude::rust_2021::*;
+
     use crate::prelude::*;
+    use crate::terminal::TerminalCell;
+
+    use super::terminal::ConstantSizeTerminal;
 
     extern crate std;
     extern crate alloc;
-
-    use std::prelude::rust_2021::*;
 
     #[test]
     fn views() {

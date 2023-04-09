@@ -19,7 +19,7 @@ pub enum Error {
     OutOfBoundsCharacter(usize),
     #[error("Attempted to access a character co-ordinate that was out of bounds at: (x: {0}, y: {0})")]
     OutOfBoundsCoordinate(usize, usize),
-    /// For when an error case is not covered by Twinkle. If you are forced to use this, and think
+    /// For when an error case is not covered by Tuit. If you are forced to use this, and think
     /// that your use-case for the error is in fact general enough, please feel free to submit a PR!
     #[error(transparent)]
     Generic(#[from] anyhow::Error),
