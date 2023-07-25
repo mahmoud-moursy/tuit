@@ -3,7 +3,6 @@
 //! This module encompasses the main traits needed to implement a Tuit Terminal.
 
 use core::array;
-use core::borrow::BorrowMut;
 use core::fmt::Formatter;
 use core::ops::{BitOr, DerefMut};
 use core::time::Duration;
@@ -14,12 +13,21 @@ use crate::Error;
 use crate::prelude::*;
 
 /// Represents a 4-bit ANSI terminal colour.
-///
+/// <br /> <br />
 /// Usually, two of these are used in a terminal to create an 8-bit colour consisting
 /// of a foreground and a background.
-///
+/// <br /> <br />
 /// Note: Ansi4 was decided upon instead of Ansi16 in order to avoid name collisions when importing
 /// both [`Ansi4`] and when glob-importing [`TerminalColour`]
+///
+/// ```
+/// use tuit::terminal::Ansi4;
+///
+/// let my_foreground_colour = Ansi4::Black;
+/// let my_background_colour = Ansi4::Blue;
+///
+/// let my_colour: u8 = my_foreground_colour | my_background_colour;
+/// ```
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[repr(u8)]
 #[allow(missing_docs)]
@@ -47,7 +55,7 @@ impl BitOr for Ansi4 {
     type Output = u8;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        self as u8 | (rhs as u8) << 4
+        (self as u8) << 4 | rhs as u8
     }
 }
 
@@ -55,16 +63,16 @@ impl BitOr for Ansi4 {
 /// These are the possible terminal colours covered by Tuit.
 ///
 ///
-/// `TerminalColour` supports many terminal colour schemes; some terminals may not be capable of
+/// [`TerminalColour`] supports many terminal colour schemes; some terminals may not be capable of
 /// displaying certain colours, or may represent colours differently (for example, ANSI colours
 /// may be overwritten by user themes on some terminals).
 ///
-/// `TerminalColour` supports the following colour formats:
+/// [`TerminalColour`] supports the following colour formats:
 /// - 16-colour ANSI
 /// - 256-colour ANSI
 /// - 24-bit true colour
 /// - Luma8 grayscale colouring
-/// - None (uses the last set terminal colour)
+/// - Default (Uses the terminal's default colour)
 ///
 /// How terminals will display unsupported colour formats is implementation-specific; as a common
 /// rule of thumb though, they should never panic when they see an unimplemented colour.
@@ -76,7 +84,7 @@ pub enum TerminalColour {
     Luma8(u8),
     /// 16-colour ANSI terminal colours
     Ansi16(Ansi4),
-    /// ANSI 256-colour terminal colours
+    /// 256-colour ANSI terminal colours
     Ansi256(u8),
     #[default]
     /// Use the terminal's default colour
@@ -101,15 +109,25 @@ pub enum TerminalColour {
 /// ```
 pub struct TerminalStyle {
     /// The foreground colour of the terminal cell
+    /// 
+    /// When it is None, assume the colour to be unset (use the colour of the preceding cell)
     pub fg_colour: Option<TerminalColour>,
     /// The background colour of the terminal cell
+    /// 
+    /// When it is None, assume the colour to be unset (use the colour of the preceding cell)
     pub bg_colour: Option<TerminalColour>,
     /// The font weight of the terminal cell
+    /// 
+    /// When it is None, assume the font weight to be unset (use the font weight of the preceding cell)
     pub font_weight: Option<u16>,
-    /// Whether the terminal cell is underline or not
+    /// Whether the terminal cell is underlined or not
+    /// 
+    /// When it is None, assume the underline to be unset (use the underlining of the preceding cell)
     pub underline: Option<bool>,
     /// Whether the background and foreground colours should be switched; primarily for use in
     /// single-colour terminals.
+    /// 
+    /// When it is None, assume the inversion to be unset (use the inversion setting of the preceding cell)
     pub invert: Option<bool>
 }
 
@@ -119,7 +137,17 @@ impl TerminalStyle {
         Self::default()
     }
 
+    /// Used to set the foreground colour of the terminal style.
     ///
+    /// ```
+    /// use tuit::terminal::{Ansi4, TerminalColour, TerminalStyle};
+    ///
+    /// // Note: there are individual methods for every TerminalColour variant,
+    /// // but if you need to determine the colour at runtime this method may be useful.
+    /// let black_fg_style = TerminalStyle::new()
+    ///                         // You can use [`TerminalColour::fg_ansi4`] here, but we're leaving it like this for sake of demonstration.
+    ///                         .fg(TerminalColour::Ansi16(Ansi4::Black));
+    /// ```
     pub fn fg(mut self, fg_colour: TerminalColour) -> Self {
         self.fg_colour = Some(fg_colour);
 
@@ -133,7 +161,7 @@ impl TerminalStyle {
     ///
     /// // Note: there are individual methods for every TerminalColour variant,
     /// // but if you need to determine change the colour at runtime this method may be useful.
-    /// let red_bg_style = TerminalStyle::new()
+    /// let black_bg_style = TerminalStyle::new()
     ///                         // You can use `TerminalColour::bg_ansi4` here.
     ///                         .bg(TerminalColour::Ansi16(Ansi4::Black));
     /// ```
@@ -165,6 +193,87 @@ impl TerminalStyle {
     /// ```
     pub fn fg_ansi4(self, fg_colour: Ansi4) -> Self {
         self.fg(TerminalColour::Ansi16(fg_colour))
+    }
+
+    /// Used to set the foreground colour of the terminal style to an 8-bit ANSI colour.
+    ///
+    /// ```
+    /// use tuit::terminal::TerminalStyle;
+    ///
+    /// let grayish_fg_style = TerminalStyle::new()
+    ///                             .fg_ansi8(10);
+    /// ```
+    pub fn fg_ansi8(self, fg_colour: u8) -> Self {
+        self.fg(TerminalColour::Ansi256(fg_colour))
+    }
+
+    /// Used to set the foreground colour of the terminal style to an 8-bit ANSI colour.
+    ///
+    /// ```
+    /// use tuit::terminal::TerminalStyle;
+    ///
+    /// let grayish_bg_style = TerminalStyle::new()
+    ///                             .bg_ansi8(10);
+    /// ```
+    pub fn bg_ansi8(self, bg_colour: u8) -> Self {
+        self.bg(TerminalColour::Ansi256(bg_colour))
+    }
+
+    pub fn bg_luma8(self, bg_luminosity: u8) -> Self {
+        self.bg(TerminalColour::Luma8(bg_luminosity))
+    }
+
+    pub fn fg_luma8(self, fg_luminosity: u8) -> Self {
+        self.fg(TerminalColour::Luma8(fg_luminosity))
+    }
+
+    pub fn bg_rgb24(self, r: u8, g: u8, b: u8) -> Self {
+        self.bg(TerminalColour::Rgb24(r, g, b))
+    }
+
+    pub fn bg_default(self) -> Self {
+        self.bg(TerminalColour::TerminalDefault)
+    }
+
+    pub fn fg_default(self) -> Self {
+        self.fg(TerminalColour::TerminalDefault)
+    }
+
+    /// Used to set the terminal style to underlined.
+    pub fn underlined(mut self) -> Self {
+        self.underline = Some(true);
+
+        self
+    }
+
+    /// Used to set the terminal style to explicitly *not* underlined.
+    pub fn not_underlined(mut self) -> Self {
+        self.underline = Some(false);
+
+        self
+    }
+
+    /// Used to set the terminal style's weight.
+    pub fn font_weight(mut self, weight: u16) -> Self {
+        self.font_weight = Some(weight);
+
+        self
+    }
+
+    /// Used to set the terminal style's inversion.
+    pub fn inverted(mut self) -> Self {
+        self.invert = Some(true);
+
+        self
+    }
+
+    /// Used to set the terminal style to explicitly *not* inverted.
+    /// 
+    /// Refer to [TerminalStyle] for an explanation on what inversion is.
+    pub fn not_inverted(mut self) -> Self {
+        self.invert = Some(false);
+
+        self
     }
 }
 
@@ -359,9 +468,17 @@ pub enum UpdateInfo {
     /// This can be used to inform widgets of how much time has passed since they have
     /// last been updated.
     TimeDelta(Duration),
+    /// Some widgets may not need to update on every draw() call, unless the terminal has been resized.
+    ///
     /// This is used to inform widgets that the terminal has been resized so that they can
     /// re-calculate their dimensions and any cached data reliant on the terminal's size.
     TerminalResized,
+    /// Some widgets may *not* redraw themselves on every draw() call; if they need to do so
+    /// immediately, then this can be used to inform them.
+    ForceRedraw,
+    /// This is used when there is no information to report to widgets that need to be updated
+    /// (e.g in a redraw).
+    NoInfo
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Hash)]
@@ -370,24 +487,27 @@ pub enum UpdateInfo {
 pub enum UpdateResult {
     /// No event has occurred, the object will continue to live.
     NoEvent,
+    /// The object will continue to live, and it has not drawn anything to the screen.
+    NoRedraw,
     /// The object's lifecycle has ended, and it should now be destructured.
     LifecycleEnd,
 }
 
-/// This trait defines the minimum requirements for a type to be capable
+/// This trait defines the minimum requirements for a type to be capable of terminal display
 ///
 /// ## Example
 ///
 /// ```
 /// use tuit::prelude::Terminal;
-/// use tuit::terminal::{TerminalObject, UpdateInfo};
+/// use tuit::terminal::{TerminalObject, UpdateInfo, UpdateResult};
 ///
+/// // Replaces the entire terminal with `my_char` on draw.
 /// struct MyObject {
 ///     my_char: char
 /// }
 ///
 /// impl TerminalObject for MyObject {
-///     fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> Result<(), tuit::Error> {
+///     fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
 ///         match update_info {
 ///             // Change my_char to the last key that was pressed
 ///             UpdateInfo::KeyboardCharacter(character,_) => { self.my_char = character }
@@ -395,12 +515,14 @@ pub enum UpdateResult {
 ///             _ => {}
 ///         }
 ///
-///         Ok(())
+///         Ok(UpdateResult::NoEvent)
 ///     }
 ///
-///     fn draw(&mut self, mut terminal: impl Terminal) {
+///     fn draw(&mut self, update_info: UpdateInfo, mut terminal: impl Terminal)-> tuit::Result<UpdateResult> {
 ///         // Set the terminal's top-left character to my_char.
 ///         terminal.character_mut(0, 0).map(|x| x.character = self.my_char);
+///
+///         Ok(UpdateResult::NoEvent)
 ///     }
 /// }
 pub trait TerminalObject {
@@ -417,19 +539,41 @@ pub trait TerminalObject {
     ///
     ///     my_terminal_object.update(input_magic, &mut my_terminal)
     /// }
-    ///
     /// ```
     fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult>;
 
     /// This method is called by the implementor whenever a frame redraw is requested.
-    fn draw(&mut self, terminal: impl Terminal);
+    fn draw(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult>;
+
+    /// This method is called by the implementor when a force redraw is required.
+    ///
+    /// Equivalent to [`TerminalObject::draw`] when called with [`UpdateInfo::ForceRedraw`] as `update_info`.
+    fn force_redraw(&mut self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        self.draw(UpdateInfo::ForceRedraw, terminal)
+    }
+
+    /// This method is called by the implementor when a redraw is requested.
+    ///
+    /// Equivalent to [`TerminalObject::draw`] when called with [`UpdateInfo::NoInfo`] as `update_info`.
+    ///
+    /// Essentially a shorthand for `object.draw(UpdateInfo::NoInfo, my_terminal)`.
+    fn drawn(&mut self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        self.draw(UpdateInfo::NoInfo, terminal)
+    }
 }
 
 /// The Terminal trait allows TerminalObjects to interact and manipulate a terminal's characters.
 ///
 /// At its core, it just provides information about the terminal and access to its cells.
 pub trait Terminal {
-    /// Returns the Terminal's dimensions.
+    /// Returns the Terminal's dimensions in the order of (width, height).
+    ///
+    /// ```
+    /// # use tuit::terminal::{ConstantSizeTerminal, Terminal};
+    /// # let my_terminal: ConstantSizeTerminal<1, 1> = ConstantSizeTerminal::new();
+    ///
+    /// let (width, height) = my_terminal.dimensions();
+    /// ```
     fn dimensions(&self) -> (usize, usize);
 
     /// Returns the Terminal's default style.
@@ -483,14 +627,14 @@ pub trait Terminal {
     fn character(&self, x: usize, y: usize) -> Option<&TerminalCell> {
         let width = self.width();
 
-        self.characters().get((width * y) + x)
+        self.characters().get(x + (width * y))
     }
 
     /// You can pass any value that implements TerminalDrawTarget to get the terminal to update.
     ///
     /// Inversely, you can call TerminalDrawTarget::render on any Terminal and draw the screen
     ///
-    /// ```no_test
+    /// ```compile_fail
     /// use tuit::terminal::ConstantSizeTerminal;
     /// use tuit::prelude::*;
     ///

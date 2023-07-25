@@ -6,4 +6,11 @@ Tuit does not provide a complete suite of utilities to handle terminals. It can 
 the
 MVC architecture, since it only deals with the display of terminal objects.
 
-TODO: Write a README.
+### Virtual terminals
+
+At the basis of Tuit is an abstraction on the terminal; the virtual terminal.
+
+Virtual terminals are anything that implements the `tuit::terminal::Terminal`, and there are
+a few options that both avoid and utilize allocation (note that the `alloc` feature is required for
+allocating terminals).
+

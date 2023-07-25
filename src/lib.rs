@@ -6,8 +6,7 @@
 //! is made to change that, using the lessons learnt from Tooey.
 //!
 //!
-
-#![feature(rustdoc_missing_doc_code_examples)]
+//!
 #![feature(slice_flatten, int_roundings, associated_type_bounds)]
 
 #![deny(unused_features)]
@@ -16,6 +15,8 @@
 #![warn(rustdoc::broken_intra_doc_links)]
 
 #![warn(missing_docs)]
+
+#![feature(rustdoc_missing_doc_code_examples)]
 #![warn(rustdoc::missing_doc_code_examples)]
 
 #![warn(clippy::todo)]
@@ -37,7 +38,6 @@ pub mod errors;
 #[cfg(feature = "widgets")]
 pub mod widgets;
 
-#[allow(rustdoc::missing_doc_code_examples)]
 pub mod prelude {
     //! The crate's prelude includes items that you'd usually want imported in a project that uses
     //! Tuit.

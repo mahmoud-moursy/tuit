@@ -36,7 +36,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// I/O related errors.
+    /// For generic I/O related errors.
     #[error("Encountered an I/O error.")]
     Io,
     /// This error is for when an implementor of TerminalDrawTarget fails for whatever reason
@@ -62,5 +62,12 @@ pub enum Error {
     /// A slightly more specific version of [`Error::Generic`] that specifies
     /// the error occurred within an object that was updating.
     #[error("{0}")]
-    GenericUpdateError(#[source] anyhow::Error)
+    GenericUpdateError(#[source] anyhow::Error),
+}
+
+#[cfg(feature = "std")]
+impl From<std::io::Error> for Error {
+    fn from(_value: std::io::Error) -> Self {
+        Error::Io
+    }
 }

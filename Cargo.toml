@@ -10,17 +10,18 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bitflags = "1.3.2"
-thiserror = { version = "1.0.30", package = "thiserror-core" }
-anyhow = "1.0.69"
+bitflags = "2.3.3"
+thiserror = { version = "1.0.38", package = "thiserror-core" }
+anyhow = "1.0.72"
 owo-colors = { version = "3.5.0" }
+unicode-width = { version = "0.1.10", optional = true }
 
 [features]
 default = ["widgets"]
 std = ["alloc"]
 alloc = []
 widgets = []
-ansi_terminal = ["std"]
+ansi_terminal = ["std", "unicode-width"]
 
 [package.metadata.docs.rs]
 all-features = true
