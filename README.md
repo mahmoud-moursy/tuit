@@ -3,8 +3,9 @@
 ## The TUI lib for the no_std, no_alloc hard-mode Rust user!
 
 Tuit does not provide a complete suite of utilities to handle terminals. It can be considered the 'view' component of
-the
-MVC architecture, since it only deals with the display of terminal objects.
+the MVC architecture, since it only deals with the display of terminal objects.
+
+This means that, while the terminal objects may have nice features to handle their own state, you are the one ultimately in control of program logic.
 
 ### Virtual terminals
 
