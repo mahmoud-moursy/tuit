@@ -13,8 +13,8 @@
 //!
 //! impl TerminalDrawTarget for MyGPU {
 //!     fn render(&mut self, terminal: impl Terminal) -> Result<(), Error> {
-//!         for character in terminal.characters() {
-//!             self.gpu_magic(x)
+//!         for character in terminal.characters_slice() {
+//!             self.gpu_magic(character)
 //!         }
 //!
 //!         Ok(())
@@ -33,25 +33,25 @@ pub trait TerminalDrawTarget {
     ///
     /// ```
     /// use tuit::prelude::*;
-    /// use tuit::terminal::TerminalCell;
+    /// use tuit::terminal::Character;
     /// struct MyGPU;
     ///
     /// impl MyGPU {
-    ///     pub fn gpu_magic(&mut self, character: &TerminalCell) {
+    ///     pub fn gpu_magic(&mut self, character: &Character) {
     ///         // Huzzah!
     ///     }
     /// }
     ///
     /// impl TerminalDrawTarget for MyGPU {
     ///     fn render(&mut self, terminal: impl Terminal) -> tuit::Result<()> {
-    ///         let characters = terminal.characters().iter();
+    ///         let characters = terminal.characters_slice().iter();
     ///
     ///         // Do some magic to render characters!
     ///         for character in characters {
     ///             self.gpu_magic(character)
     ///         }
     ///
-    ///         return Ok(())
+    ///         return Ok(());
     ///     }
     /// }
     /// ```
@@ -66,11 +66,11 @@ impl TerminalDrawTarget for std::io::Stdout {
 
         let terminal_width = terminal.width();
 
-        let characters = terminal.characters_mut().iter_mut();
+        let characters = terminal.characters_slice_mut().iter_mut();
 
         for (idx, character_cell) in characters.enumerate() {
             if idx % terminal_width == 0 {
-                writeln!(self)?
+                writeln!(self)?;
             }
             // Protect against alignment issues that can arise from characters
             // like `\0` or `\t` by replacing them with a space.
@@ -78,7 +78,7 @@ impl TerminalDrawTarget for std::io::Stdout {
                 character_cell.character = ' ';
             }
 
-            write!(self, "{character_cell}")?
+            write!(self, "{character_cell}")?;
         }
 
         Ok(())

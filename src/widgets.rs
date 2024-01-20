@@ -1,35 +1,55 @@
 //! # Widgets
 //!
 //! The widgets module contains some pre-bundled widgets ready to go with Tuit.
-//! 
-//! Heavy TODO!
-
+//!
+//! Every widget included is functional and document, but this is still a heavy TODO because it is very bare-bones
+//! at the moment.
 use crate::prelude::*;
-use crate::terminal::{MouseButton, TerminalColour, TerminalObject, UpdateInfo, UpdateResult};
+use crate::terminal::{Colour, MouseButton, Style, UpdateInfo, UpdateResult, Widget};
+use crate::Error;
+
+/// Provides a direction for elements
+pub enum Direction {
+    /// Left
+    Left,
+    /// Right
+    Right,
+    /// Down (or bottom of terminal, in some contexts)
+    Down,
+    /// Up (or top of terminal, in some contexts)
+    Up,
+}
 
 /// A widget that will clear the entire terminal and replace it with a blank cell containing
 /// the specified colour.
 pub struct Sweeper {
     /// The colour to use for the blank cells that clear the terminal.
-    pub colour: TerminalColour
+    pub colour: Colour,
 }
 
 impl Sweeper {
     /// Creates a new [`Sweeper`] with the specified `colour`
-    pub fn new(colour: TerminalColour) -> Self {
-        Sweeper {
-            colour
-        }
+    #[must_use]
+    pub const fn new(colour: Colour) -> Self {
+        Self { colour }
     }
 }
 
-impl TerminalObject for Sweeper {
-    fn update(&mut self, _update_info: UpdateInfo, _terminal: impl Terminal) -> crate::Result<UpdateResult> {
+impl Widget for Sweeper {
+    fn update(
+        &mut self,
+        _update_info: UpdateInfo,
+        _terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
         Ok(UpdateResult::NoEvent)
     }
 
-    fn draw(&mut self, _update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        for character in terminal.characters_mut() {
+    fn draw(
+        &self,
+        _update_info: UpdateInfo,
+        mut terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
+        for character in terminal.characters_slice_mut() {
             character.style.bg_colour = Some(self.colour);
             character.character = ' ';
         }
@@ -39,51 +59,193 @@ impl TerminalObject for Sweeper {
 }
 
 /// A prompt that is centered
+///
+/// ```
+/// use tuit::terminal::ConstantSize;
+/// use tuit::widgets::CenteredPrompt;
+/// use tuit::terminal::Widget;
+///
+/// let small_terminal: ConstantSize<1, 1> = ConstantSize::new();
+/// let my_prompt = CenteredPrompt::new("Hello world!");
+///
+/// my_prompt.drawn(small_terminal).expect_err("If the terminal is too small, then an OutOfBoundsCoordinate error is returned.");
+/// ```
 pub struct CenteredPrompt<'a> {
     /// The text to be displayed
-    prompt_text: &'a str,
-    // These values are used to calculate where the prompt will be drawn, and are generated on
-    // instantiation of the struct.
-    height: usize,
-    width: usize,
-    y_offset: usize,
-    x_offset: usize,
-    // This value contains the dimensions used to calculate the prompt's cached values at the time of its creation.
-    // If the terminal resizes, then the struct will be able to know.
-    dimensions_used: Option<(usize, usize)>,
+    pub prompt_text: &'a str,
+    /// The styling behind the prompt.
+    pub style: Style
 }
 
-impl<'a> TerminalObject for CenteredPrompt<'a> {
-    fn update(&mut self, update_info: UpdateInfo, _terminal: impl Terminal) -> crate::Result<UpdateResult> {
+impl<'a> CenteredPrompt<'a> {
+    /// Initializes a centered prompt with the given text.
+    #[must_use]
+    pub const fn new(text: &'a str) -> Self {
+        Self {
+            prompt_text: text,
+            style: Style::new()
+        }
+    }
+
+    fn calculate_dimensions(&self, terminal: &impl Terminal) -> ((usize, usize), (usize, usize)) {
+        let (terminal_width, terminal_height) = terminal.dimensions();
+
+        let text_len = self.prompt_text.len();
+        let height = text_len.div_ceil(terminal_width).min(terminal_height);
+        let width = text_len.min(terminal_width);
+
+        let horizontal_center = terminal_width / 2;
+        let vertical_center = terminal_height / 2;
+
+        let left = horizontal_center - (width / 2);
+        let right = left + width;
+
+        let top = vertical_center - (height / 2);
+        let bottom = top + height;
+
+        ((left, top), (right, bottom))
+    }
+}
+
+impl<'a> Widget for CenteredPrompt<'a> {
+    fn update(
+        &mut self,
+        update_info: UpdateInfo,
+        terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::LeftClick) => {
+                let ((left, top), (right, bottom)) = self.calculate_dimensions(&terminal);
+
                 #[allow(clippy::collapsible_if)]
                 // Check if click was within bounds.
-                if x < self.width + self.x_offset && self.x_offset > x {
-                    if y < self.height + self.y_offset && self.y_offset > y {
-                        return Ok(UpdateResult::LifecycleEnd)
+                if x < left && right > x {
+                    if y > top && bottom < y {
+                        return Ok(UpdateResult::LifecycleEnd);
                     }
                 }
 
                 Ok(UpdateResult::NoEvent)
             }
-            _ => Ok(UpdateResult::NoEvent)
+            _ => Ok(UpdateResult::NoRedraw),
         }
     }
 
-    fn draw(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let dimensions = terminal.dimensions();
+    fn draw(
+        &self,
+        _update_info: UpdateInfo,
+        mut terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
+        let ((left, top), (right, _bottom)) = self.calculate_dimensions(&terminal);
+        let width = right - left;
 
-        #[allow(clippy::collapsible_if)]
-        if update_info != UpdateInfo::ForceRedraw {
-            if self.dimensions_used == Some(dimensions) {
-                return Ok(UpdateResult::NoRedraw);
+        for (i, character) in self.prompt_text.chars().enumerate() {
+            let x = (i % width) + left;
+            let y = (i / width) + top;
+
+            if let Some(cell) = terminal.character_mut(x, y) {
+                cell.character = character;
+                cell.style = cell.style.inherits(self.style);
+            } else {
+                return Err(Error::OutOfBoundsCoordinate(x, y));
             }
         }
 
+        Ok(UpdateResult::NoEvent)
+    }
+}
 
+/// This widget just marks the given [`Direction`] of the screen with x or y-coords.
+///
+/// For example, using this widget with [`Direction::Down`] will mark the bottom of the screen
+/// with the x-coordinate of each cell.
+pub struct Ruler(u32, Direction);
 
-        todo!()
+impl Default for Ruler {
+    fn default() -> Self {
+        Self(16, Direction::Down)
+    }
+}
+impl Ruler {
+    /// Initializes a Ruler with the given radix.
+    ///
+    /// Returns [`None`] if supplied radix is invalid (radix must be in range 2..=36)
+    #[must_use]
+    pub const fn new(radix: u32, direction: Direction) -> Option<Self> {
+        if radix <= 36 && radix >= 2 {
+            Some(Self(radix, direction))
+        } else {
+            None
+        }
+    }
+
+    fn horizontal_draw(&self, mut terminal: impl Terminal) {
+        let (width, height) = terminal.dimensions();
+        let characters = terminal.characters_slice_mut();
+
+        let bar = match self.1 {
+            Direction::Up => {
+                &mut characters[..width]
+            }
+            Direction::Down => {
+                &mut characters[(height - 1) * width..]
+            }
+            _ => unreachable!(),
+        };
+
+        for (x, character) in bar.iter_mut().enumerate() {
+            // Truncation here is impossible, unless you are on an architecture below 32-bits.
+            character.character =
+                char::from_digit(
+                    u32::try_from(x % self.0 as usize)
+                        .expect("usize is too small (applies to 16-bit or below architectures)"),
+                    self.0
+                ).expect("Should never fail.");
+        }
+    }
+
+    fn vertical_draw(&self, mut terminal: impl Terminal) {
+        let (width, height) = terminal.dimensions();
+        let characters = terminal.characters_slice_mut();
+
+        let x_offset = match self.1 {
+            Direction::Left => 0,
+            Direction::Right => width - 1,
+            _ => unreachable!(),
+        };
+
+        for y in 0..height {
+            // Truncation here is impossible, unless you are on an architecture below 32-bits.
+            characters[(y * width) + x_offset].character =
+                char::from_digit(
+                    u32::try_from(y % self.0 as usize)
+                        .expect("usize is too small (applies to 16-bit or below architectures)"),
+                    self.0
+                ).expect("Radix overflowed, or wrapping has failed.");
+        }
+    }
+}
+
+impl Widget for Ruler {
+    fn update(
+        &mut self,
+        _update_info: UpdateInfo,
+        _terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
+        Ok(UpdateResult::NoEvent)
+    }
+
+    fn draw(
+        &self,
+        _update_info: UpdateInfo,
+        terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
+        match self.1 {
+            Direction::Up | Direction::Down => self.horizontal_draw(terminal),
+            Direction::Left | Direction::Right => self.vertical_draw(terminal),
+        }
+
+        Ok(UpdateResult::NoEvent)
     }
 }
 

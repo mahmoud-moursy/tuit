@@ -1,4 +1,4 @@
-//! # Tuit is a no_std TUI library intended for use in bare-metal applications
+//! # Tuit is a `no_std` TUI library intended for use in bare-metal applications
 //!
 //! Tuit is meant to be the successor to my (very infant) library made to fill the same gap called Tooey.
 //!
@@ -7,24 +7,13 @@
 //!
 //!
 //!
-#![feature(slice_flatten, int_roundings, associated_type_bounds)]
-
-#![deny(unused_features)]
-
-#![deny(clippy::undocumented_unsafe_blocks)]
-#![warn(rustdoc::broken_intra_doc_links)]
-
-#![warn(missing_docs)]
-
-#![feature(rustdoc_missing_doc_code_examples)]
-#![warn(rustdoc::missing_doc_code_examples)]
-
-#![warn(clippy::todo)]
-
-#![warn(clippy::perf)]
+#![feature(int_roundings, associated_type_bounds, slice_flatten, iter_advance_by)]
 
 // Never include the standard library unless the "std" feature is specified.
 #![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
 #[doc(hidden)]
 pub use errors::Error;
@@ -48,7 +37,7 @@ pub mod prelude {
         terminal::{
             Terminal,
             TerminalExtended,
-            TerminalObject,
+            Widget,
         },
     };
 }
@@ -63,25 +52,33 @@ mod test {
     use std::prelude::rust_2021::*;
 
     use crate::prelude::*;
-    use crate::terminal::ConstantSizeTerminal;
-    use crate::terminal::TerminalCell;
+    use crate::terminal::{ConstantSize, Style};
+    use crate::terminal::Character;
 
     #[test]
     fn views() {
-        let mut terminal: ConstantSizeTerminal<20, 20> = ConstantSizeTerminal::new();
+        let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
 
-        terminal.characters_mut()[21] = TerminalCell {
+        terminal.characters_slice_mut()[21] = Character {
             character: 'h',
-            style: Default::default(),
+            style: Style::default(),
         };
 
-        let my_array = terminal.copied_view::<8, 5>(1, 1).unwrap();
+        let my_array = terminal.view_copied::<8, 5>(1, 1).expect("Should never fail!");
 
         let my_array = my_array.flatten();
 
-        assert_eq!(my_array[0], TerminalCell {
-            character: 'h',
-            style: Default::default(),
-        })
+        assert_eq!(my_array[0].character, 'h');
+    }
+
+    #[test]
+    fn mutable_views() {
+        let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
+
+        let view: [[&mut Character; 5]; 5] = terminal.view_mut(10, 10).expect("Should not fail.");
+
+        view[0][0].character = 'h';
+
+        assert_eq!(terminal.character(15, 15).expect("Won't fail because we are indexing into a valid location").character, 'h');
     }
 }
