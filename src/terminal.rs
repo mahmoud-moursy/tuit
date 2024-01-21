@@ -1,6 +1,17 @@
 //! # Terminals
 //!
 //! This module encompasses the main traits needed to implement a Tuit Terminal.
+//!
+//! ## Implement a Terminal.
+//!
+//! The [`Terminal`] trait requires 3 things.
+//!
+//! 1. That your characters be stored in a contiguous chunk in memory. If you use more advanced data structures, then
+//!     you must still return an `&mut [Character]` slice.
+//!
+//! ```
+//! pub struct BasicTerminal;
+//! ```
 
 use core::array;
 use core::ops::{BitOr, DerefMut};
@@ -1031,11 +1042,11 @@ impl<T: Terminal> TerminalExtended for T {}
 /// ```
 /// use tuit::terminal;
 /// use tuit::prelude::*;
-/// use tuit::widgets::CenteredPrompt;
+/// use tuit::widgets::CenteredText;
 ///
 /// let mut terminal: terminal::ConstantSize<20, 20> = terminal::ConstantSize::new();
 ///
-/// let mut widget: CenteredPrompt = CenteredPrompt::new("Hello world!");
+/// let mut widget: CenteredText = CenteredText::new("Hello world!");
 ///
 /// // Look up `Widget::drawn` in the documentation.
 /// widget.drawn(&mut terminal).expect("Should not fail!");
@@ -1133,12 +1144,12 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> MaxSize<MAX_WIDTH, MAX_HEI
     ///
     /// let mut my_max_terminal: MaxSize<20, 20> = MaxSize::new();
     ///
-    /// my_max_terminal.rescale(10, 10).expect("This mustn't fail!");
+    /// my_max_terminal.rescale(10, 10).expect("This won't fail because the size is below the limit.");
     ///
-    /// let (overflowing_width, overflowing_height) = my_max_terminal.rescale(21, 10).expect_err("This must always be an error!");
+    /// let (overflowing_width, height) = my_max_terminal.rescale(20, 10).expect_err("This must always be an error!");
     ///
     /// assert_eq!(overflowing_width, 21);
-    /// assert_eq!(overflowing_height, 10);
+    /// assert_eq!(height, 10);
     /// ```
     pub fn rescale(&mut self, new_width: usize, new_height: usize) -> Result<(), (usize, usize)> {
         if new_width > MAX_WIDTH {
@@ -1175,4 +1186,10 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Terminal for MaxSize<MAX_W
 
         &self.characters.flatten()[..acting_width*acting_height]
     }
+}
+
+/// Returned when
+pub struct ViewMut<'a, const WIDTH: usize, const HEIGHT: usize> {
+    /// The view's characters.
+    pub characters: [[&'a mut Character; WIDTH]; HEIGHT],
 }

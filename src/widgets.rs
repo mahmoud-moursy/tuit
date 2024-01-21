@@ -62,23 +62,36 @@ impl Widget for Sweeper {
 ///
 /// ```
 /// use tuit::terminal::ConstantSize;
-/// use tuit::widgets::CenteredPrompt;
+/// use tuit::widgets::CenteredText;
 /// use tuit::terminal::Widget;
 ///
 /// let small_terminal: ConstantSize<1, 1> = ConstantSize::new();
-/// let my_prompt = CenteredPrompt::new("Hello world!");
+/// let my_prompt = CenteredText::new("Hello world!");
 ///
 /// my_prompt.drawn(small_terminal).expect_err("If the terminal is too small, then an OutOfBoundsCoordinate error is returned.");
 /// ```
-pub struct CenteredPrompt<'a> {
+pub struct CenteredText<'a> {
     /// The text to be displayed
     pub prompt_text: &'a str,
     /// The styling behind the prompt.
     pub style: Style
 }
 
-impl<'a> CenteredPrompt<'a> {
-    /// Initializes a centered prompt with the given text.
+impl<'a> CenteredText<'a> {
+    /// Initializes a [`CenteredText`] with the given text.
+    ///
+    /// ```
+    /// use tuit::terminal::ConstantSize;
+    /// use tuit::widgets::CenteredText;
+    /// use tuit::prelude::*;
+    ///
+    /// let mut my_terminal = ConstantSize::<20, 20>::new();
+    /// let my_text = CenteredText::new("Hello!");
+    ///
+    /// my_text
+    ///     .drawn(&mut my_terminal)
+    ///     .expect("This only fails if the prompt text has more characters than the terminal can contain.");
+    /// ```
     #[must_use]
     pub const fn new(text: &'a str) -> Self {
         Self {
@@ -87,7 +100,36 @@ impl<'a> CenteredPrompt<'a> {
         }
     }
 
-    fn calculate_dimensions(&self, terminal: &impl Terminal) -> ((usize, usize), (usize, usize)) {
+    /// Initializes a [`CenteredText`] with the given text.
+    ///
+    /// ```
+    /// use tuit::terminal::{Ansi4, ConstantSize, Style};
+    /// use tuit::widgets::CenteredText;
+    /// use tuit::prelude::*;
+    ///
+    /// let mut my_terminal = ConstantSize::<20, 20>::new();
+    /// let my_style = Style::new().bg_ansi4(Ansi4::Blue);
+    /// let my_text = CenteredText::new("Hello!").style(my_style);
+    ///
+    /// my_text
+    ///     .drawn(&mut my_terminal)
+    ///     .expect("This only fails if the prompt text has more characters than the terminal can contain.");
+    /// ```
+    #[must_use] pub const fn style(mut self, style: Style) -> Self {
+        self.style = style;
+
+        self
+    }
+
+    /// Calculates the bounding box of the centered prompt. This method is available so that other widgets can be
+    /// composed using the [`CenteredText`] widget, but it doesn't need to be used by the end-user for the TUI.
+    ///
+    /// [`CenteredText::calculate_dimensions`] returns a `((usize, usize), (usize, usize))` which corresponds to x-y coordinates `((left, top), (right, bottom))`
+    ///
+    /// Width can be determined using `right - left`, and height can be determined using `bottom - top`. This is because
+    /// the y-axis is flipped in Tuit, so `bottom` is actually the larger value, but on the x-axis, `right` is the larger
+    /// value.
+    #[must_use] pub fn calculate_dimensions(&self, terminal: &impl Terminal) -> ((usize, usize), (usize, usize)) {
         let (terminal_width, terminal_height) = terminal.dimensions();
 
         let text_len = self.prompt_text.len();
@@ -107,7 +149,7 @@ impl<'a> CenteredPrompt<'a> {
     }
 }
 
-impl<'a> Widget for CenteredPrompt<'a> {
+impl<'a> Widget for CenteredText<'a> {
     fn update(
         &mut self,
         update_info: UpdateInfo,
@@ -152,6 +194,26 @@ impl<'a> Widget for CenteredPrompt<'a> {
         }
 
         Ok(UpdateResult::NoEvent)
+    }
+}
+
+/// A prompt that can be configured with several buttons
+pub struct CenteredPrompt<'a> {
+    // The child centered_text, containing the prompt text.
+    centered_text: CenteredText<'a>,
+    /// An array containing the text values of each button.
+    pub buttons: &'a [&'a str],
+    // The button currently hovered over
+    button_hovered: usize,
+}
+
+impl<'a> CenteredPrompt<'a> {
+    #[must_use] pub const fn new(text: &'a str, buttons: &'a [&'a str]) -> Self {
+        Self {
+            centered_text: CenteredText::new(text),
+            buttons,
+            button_hovered: 0,
+        }
     }
 }
 

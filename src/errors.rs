@@ -1,3 +1,5 @@
+#![allow(unused_imports)] // For rustdoc to work.
+
 //! # Errors
 //!
 //! This module contains errors that may occur during the execution of the program.
@@ -32,7 +34,15 @@
 
 use thiserror::Error;
 
+
+use crate::terminal::Terminal; // Unused in code, used in docs.
+use crate::terminal::Widget; // Unused in code, used in docs.
+
 /// This enum contains errors that may occur at runtime
+///
+/// ```
+///
+/// ```
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
@@ -63,6 +73,12 @@ pub enum Error {
     /// the error occurred within an object that was updating.
     #[error("{0}")]
     GenericUpdateError(#[source] anyhow::Error),
+    /// This error does not exist for use by [`tuit`], it exists for usage by the users of the library.
+    ///
+    /// It is better to return an [`Error::Todo`] than to panic using the `todo!()` macro when you use a widget
+    /// that is not fully implemented.
+    #[error("This area has not been implemented!")]
+    Todo
 }
 
 #[cfg(feature = "std")]

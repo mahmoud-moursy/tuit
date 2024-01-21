@@ -13,6 +13,6 @@ At the basis of Tuit is an abstraction on the terminal; the virtual terminal.
 
 Virtual terminals are anything that implements the `tuit::terminal::Terminal`, and there are
 a few options that both avoid and utilize allocation (note that the `alloc` feature is required for
-certain dynamically resizing terminals, but there is also a no-alloc `MaxSizeTerminal` which can finitely scale until 
+certain dynamically resizing terminals, but there is also a no-alloc `MaxSize` which can finitely scale until 
 the specified parameters).
 

@@ -1,11 +1,9 @@
 //! An example that demonstrates mutable views.
 #![feature(slice_flatten)]
-#![allow(clippy::cast_possible_truncation)]
 
-use std::array;
 use tuit::prelude::*;
 use tuit::terminal::{Ansi4, Character, Colour, ConstantSize, Style};
-use tuit::widgets::{CenteredPrompt, Direction, Ruler, Sweeper};
+use tuit::widgets::{CenteredText, Direction, Ruler, Sweeper};
 
 #[cfg(not(feature = "ansi_terminal"))]
 compile_error!("You must apply the ansi_terminal feature to view this example. Use `cargo --features ansi_terminal`");
@@ -26,7 +24,7 @@ fn main() {
             .map(|x| char::from_digit(x%10, 10).expect("Never overflows."))
             .collect();
 
-    let prompt = CenteredPrompt::new(&text);
+    let prompt = CenteredText::new(&text);
 
     background.drawn(&mut terminal).expect("Never fails.");
 

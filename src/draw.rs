@@ -26,6 +26,21 @@ use crate::terminal::Terminal;
 
 /// This trait is written by the implementor and is responsible for rendering the terminal's data
 /// to the screen.
+///
+/// It only has one method, which is [`TerminalDrawTarget::render`].
+///
+/// The method receives a reference to a type that implements the [`Terminal`] trait, and uses the data within to render the terminal.
+///
+/// ```
+/// #![feature(ansi_terminal)]
+/// use tuit::terminal::ConstantSize;
+///
+/// let my_terminal = ConstantSize::<20, 20>::new();
+/// let mut stdout = std::io::stdout();
+///
+/// stdout.render(&my_terminal).expect("Failed to draw to stdout");
+/// ```
+///
 pub trait TerminalDrawTarget {
     /// This method gets called when the implementor calls [`Terminal::display`]
     ///
@@ -43,8 +58,8 @@ pub trait TerminalDrawTarget {
     /// }
     ///
     /// impl TerminalDrawTarget for MyGPU {
-    ///     fn render(&mut self, terminal: impl Terminal) -> tuit::Result<()> {
-    ///         let characters = terminal.characters_slice().iter();
+    ///     fn render(&mut self, terminal: &impl Terminal) -> tuit::Result<()> {
+    ///         let characters = terminal.characters_slice();
     ///
     ///         // Do some magic to render characters!
     ///         for character in characters {
@@ -55,25 +70,30 @@ pub trait TerminalDrawTarget {
     ///     }
     /// }
     /// ```
-    fn render(&mut self, terminal: impl Terminal) -> crate::Result<()>;
+    fn render(&mut self, terminal: &impl Terminal) -> crate::Result<()>;
 }
 
 #[cfg(feature = "ansi_terminal")]
 impl TerminalDrawTarget for std::io::Stdout {
-    fn render(&mut self, mut terminal: impl Terminal) -> crate::Result<()> {
-        use std::prelude::rust_2021::*;
+    fn render(&mut self, terminal: &impl Terminal) -> crate::Result<()> {
         use std::io::Write;
+        use std::prelude::rust_2021::*;
 
         let terminal_width = terminal.width();
 
-        let characters = terminal.characters_slice_mut().iter_mut();
+        let characters = terminal.characters_slice().iter();
 
         for (idx, character_cell) in characters.enumerate() {
             if idx % terminal_width == 0 {
                 writeln!(self)?;
             }
+
+            let mut character_cell = character_cell.clone();
+
             // Protect against alignment issues that can arise from characters
             // like `\0` or `\t` by replacing them with a space.
+            //
+            // FIXME: Wide characters not handled.
             if character_cell.character.is_whitespace() || character_cell.character.is_control() {
                 character_cell.character = ' ';
             }
