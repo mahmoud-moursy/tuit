@@ -7,7 +7,7 @@ categories = ["no-std::no-alloc", "command-line-interface"]
 keywords = ["no_std", "tui"]
 documentation = "https://docs.rs/crate/tuit"
 readme = "README.md"
-license = "GPL-3"
+license = "GPL-3.0+"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
