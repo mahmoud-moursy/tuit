@@ -63,9 +63,9 @@ pub enum Error {
     /// This error is for when an out-of-bounds index occurs within any [`Terminal`]/[`Widget`] method.
     /// It includes the x,y coordinates used to index into the slice.
     #[error(
-        "Attempted to access a character co-ordinate that was out of bounds at: (x: {}, y: {})",
-        x.map(|x| x.to_string()).unwrap_or_else(|| "unknown".into()),
-        y.map(|y| y.to_string()).unwrap_or_else(|| "unknown".into()),
+        "Attempted to access a character co-ordinate that was out of bounds at: (x: {:?}, y: {:?})",
+        x,
+        y
     )]
     OutOfBoundsCoordinate {
         /// The X out-of-bounds coordinate. This may be `None` in cases where a coordinate cannot be provided.
