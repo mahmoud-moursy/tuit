@@ -385,7 +385,7 @@ impl Style {
         self
     }
 
-    /// Will replace all `None` properties in a style with defined properties from the left-hand style.
+    /// Will replace all `None` properties in a style with defined properties from the right-hand style.
     ///
     /// ```
     /// use tuit::terminal::Style;
@@ -411,7 +411,7 @@ impl Style {
     /// ```
     #[must_use]
     pub const fn inherits(self, fallback: Self) -> Self {
-        // This macro is necessary because Rust's core lib does not support using `.or()` on `Option`s at the moment.
+        // This macro is necessary because Rust's core lib does not support using `.or()` on `Option`s in a const context at the moment.
         macro_rules! or {
             ($lhs: expr, $rhs: expr) => {
                 match $lhs {
@@ -441,8 +441,9 @@ pub struct Cell {
 }
 
 impl Cell {
+    /// Create a new cell using the default style and the specified character.
     #[must_use]
-    const fn new(character: char) -> Self {
+    pub const fn new(character: char) -> Self {
         Self {
             character,
             style: Style::new(),

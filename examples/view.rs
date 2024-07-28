@@ -28,12 +28,8 @@ fn main() {
 
     let mut prompt = CenteredPrompt::new("Hello world!", &test_buttons_str).select(2);
 
-    let prompt_ref = &mut prompt;
-
-    *prompt_ref = prompt_ref.select(1);
-
-    prompt_ref.centered_text.style = prompt_ref.centered_text.style.bg(Ansi16(Ansi4::Red));
-    prompt_ref.selected_button_style = prompt_ref.selected_button_style.bg(Ansi16(Ansi4::Blue));
+    prompt.centered_text.style = prompt.centered_text.style.bg(Ansi16(Ansi4::Red));
+    prompt.selected_button_style = prompt.selected_button_style.inverted();
 
     prompt.drawn(&mut terminal).expect("Oops...");
 
