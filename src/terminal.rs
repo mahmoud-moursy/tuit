@@ -15,14 +15,11 @@
 
 use core::array;
 use core::ops::{BitOr, DerefMut};
-use core::time::Duration;
 use core::ops::Index;
+use core::time::Duration;
 
 use crate::Error;
 use crate::prelude::*;
-
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
 
 /// Represents a 4-bit ANSI terminal colour.
 /// <br /> <br />
@@ -40,7 +37,7 @@ use alloc::vec::Vec;
 ///
 /// let my_colour: u8 = my_foreground_colour | my_background_colour;
 /// ```
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default, PartialOrd)]
 #[repr(u8)]
 #[allow(missing_docs)]
 pub enum Ansi4 {
@@ -71,7 +68,7 @@ impl BitOr for Ansi4 {
     }
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default, PartialOrd)]
 /// These are the possible terminal colours covered by Tuit.
 ///
 ///
@@ -121,33 +118,34 @@ pub enum Colour {
 /// ```
 pub struct Style {
     /// The foreground colour of the terminal cell
-    /// 
+    ///
     /// When it is None, assume the colour to be unset (use the colour of the preceding cell)
     pub fg_colour: Option<Colour>,
     /// The background colour of the terminal cell
-    /// 
+    ///
     /// When it is None, assume the colour to be unset (use the colour of the preceding cell)
     pub bg_colour: Option<Colour>,
     /// The font weight of the terminal cell
-    /// 
+    ///
     /// When it is None, assume the font weight to be unset (use the font weight of the preceding cell)
     pub font_weight: Option<u16>,
     /// Whether the terminal cell is underlined or not
-    /// 
+    ///
     /// When it is None, assume the underline to be unset (use the underlining of the preceding cell)
     pub underline: Option<bool>,
     /// Whether the background and foreground colours should be switched; primarily for use in
     /// single-colour terminals.
-    /// 
+    ///
     /// When it is None, assume the inversion to be unset (use the inversion setting of the preceding cell)
-    pub invert: Option<bool>
+    pub invert: Option<bool>,
 }
 
 impl Style {
     /// Creates a new [`Style`] with all fields set to `None`
     ///
     /// It is equivalent to [`Style::default`].
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         // We initialize all the values with `None` instead of using `Self::default()`, which is
         // equivalent so that this function can be used in a const context.
         Self {
@@ -170,7 +168,8 @@ impl Style {
     ///                         // You can use [`TerminalColour::fg_ansi4`] here, but we're leaving it like this for sake of demonstration.
     ///                         .fg(Colour::Ansi16(Ansi4::Black));
     /// ```
-    #[must_use] pub const fn fg(mut self, fg_colour: Colour) -> Self {
+    #[must_use]
+    pub const fn fg(mut self, fg_colour: Colour) -> Self {
         self.fg_colour = Some(fg_colour);
 
         self
@@ -187,7 +186,8 @@ impl Style {
     ///                         // You can use `TerminalColour::bg_ansi4` here.
     ///                         .bg(Colour::Ansi16(Ansi4::Black));
     /// ```
-    #[must_use] pub const fn bg(mut self, bg_colour: Colour) -> Self {
+    #[must_use]
+    pub const fn bg(mut self, bg_colour: Colour) -> Self {
         self.bg_colour = Some(bg_colour);
 
         self
@@ -201,7 +201,8 @@ impl Style {
     /// let blue_bg_style = Style::new()
     ///                             .bg_ansi4(Ansi4::Blue);
     /// ```
-    #[must_use] pub const fn bg_ansi4(self, bg_colour: Ansi4) -> Self {
+    #[must_use]
+    pub const fn bg_ansi4(self, bg_colour: Ansi4) -> Self {
         self.bg(Colour::Ansi16(bg_colour))
     }
 
@@ -213,7 +214,8 @@ impl Style {
     /// let blue_fg_style = Style::new()
     ///                             .fg_ansi4(Ansi4::Blue);
     /// ```
-    #[must_use] pub const fn fg_ansi4(self, fg_colour: Ansi4) -> Self {
+    #[must_use]
+    pub const fn fg_ansi4(self, fg_colour: Ansi4) -> Self {
         self.fg(Colour::Ansi16(fg_colour))
     }
 
@@ -225,7 +227,8 @@ impl Style {
     /// let grayish_fg_style = Style::new()
     ///                             .fg_ansi8(10);
     /// ```
-    #[must_use] pub const fn fg_ansi8(self, fg_colour: u8) -> Self {
+    #[must_use]
+    pub const fn fg_ansi8(self, fg_colour: u8) -> Self {
         self.fg(Colour::Ansi256(fg_colour))
     }
 
@@ -237,7 +240,8 @@ impl Style {
     /// let grayish_bg_style = Style::new()
     ///                             .bg_ansi8(10);
     /// ```
-    #[must_use] pub const fn bg_ansi8(self, bg_colour: u8) -> Self {
+    #[must_use]
+    pub const fn bg_ansi8(self, bg_colour: u8) -> Self {
         self.bg(Colour::Ansi256(bg_colour))
     }
 
@@ -249,7 +253,8 @@ impl Style {
     /// let grayish_bg_style = Style::new()
     ///                             .bg_luma8(100);
     /// ```
-    #[must_use] pub const fn bg_luma8(self, bg_luminosity: u8) -> Self {
+    #[must_use]
+    pub const fn bg_luma8(self, bg_luminosity: u8) -> Self {
         self.bg(Colour::Luma8(bg_luminosity))
     }
 
@@ -261,7 +266,8 @@ impl Style {
     /// let grayish_fg_style = Style::new()
     ///                             .fg_luma8(100);
     /// ```
-    #[must_use] pub const fn fg_luma8(self, fg_luminosity: u8) -> Self {
+    #[must_use]
+    pub const fn fg_luma8(self, fg_luminosity: u8) -> Self {
         self.fg(Colour::Luma8(fg_luminosity))
     }
 
@@ -273,7 +279,8 @@ impl Style {
     /// let grayish_bg_style = Style::new()
     ///                             .bg_rgb24(100, 100, 100);
     /// ```
-    #[must_use] pub const fn bg_rgb24(self, r: u8, g: u8, b: u8) -> Self {
+    #[must_use]
+    pub const fn bg_rgb24(self, r: u8, g: u8, b: u8) -> Self {
         self.bg(Colour::Rgb24(r, g, b))
     }
 
@@ -285,7 +292,8 @@ impl Style {
     /// let grayish_fg_style = Style::new()
     ///                             .fg_rgb24(100, 100, 100);
     /// ```
-    #[must_use] pub const fn fg_rgb24(self, r: u8, g: u8, b: u8) -> Self {
+    #[must_use]
+    pub const fn fg_rgb24(self, r: u8, g: u8, b: u8) -> Self {
         self.fg(Colour::Rgb24(r, g, b))
     }
 
@@ -297,7 +305,8 @@ impl Style {
     /// let grayish_bg_style = Style::new()
     ///                             .bg_default();
     /// ```
-    #[must_use] pub const fn bg_default(self) -> Self {
+    #[must_use]
+    pub const fn bg_default(self) -> Self {
         self.bg(Colour::TerminalDefault)
     }
 
@@ -309,33 +318,38 @@ impl Style {
     /// let grayish_bg_style = Style::new()
     ///                             .fg_default();
     /// ```
-    #[must_use] pub const fn fg_default(self) -> Self {
+    #[must_use]
+    pub const fn fg_default(self) -> Self {
         self.fg(Colour::TerminalDefault)
     }
 
     /// Used to set the terminal style's underline to a user-specified value.
-    #[must_use] pub const fn underline(mut self, underline: bool) -> Self {
+    #[must_use]
+    pub const fn underline(mut self, underline: bool) -> Self {
         self.underline = Some(underline);
 
         self
     }
 
-    /// Used to set the terminal style to underlined.
-    #[must_use] pub const fn underlined(mut self) -> Self {
+    /// Used to set the terminal style to "underlined".
+    #[must_use]
+    pub const fn underlined(mut self) -> Self {
         self.underline = Some(true);
 
         self
     }
 
     /// Used to set the terminal style to explicitly *not* underlined.
-    #[must_use] pub const fn not_underlined(mut self) -> Self {
+    #[must_use]
+    pub const fn not_underlined(mut self) -> Self {
         self.underline = Some(false);
 
         self
     }
 
     /// Used to set the terminal style's font weight.
-    #[must_use] pub const fn font_weight(mut self, weight: u16) -> Self {
+    #[must_use]
+    pub const fn font_weight(mut self, weight: u16) -> Self {
         self.font_weight = Some(weight);
 
         self
@@ -344,7 +358,8 @@ impl Style {
     /// Used to set the terminal style's inversion to a user-specified value.
     ///
     /// Refer to [`Style`] for an explanation on what inversion is.
-    #[must_use] pub const fn inversion(mut self, inversion: bool) -> Self {
+    #[must_use]
+    pub const fn inversion(mut self, inversion: bool) -> Self {
         self.invert = Some(inversion);
 
         self
@@ -353,16 +368,18 @@ impl Style {
     /// Used to set the terminal style's inversion to specifically *true*.
     ///
     /// Refer to [`Style`] for an explanation on what inversion is.
-    #[must_use] pub const fn inverted(mut self) -> Self {
+    #[must_use]
+    pub const fn inverted(mut self) -> Self {
         self.invert = Some(true);
 
         self
     }
 
     /// Used to set the terminal style's inversion to specifically *false*.
-    /// 
+    ///
     /// Refer to [`Style`] for an explanation on what inversion is.
-    #[must_use] pub const fn not_inverted(mut self) -> Self {
+    #[must_use]
+    pub const fn not_inverted(mut self) -> Self {
         self.invert = Some(false);
 
         self
@@ -392,13 +409,14 @@ impl Style {
     /// );
     ///
     /// ```
-    #[must_use] pub const fn inherits(self, fallback: Self) -> Self {
+    #[must_use]
+    pub const fn inherits(self, fallback: Self) -> Self {
         // This macro is necessary because Rust's core lib does not support using `.or()` on `Option`s at the moment.
         macro_rules! or {
             ($lhs: expr, $rhs: expr) => {
                 match $lhs {
                     Some(_) => $lhs,
-                    None => $rhs
+                    None => $rhs,
                 }
             };
         }
@@ -415,32 +433,34 @@ impl Style {
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
-pub struct Character {
+pub struct Cell {
     /// The character inside the cell
     pub character: char,
     /// The character's styling.
     pub style: Style,
 }
 
-impl Character {
-    #[must_use] const fn new(character: char) -> Self {
+impl Cell {
+    #[must_use]
+    const fn new(character: char) -> Self {
         Self {
             character,
-            style: Style::new()
+            style: Style::new(),
         }
     }
 }
-
 
 /// Implements convenient conversions and traits for the `owo_colors` crate.
 #[cfg(feature = "owo_colors")]
 pub mod owo_colors {
     use core::fmt::Formatter;
-    use owo_colors::{DynColor, DynColors, OwoColorize, Effect, XtermColors};
-    use crate::terminal::{Ansi4, Character, Colour, Style};
+
+    use owo_colors::{DynColor, DynColors, Effect, OwoColorize, XtermColors};
+
+    use crate::terminal::{Ansi4, Cell, Colour, Style};
 
     #[cfg(feature = "ansi_terminal")]
-    impl core::fmt::Display for Character {
+    impl core::fmt::Display for Cell {
         fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
             let owo_style: owo_colors::Style = self.style.into();
 
@@ -475,15 +495,9 @@ pub mod owo_colors {
             match value {
                 Colour::Rgb24(r, g, b) => Self::Rgb(r, g, b),
                 Colour::Luma8(brightness) => Self::Rgb(brightness, brightness, brightness),
-                Colour::Ansi16(fg) => {
-                    Self::Ansi(fg.into())
-                }
-                Colour::Ansi256(fg) => {
-                    Self::Xterm(XtermColors::from(fg))
-                }
-                Colour::TerminalDefault => {
-                    Self::Ansi(owo_colors::AnsiColors::Default)
-                }
+                Colour::Ansi16(fg) => Self::Ansi(fg.into()),
+                Colour::Ansi256(fg) => Self::Xterm(XtermColors::from(fg)),
+                Colour::TerminalDefault => Self::Ansi(owo_colors::AnsiColors::Default),
             }
         }
     }
@@ -533,7 +547,7 @@ pub mod owo_colors {
                 bg_colour,
                 font_weight,
                 underline,
-                invert
+                invert,
             } = value;
 
             let mut style = Self::new();
@@ -542,12 +556,16 @@ pub mod owo_colors {
                 let color: DynColors = fg_colour.into();
 
                 style = style.color(color);
+            } else {
+                style = style.default_color();
             }
 
             if let Some(bg_colour) = bg_colour {
                 let color: DynColors = bg_colour.into();
 
                 style = style.on_color(color);
+            } else {
+                style = style.on_default_color();
             }
 
             if let Some(font_weight) = font_weight {
@@ -579,7 +597,6 @@ pub mod owo_colors {
     }
 }
 
-
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 /// This enum represents the various buttons on the mouse.
 pub enum MouseButton {
@@ -588,7 +605,7 @@ pub enum MouseButton {
     /// The right click button
     RightClick,
     /// Any auxiliary mouse buttons (for example, additional side buttons).
-    AuxiliaryButton(u16)
+    AuxiliaryButton(u16),
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
@@ -599,7 +616,7 @@ pub enum KeyState {
     /// Key has just been released
     KeyUp,
     /// Key is currently held
-    KeyHeld
+    KeyHeld,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -615,22 +632,19 @@ pub enum UpdateInfo {
     /// This can be sent to widgets to inform them of a printable keyboard key being
     /// pressed.
     KeyboardCharacter(char, KeyState),
-    /// This can be sent to widgets to inform them of a keyboard key being pressed
-    KeyboardInput(u16, KeyState),
+    /// This can be sent to widgets to inform them of a non-printable keyboard key being pressed.
+    ///
+    /// Go to [the UEFI specification](https://uefi.org/specs/UEFI/2.10/Apx_B_Console.html) and
+    /// check for USB keyboard HID values.
+    KeyboardInput(u8, KeyState),
     /// This can be used to inform widgets of how much time has passed since they have
     /// last been updated.
     TimeDelta(Duration),
-    /// Some widgets may not need to update on every draw() call, unless the terminal has been resized.
-    ///
     /// This is used to inform widgets that the terminal has been resized so that they can
-    /// re-calculate their dimensions and any cached data reliant on the terminal's size.
+    /// re-calculate their dimensions or any other cached data reliant on the terminal's size.
     TerminalResized,
-    /// Some widgets may *not* redraw themselves on every draw() call; if they need to do so
-    /// immediately, then this can be used to inform them.
-    ForceRedraw,
-    /// This is used when there is no information to report to widgets that need to be updated
-    /// (e.g in a redraw).
-    NoInfo
+    /// This is used when there is no information to report to widgets that need to be updated.
+    NoInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -639,7 +653,7 @@ pub enum UpdateInfo {
 pub enum UpdateResult {
     /// No event has occurred, the object will continue to live.
     NoEvent,
-    /// The object will continue to live, and it has not drawn anything to the screen.
+    /// The object will continue to live, and it has not changed anything about how it draws itself.
     NoRedraw,
     /// The object's lifecycle has ended, and it should now be destructured.
     LifecycleEnd,
@@ -692,17 +706,25 @@ pub trait Widget {
     ///     my_terminal_object.update(input_magic, &mut my_terminal)
     /// }
     /// ```
-    fn update(&mut self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult>;
+    fn update(
+        &mut self,
+        update_info: UpdateInfo,
+        terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult>;
 
     /// This method is called by the implementor whenever a frame redraw is requested.
-    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult>;
+    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal)
+        -> crate::Result<UpdateResult>;
 
-    /// This method is called by the implementor when a force redraw is required.
-    ///
-    /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::ForceRedraw`] as `update_info`.
-    fn force_redraw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        self.draw(UpdateInfo::ForceRedraw, terminal)
-    }
+    //      NOTE: There was a "ForceRedraw" enum variant for [`UpdateInfo`] that has been removed
+    //              because widgets should be expected to draw on every redraw call. Optimizing
+    //              draw calls is a detail for the implementor to handle.
+    // /// This method is called by the implementor when a force redraw is required.
+    // ///
+    // /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::ForceRedraw`] as `update_info`.
+    // fn force_redraw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    //     self.draw(UpdateInfo::ForceRedraw, terminal)
+    // }
 
     /// This method is called by the implementor when a redraw is requested.
     ///
@@ -732,10 +754,10 @@ pub trait Terminal {
     fn default_style(&self) -> Style;
 
     /// Returns a mutable reference to the terminal's characters
-    fn characters_slice_mut(&mut self) -> &mut [Character];
+    fn characters_slice_mut(&mut self) -> &mut [Cell];
 
     /// Returns an immutable reference to the terminal's characters
-    fn characters_slice(&self) -> &[Character];
+    fn characters_slice(&self) -> &[Cell];
 
     /// Returns the terminal's width
     fn width(&self) -> usize {
@@ -769,22 +791,22 @@ pub trait Terminal {
     ///
     /// terminal.display(std_out).expect("Failed to display terminal");
     /// ```
-    fn character_mut(&mut self, x: usize, y: usize) -> Option<&mut Character> {
+    fn character_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
         let (width, height) = self.dimensions();
 
         if x > width || y > height {
-            return None
+            return None;
         }
 
         self.characters_slice_mut().get_mut((width * y) + x)
     }
 
     /// Retrieves an immutable reference to a terminal cell
-    fn character(&self, x: usize, y: usize) -> Option<&Character> {
+    fn character(&self, x: usize, y: usize) -> Option<&Cell> {
         let (width, height) = self.dimensions();
 
         if x > width || y > height {
-            return None
+            return None;
         }
 
         self.characters_slice().get(x + (width * y))
@@ -805,7 +827,9 @@ pub trait Terminal {
     /// my_terminal.display(&mut my_gpu).expect("Failed to display the terminal");
     /// ```
     fn display(&mut self, mut display: impl TerminalDrawTarget) -> crate::Result<()>
-        where Self: Sized + 'static {
+    where
+        Self: Sized + 'static,
+    {
         display.render(self)
     }
 }
@@ -819,12 +843,11 @@ impl<T: DerefMut<Target: Terminal>> Terminal for T {
         (**self).default_style()
     }
 
-    fn characters_slice_mut(&mut self) -> &mut [Character]
-    {
+    fn characters_slice_mut(&mut self) -> &mut [Cell] {
         (**self).characters_slice_mut()
     }
 
-    fn characters_slice(&self) -> &[Character] {
+    fn characters_slice(&self) -> &[Cell] {
         (**self).characters_slice()
     }
 }
@@ -833,175 +856,217 @@ impl<T: DerefMut<Target: Terminal>> Terminal for T {
 /// <br /> <br />
 /// This trait contains methods that take generics, and as such, would make it impossible to turn
 /// types that implement Terminal into a trait object. For certain use-cases, you may want to turn
-/// your terminals into trait objects, so therefore [`TerminalExtended`] has been broken off into
+/// your terminals into trait objects, so [`TerminalExtended`] has been broken off into
 /// its own trait that accepts generics.
 #[allow(clippy::module_name_repetitions)]
 pub trait TerminalExtended: Terminal {
-    /// Returns a copied view to the [`Character`]s within the specified area.
+    /// Returns a copied view to the [`Cell`]s within the specified area.
     ///
     /// ```
-    /// use tuit::terminal::{ConstantSize, Character};
+    /// use tuit::terminal::{ConstantSize, Cell};
     /// use tuit::prelude::*;
     ///
     /// let my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// // A get a copied view of height 2 and width 2, at x-y coords (1,1).
-    /// let characters: [[Character; 2]; 2] = my_terminal.view_copied::<2, 2>(1, 1).expect("This should never fail!");
+    /// let characters: [[Cell; 2]; 2] = my_terminal.view_copied::<2, 2>(1, 1).expect("This should never fail!");
     /// ```
-    fn view_copied<const WIDTH: usize, const HEIGHT: usize>(&self, x_offset: usize, y_offset: usize) -> crate::Result<[[Character; WIDTH]; HEIGHT]> {
+    fn view_copied<const WIDTH: usize, const HEIGHT: usize>(
+        &self,
+        x_offset: usize,
+        y_offset: usize,
+    ) -> crate::Result<[[Cell; WIDTH]; HEIGHT]> {
         let (terminal_width, terminal_height) = self.dimensions();
         let characters = self.characters_slice();
 
         if y_offset + HEIGHT > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
         if x_offset + WIDTH > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
-        Ok(array::from_fn(|y|
-            array::from_fn(|x|
-                characters[x_offset + x + (y_offset + y) * terminal_width]
-            )
-        )
-        )
+        Ok(array::from_fn(|y| {
+            array::from_fn(|x| characters[x_offset + x + (y_offset + y) * terminal_width])
+        }))
     }
 
-    /// Returns a reference view to the [`Character`]s within the specified area.
+    /// Returns a reference view to the [`Cell`]s within the specified area.
     ///
     /// ```
-    /// use tuit::terminal::{ConstantSize, Character};
+    /// use tuit::terminal::{ConstantSize, Cell};
     /// use tuit::prelude::*;
     ///
     /// let my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// // A get a copied view of height 2 and width 2, at x-y coords (1,1).
-    /// let cells: [[&Character; 2]; 2] = my_terminal.view::<2, 2>(1, 1).expect("This should never fail!");
+    /// let cells: [[&Cell; 2]; 2] = my_terminal.view::<2, 2>(1, 1).expect("This should never fail!");
     /// ```
-    fn view<const WIDTH: usize, const HEIGHT: usize>(&self, x_offset: usize, y_offset: usize) -> crate::Result<[[&Character; WIDTH]; HEIGHT]> {
+    fn view<const WIDTH: usize, const HEIGHT: usize>(
+        &self,
+        x_offset: usize,
+        y_offset: usize,
+    ) -> crate::Result<[[&Cell; WIDTH]; HEIGHT]> {
         let (terminal_width, terminal_height) = self.dimensions();
         let characters = self.characters_slice();
 
         if y_offset + HEIGHT > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
         if x_offset + WIDTH > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
-        Ok(array::from_fn(move |y|
-                array::from_fn(move |x|
-                    characters.index(x_offset + x + (y_offset + y) * terminal_width)
-                )
-            )
-        )
+        Ok(array::from_fn(move |y| {
+            array::from_fn(move |x| {
+                characters.index(x_offset + x + (y_offset + y) * terminal_width)
+            })
+        }))
     }
 
-    /// Returns a view to the [`Character`]s within the specified area, as pointers instead of references.
+    /// Returns a view to the [`Cell`]s within the specified area, as pointers instead of references.
     ///
     /// ```
-    /// use tuit::terminal::{ConstantSize, Character};
+    /// use tuit::terminal::{ConstantSize, Cell};
     /// use tuit::prelude::*;
     ///
     /// let my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// // A get a copied view of height 2 and width 2, at x-y coords (1,1).
-    /// let cells: [*const Character; 2] = my_terminal.view_ptr::<2, 2>(1, 1).expect("This should never fail!");
+    /// let cells: [*const Cell; 2] = my_terminal.view_ptr::<2, 2>(1, 1).expect("This should never fail!");
     /// ```
     ///
     /// Note that *only* creating this is safe, but dereferencing anything inside is not.
     /// Every value within is guaranteed to be initialized at time of creation, and is guaranteed to be of the correct size.
-    fn view_ptr<const WIDTH: usize, const HEIGHT: usize>(&self, x_offset: usize, y_offset: usize) -> crate::Result<[*const Character; HEIGHT]> {
+    fn view_ptr<const WIDTH: usize, const HEIGHT: usize>(
+        &self,
+        x_offset: usize,
+        y_offset: usize,
+    ) -> crate::Result<[*const Cell; HEIGHT]> {
         let (terminal_width, terminal_height) = self.dimensions();
         let characters = self.characters_slice();
 
         if y_offset + HEIGHT > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
         if x_offset + WIDTH > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
-        Ok(
-            array::from_fn(
-                |y| characters[(y_offset + y)*terminal_width + x_offset..][..WIDTH].as_ptr()
-            )
-        )
+        Ok(array::from_fn(|y| {
+            characters[(y_offset + y) * terminal_width + x_offset..][..WIDTH].as_ptr()
+        }))
     }
 
-    /// Returns a view to the [`Character`]s within the specified area, as pointers instead of references.
+    /// Returns a view to the [`Cell`]s within the specified area, as pointers instead of references.
     ///
     /// ```
-    /// use tuit::terminal::{ConstantSize, Character};
+    /// use tuit::terminal::{ConstantSize, Cell};
     /// use tuit::prelude::*;
     ///
     /// let mut my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// // A get a pointer array of height 2, where each pointer points to 2 characters, at x-y coords (1,1).
-    /// let cells: [*mut Character; 2] = my_terminal.view_ptr_mut::<2, 2>(1, 1).expect("This should never fail!");
+    /// let cells: [*mut Cell; 2] = my_terminal.view_ptr_mut::<2, 2>(1, 1).expect("This should never fail!");
     /// ```
     ///
     /// Note that *only* creating this is safe, but dereferencing anything inside is not. Writing anything especially is
     /// unsafe, and Rust's borrow-checker cannot save you from yourself here.
     ///
     /// Every value within is guaranteed to be initialized at time of creation, and is guaranteed to be of the correct size.
-    fn view_ptr_mut<const WIDTH: usize, const HEIGHT: usize>(&mut self, x_offset: usize, y_offset: usize) -> crate::Result<[*mut Character; HEIGHT]> {
+    fn view_ptr_mut<const WIDTH: usize, const HEIGHT: usize>(
+        &mut self,
+        x_offset: usize,
+        y_offset: usize,
+    ) -> crate::Result<[*mut Cell; HEIGHT]> {
         let (terminal_height, terminal_width) = self.dimensions();
         let characters = self.characters_slice_mut();
 
         if y_offset + HEIGHT > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
         if x_offset + WIDTH > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
-        Ok(
-            array::from_fn(
-                |y| characters[(y_offset + y)*terminal_width + x_offset..][..WIDTH].as_mut_ptr()
-            )
-        )
+        Ok(array::from_fn(|y| {
+            characters[(y_offset + y) * terminal_width + x_offset..][..WIDTH].as_mut_ptr()
+        }))
     }
 
-    /// Returns a mutable view to the [`Character`]s within the specified area.
+    /// Returns a mutable view to the [`Cell`]s within the specified area.
     ///
     /// ```
-    /// use tuit::terminal::{ConstantSize, Character};
+    /// use tuit::terminal::{ConstantSize, Cell};
     /// use tuit::prelude::*;
     ///
     /// let mut my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// // A get a mutable view of height 2 and width 2, at x-y coords (1,1).
-    /// let cells: [[&mut Character; 2]; 2] = my_terminal.view_mut::<2, 2>(1, 1).expect("This should never fail!");
+    /// let cells: [[&mut Cell; 2]; 2] = my_terminal.view_mut::<2, 2>(1, 1).expect("This should never fail!");
     /// ```
-    fn view_mut<const WIDTH: usize, const HEIGHT: usize>(&mut self, x_offset: usize, y_offset: usize) -> crate::Result<[[&mut Character; WIDTH]; HEIGHT]> {
+    fn view_mut<const WIDTH: usize, const HEIGHT: usize>(
+        &mut self,
+        x_offset: usize,
+        y_offset: usize,
+    ) -> crate::Result<[[&mut Cell; WIDTH]; HEIGHT]> {
         let (terminal_width, terminal_height) = self.dimensions();
         let mut characters = self.characters_slice_mut().iter_mut();
 
         if y_offset + HEIGHT > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
         if x_offset + WIDTH > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + WIDTH, y_offset + HEIGHT));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + WIDTH),
+                y: Some(y_offset + HEIGHT),
+            });
         }
 
-        characters.advance_by(terminal_width * y_offset).ok();
-        characters.advance_by(x_offset).ok();
+        // characters.advance_by(terminal_width * y_offset).ok();
+        let _ = characters.by_ref().take(terminal_width * y_offset);
+        // characters.advance_by(x_offset).ok();
+        let _ = characters.by_ref().take(x_offset);
 
-        Ok(
-            array::from_fn(|_y_coord| {
-                    // Have to use iterator pattern here, borrow checker does not like arbitrary mutable refs.
-                    let row: [&mut Character; WIDTH] = array::from_fn(|_x_coord| characters.next().expect("Should not error"));
-                    characters.advance_by(terminal_width-WIDTH).ok();
-                    row
-                }
-            )
-        )
+        Ok(array::from_fn(|_y_coord| {
+            // Have to use iterator pattern here, borrow checker does not like arbitrary mutable refs.
+            let row: [&mut Cell; WIDTH] =
+                array::from_fn(|_x_coord| characters.next().expect("Should not error"));
+            let _ = characters.by_ref().take(terminal_width - WIDTH);
+            row
+        }))
     }
 
     /// Gets a view similar to [`TerminalExtended::view`], but allows you to pass runtime values for width and height
@@ -1009,24 +1074,36 @@ pub trait TerminalExtended: Terminal {
     ///
     /// To use this, you must have the `alloc` feature enabled (it is not on by default).
     #[cfg(feature = "alloc")]
-    fn view_vec(&self, width: usize, height: usize, x_offset: usize, y_offset: usize) -> crate::Result<Vec<Vec<Character>>> {
+    fn view_vec(
+        &self,
+        width: usize,
+        height: usize,
+        x_offset: usize,
+        y_offset: usize,
+    ) -> crate::Result<Vec<Vec<Cell>>> {
         let (terminal_width, terminal_height) = self.dimensions();
         let characters = self.characters_slice();
 
         if y_offset + height > terminal_height {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + width, y_offset + height));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + width),
+                y: Some(y_offset + height),
+            });
         }
 
         if x_offset + width > terminal_width {
-            return Err(Error::OutOfBoundsCoordinate(x_offset + width, y_offset + height));
+            return Err(Error::OutOfBoundsCoordinate {
+                x: Some(x_offset + width),
+                y: Some(y_offset + height),
+            });
         }
 
         let mut output = Vec::new();
 
         for y in 0..height {
             output.push(Vec::new());
-            for x in width..width+x_offset {
-                output[y].push(characters[x + (y + y_offset)*terminal_width]);
+            for x in width..width + x_offset {
+                output[y].push(characters[x + (y + y_offset) * terminal_width]);
             }
         }
 
@@ -1056,11 +1133,11 @@ impl<T: Terminal> TerminalExtended for T {}
 /// terminal.display(std_out).expect("Failed to draw terminal");
 /// ```
 pub struct ConstantSize<const WIDTH: usize, const HEIGHT: usize> {
-    // Modifying these does not lead to UB, so they are public.
+    // Modifying this does not lead to UB, so they are public.
     /// The characters that are within the terminal.
-    pub characters: [[Character; WIDTH]; HEIGHT],
+    pub characters: [[Cell; WIDTH]; HEIGHT],
     /// The terminal's default style.
-    pub default_style: Style
+    pub default_style: Style,
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> Default for ConstantSize<WIDTH, HEIGHT> {
@@ -1083,9 +1160,10 @@ impl<const WIDTH: usize, const HEIGHT: usize> ConstantSize<WIDTH, HEIGHT> {
     /// // The terminal uses const-generics for compile-time evaluation.
     /// let my_terminal: ConstantSize<20, 20> = ConstantSize::new(); // does not require runtime arguments, but it needs *generic* arguments.
     /// ```
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
-            characters: [[Character::new(' '); WIDTH]; HEIGHT],
+            characters: [[Cell::new(' '); WIDTH]; HEIGHT],
             default_style: Style::new(),
         }
     }
@@ -1100,18 +1178,18 @@ impl<const WIDTH: usize, const HEIGHT: usize> Terminal for ConstantSize<WIDTH, H
         self.default_style
     }
 
-    fn characters_slice_mut(&mut self) -> &mut [Character] {
-        self.characters.flatten_mut()
+    fn characters_slice_mut(&mut self) -> &mut [Cell] {
+        self.characters.as_flattened_mut()
     }
 
-    fn characters_slice(&self) -> &[Character] {
-        self.characters.flatten()
+    fn characters_slice(&self) -> &[Cell] {
+        self.characters.as_flattened()
     }
 }
 
 /// A zero-allocation re-scalable terminal that allocates the maximum size that it can scale to.
 pub struct MaxSize<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> {
-    characters: [[Character; MAX_WIDTH]; MAX_HEIGHT],
+    characters: [[Cell; MAX_WIDTH]; MAX_HEIGHT],
     default_style: Style,
     dimensions: (usize, usize),
 }
@@ -1124,9 +1202,10 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Default for MaxSize<MAX_WI
 
 impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> MaxSize<MAX_WIDTH, MAX_HEIGHT> {
     /// Creates a new [`MaxSize`] at its maximum size.
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
-            characters: array::from_fn(|_| array::from_fn(|_| Character::default())),
+            characters: array::from_fn(|_| array::from_fn(|_| Cell::default())),
             default_style: Style::default(),
             dimensions: (MAX_WIDTH, MAX_HEIGHT),
         }
@@ -1153,11 +1232,11 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> MaxSize<MAX_WIDTH, MAX_HEI
     /// ```
     pub fn rescale(&mut self, new_width: usize, new_height: usize) -> Result<(), (usize, usize)> {
         if new_width > MAX_WIDTH {
-            return Err((new_width, new_height))
+            return Err((new_width, new_height));
         }
 
         if new_height > MAX_HEIGHT {
-            return Err((new_width, new_height))
+            return Err((new_width, new_height));
         }
 
         self.dimensions = (new_width, new_height);
@@ -1175,21 +1254,21 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Terminal for MaxSize<MAX_W
         self.default_style
     }
 
-    fn characters_slice_mut(&mut self) -> &mut [Character] {
+    fn characters_slice_mut(&mut self) -> &mut [Cell] {
         let (acting_width, acting_height) = self.dimensions;
 
-        &mut self.characters.flatten_mut()[..acting_width*acting_height]
+        &mut self.characters.as_flattened_mut()[..acting_width * acting_height]
     }
 
-    fn characters_slice(&self) -> &[Character] {
+    fn characters_slice(&self) -> &[Cell] {
         let (acting_width, acting_height) = self.dimensions;
 
-        &self.characters.flatten()[..acting_width*acting_height]
+        &self.characters.as_flattened()[..acting_width * acting_height]
     }
 }
 
 /// Returned when
 pub struct ViewMut<'a, const WIDTH: usize, const HEIGHT: usize> {
     /// The view's characters.
-    pub characters: [[&'a mut Character; WIDTH]; HEIGHT],
+    pub characters: [[&'a mut Cell; WIDTH]; HEIGHT],
 }

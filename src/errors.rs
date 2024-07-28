@@ -34,9 +34,11 @@
 
 use thiserror::Error;
 
+use crate::terminal::Terminal;
+// Unused in code, used in docs.
+use crate::terminal::Widget;
 
-use crate::terminal::Terminal; // Unused in code, used in docs.
-use crate::terminal::Widget; // Unused in code, used in docs.
+// Unused in code, used in docs.
 
 /// This enum contains errors that may occur at runtime
 ///
@@ -49,7 +51,8 @@ pub enum Error {
     /// For generic I/O related errors.
     #[error("Encountered an I/O error.")]
     Io,
-    /// This error is for when an implementor of TerminalDrawTarget fails for whatever reason
+    /// This error is for when an implementor of [`TerminalDrawTarget`] fails to
+    /// render the screen for any reason.
     #[error("Failed to render terminal screen.")]
     RenderError,
     /// This error is for when an out-of-bounds index occurs within any [`Terminal`]/[`Widget`] method.
@@ -59,8 +62,17 @@ pub enum Error {
     OutOfBoundsCharacter(usize),
     /// This error is for when an out-of-bounds index occurs within any [`Terminal`]/[`Widget`] method.
     /// It includes the x,y coordinates used to index into the slice.
-    #[error("Attempted to access a character co-ordinate that was out of bounds at: (x: {0}, y: {0})")]
-    OutOfBoundsCoordinate(usize, usize),
+    #[error(
+        "Attempted to access a character co-ordinate that was out of bounds at: (x: {}, y: {})",
+        x.map(|x| x.to_string()).unwrap_or_else(|| "unknown".into()),
+        y.map(|y| y.to_string()).unwrap_or_else(|| "unknown".into()),
+    )]
+    OutOfBoundsCoordinate {
+        /// The X out-of-bounds coordinate. This may be `None` in cases where a coordinate cannot be provided.
+        x: Option<usize>,
+        /// The Y out-of-bounds coordinate. This may be `None` in cases where a coordinate cannot be provided.
+        y: Option<usize>,
+    },
     /// For when an error case is not covered by Tuit. If you are forced to use this, and think
     /// that your use-case for the error is in fact general enough, please feel free to submit a PR!
     #[error(transparent)]
@@ -78,7 +90,7 @@ pub enum Error {
     /// It is better to return an [`Error::Todo`] than to panic using the `todo!()` macro when you use a widget
     /// that is not fully implemented.
     #[error("This area has not been implemented!")]
-    Todo
+    Todo,
 }
 
 #[cfg(feature = "std")]

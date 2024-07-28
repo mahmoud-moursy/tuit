@@ -12,7 +12,7 @@ readme = "README.md"
 
 [dependencies]
 thiserror = { version = "^1.0.38", package = "thiserror-core" }
-anyhow = "^1.0.79"
+anyhow = "^1.0.86"
 owo-colors = { version = "^4.0.0", optional = true }
 
 [features]

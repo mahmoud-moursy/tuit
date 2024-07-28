@@ -1,51 +1,41 @@
 //! An example that demonstrates mutable views.
-#![feature(slice_flatten)]
+
+use std::array;
 
 use tuit::prelude::*;
-use tuit::terminal::{Ansi4, Character, Colour, ConstantSize, Style};
-use tuit::widgets::{CenteredText, Direction, Ruler, Sweeper};
+use tuit::terminal::{Ansi4, ConstantSize};
+use tuit::terminal::Colour::Ansi16;
+use tuit::widgets::{CenteredPrompt, Sweeper};
 
 #[cfg(not(feature = "ansi_terminal"))]
 compile_error!("You must apply the ansi_terminal feature to view this example. Use `cargo --features ansi_terminal`");
 
-
+#[cfg(feature = "ansi_terminal")]
 fn main() {
-    let mut terminal: ConstantSize<290, 70> = ConstantSize::new();
+    let mut terminal: ConstantSize<58, 14> = ConstantSize::new();
+    //
+    // let text = CenteredText::new("Hello world!");
+    //
+    // text.drawn(&mut terminal)
+    //     .expect("This method CAN fail, but only if the prompt is too large. Here, it is not.");
 
-    let background: Sweeper = Sweeper {
-        colour: Colour::Ansi16(Ansi4::BrightCyan),
-    };
+    let sweeper = Sweeper::new(Ansi16(Ansi4::BrightCyan));
 
-    let ruler = Ruler::new(10, Direction::Right).expect("Radix is too small to fail.");
+    sweeper.drawn(&mut terminal).ok();
 
-    let text_size = 290;
+    let test_buttons: [String; 25] = array::from_fn(|x| format!(" Test {x:>02} "));
+    let test_buttons_str: [&str; 25] = array::from_fn(|x| test_buttons[x].as_str());
 
-    let text: String = (0..text_size)
-            .map(|x| char::from_digit(x%10, 10).expect("Never overflows."))
-            .collect();
+    let mut prompt = CenteredPrompt::new("Hello world!", &test_buttons_str).select(2);
 
-    let prompt = CenteredText::new(&text);
+    let prompt_ref = &mut prompt;
 
-    background.drawn(&mut terminal).expect("Never fails.");
+    *prompt_ref = prompt_ref.select(1);
 
-    terminal.characters_slice_mut()[0] = Character {
-        character: 'h',
-        style: Style::default(),
-    };
-    terminal.characters_slice_mut()[1] = Character {
-        character: 'h',
-        style: Style::default(),
-    };
+    prompt_ref.centered_text.style = prompt_ref.centered_text.style.bg(Ansi16(Ansi4::Red));
+    prompt_ref.selected_button_style = prompt_ref.selected_button_style.bg(Ansi16(Ansi4::Blue));
 
-    let mut terminal_view: [[&mut Character; 5]; 5] = terminal.view_mut(9, 7).expect("This will not fail.");
-
-    for character in terminal_view.flatten_mut() {
-        character.character = 'h';
-    }
-
-    ruler.drawn(&mut terminal).expect("This method does not fail.");
-
-    prompt.drawn(&mut terminal).expect("This method CAN fail, but only if the prompt is too large. Here, it is not.");
+    prompt.drawn(&mut terminal).expect("Oops...");
 
     let stdio = std::io::stdout();
 

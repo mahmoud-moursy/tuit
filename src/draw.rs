@@ -33,6 +33,7 @@ use crate::terminal::Terminal;
 ///
 /// ```
 /// #![feature(ansi_terminal)]
+/// use tuit::draw::TerminalDrawTarget;
 /// use tuit::terminal::ConstantSize;
 ///
 /// let my_terminal = ConstantSize::<20, 20>::new();
@@ -48,11 +49,11 @@ pub trait TerminalDrawTarget {
     ///
     /// ```
     /// use tuit::prelude::*;
-    /// use tuit::terminal::Character;
+    /// use tuit::terminal::Cell;
     /// struct MyGPU;
     ///
     /// impl MyGPU {
-    ///     pub fn gpu_magic(&mut self, character: &Character) {
+    ///     pub fn gpu_magic(&mut self, character: &Cell) {
     ///         // Huzzah!
     ///     }
     /// }
@@ -88,7 +89,7 @@ impl TerminalDrawTarget for std::io::Stdout {
                 writeln!(self)?;
             }
 
-            let mut character_cell = character_cell.clone();
+            let mut character_cell = *character_cell;
 
             // Protect against alignment issues that can arise from characters
             // like `\0` or `\t` by replacing them with a space.

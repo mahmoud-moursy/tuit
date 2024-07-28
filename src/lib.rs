@@ -2,7 +2,7 @@
 //!
 //! Tuit is a library for the hardcore, `no_std`, `no_alloc` Rust user.
 //!
-//! When I was began on my operating system journey, I noticed that there was not a single `no_std` TUI library. So I
+//! When I began on my operating system journey, I noticed that there was not a single `no_std` TUI library. So I
 //! decided to make my own, and share it!
 //!
 //! API is inspired by [`embedded_graphics`], my beloved.
@@ -17,13 +17,11 @@
 //!
 //! prompt.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
 //! ```
-#![feature(int_roundings, associated_type_bounds, slice_flatten, iter_advance_by)]
+#![feature(int_roundings)]
+// TODO: Remove this the moment documentation is complete.
 #![feature(rustdoc_missing_doc_code_examples)]
 // Never include the standard library unless the "std" feature is specified.
 #![cfg_attr(not(feature = "std"), no_std)]
-
-#[cfg(feature = "alloc")]
-extern crate alloc;
 
 #[doc(hidden)]
 pub use errors::Error;
@@ -31,8 +29,12 @@ pub use errors::Error;
 /// This is a type alias used by `tuit` for its errors.
 pub type Result<T> = core::result::Result<T, Error>;
 
+#[cfg(feature = "alloc")]
+pub mod allocations;
 pub mod draw;
 pub mod errors;
+#[cfg(feature = "std")]
+pub mod std;
 pub mod terminal;
 #[cfg(feature = "widgets")]
 pub mod widgets;
@@ -57,14 +59,14 @@ mod test {
     use std::prelude::rust_2021::*;
 
     use crate::prelude::*;
-    use crate::terminal::Character;
     use crate::terminal::{ConstantSize, Style};
+    use crate::terminal::Cell;
 
     #[test]
     fn views() {
         let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
 
-        terminal.characters_slice_mut()[21] = Character {
+        terminal.characters_slice_mut()[21] = Cell {
             character: 'h',
             style: Style::default(),
         };
@@ -73,7 +75,7 @@ mod test {
             .view_copied::<8, 5>(1, 1)
             .expect("Should never fail!");
 
-        let my_array = my_array.flatten();
+        let my_array = my_array.as_flattened();
 
         assert_eq!(my_array[0].character, 'h');
     }
@@ -82,7 +84,7 @@ mod test {
     fn mutable_views() {
         let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
 
-        let view: [[&mut Character; 5]; 5] = terminal.view_mut(10, 10).expect("Should not fail.");
+        let view: [[&mut Cell; 5]; 5] = terminal.view_mut(10, 10).expect("Should not fail.");
 
         view[0][0].character = 'h';
 
