@@ -22,18 +22,18 @@
 //! }
 //! ```
 
-use crate::terminal::Terminal;
+use crate::terminal::TerminalConst;
 
 /// This trait is written by the implementor and is responsible for rendering the terminal's data
 /// to the screen.
 ///
-/// It only has one method, which is [`TerminalDrawTarget::render`].
+/// It only has one method, which is [`Target::render`].
 ///
-/// The method receives a reference to a type that implements the [`Terminal`] trait, and uses the data within to render the terminal.
+/// The method receives a reference to a type that implements the [`TerminalConst`] trait, and uses the data within to render the terminal.
 ///
 /// ```
 /// #![feature(ansi_terminal)]
-/// use tuit::draw::TerminalDrawTarget;
+/// use tuit::draw::Target;
 /// use tuit::terminal::ConstantSize;
 ///
 /// let my_terminal = ConstantSize::<20, 20>::new();
@@ -42,8 +42,8 @@ use crate::terminal::Terminal;
 /// stdout.render(&my_terminal).expect("Failed to draw to stdout");
 /// ```
 ///
-pub trait TerminalDrawTarget {
-    /// This method gets called when the implementor calls [`Terminal::display`]
+pub trait Target {
+    /// This method gets called when the implementor calls [`TerminalConst::display`]
     ///
     /// ## Dummy render implementation:
     ///
@@ -58,8 +58,8 @@ pub trait TerminalDrawTarget {
     ///     }
     /// }
     ///
-    /// impl TerminalDrawTarget for MyGPU {
-    ///     fn render(&mut self, terminal: &impl Terminal) -> tuit::Result<()> {
+    /// impl Target for MyGPU {
+    ///     fn render(&mut self, terminal: &impl TerminalConst) -> tuit::Result<()> {
     ///         let characters = terminal.characters_slice();
     ///
     ///         // Do some magic to render characters!
@@ -71,37 +71,20 @@ pub trait TerminalDrawTarget {
     ///     }
     /// }
     /// ```
-    fn render(&mut self, terminal: &impl Terminal) -> crate::Result<()>;
+    ///
+    /// # Errors
+    ///
+    /// When you implement [`Target`], you can return an [`Err`] that will help you better cope
+    /// with render failures and may help with debugging.
+    fn render(&mut self, terminal: &impl TerminalConst) -> crate::Result<()>;
 }
 
-#[cfg(feature = "ansi_terminal")]
-impl TerminalDrawTarget for std::io::Stdout {
-    fn render(&mut self, terminal: &impl Terminal) -> crate::Result<()> {
-        use std::io::Write;
-        use std::prelude::rust_2021::*;
+/// Doesn't really do anything when [`Target::render`] is called. I mean... what would you
+/// expect a struct called [`DummyTarget`] to accomplish? World peace?
+pub struct DummyTarget;
 
-        let terminal_width = terminal.width();
-
-        let characters = terminal.characters_slice().iter();
-
-        for (idx, character_cell) in characters.enumerate() {
-            if idx % terminal_width == 0 {
-                writeln!(self)?;
-            }
-
-            let mut character_cell = *character_cell;
-
-            // Protect against alignment issues that can arise from characters
-            // like `\0` or `\t` by replacing them with a space.
-            //
-            // FIXME: Wide characters not handled.
-            if character_cell.character.is_whitespace() || character_cell.character.is_control() {
-                character_cell.character = ' ';
-            }
-
-            write!(self, "{character_cell}")?;
-        }
-
+impl Target for DummyTarget {
+    fn render(&mut self, _terminal: &impl TerminalConst) -> crate::Result<()> {
         Ok(())
     }
 }

@@ -5,16 +5,16 @@
 //! This module contains errors that may occur during the execution of the program.
 //!
 //! ```
-//! use tuit::draw::TerminalDrawTarget;
-//! use tuit::prelude::Terminal;
+//! use tuit::draw::Target;
+//! use tuit::prelude::TerminalConst;
 //! use tuit::terminal::ConstantSize;
 //!
 //! use tuit::errors::Error;
 //!
 //! # struct MagicGPU;
 //!
-//! # impl TerminalDrawTarget for MagicGPU {
-//! #   fn render(&mut self, terminal: impl Terminal) -> tuit::Result<()> {
+//! # impl Target for MagicGPU {
+//! #   fn render(&mut self, terminal: impl TerminalConst) -> tuit::Result<()> {
 //! #        todo!()
 //! #    }
 //! # }
@@ -34,7 +34,8 @@
 
 use thiserror::Error;
 
-use crate::terminal::Terminal;
+use crate::draw;
+use crate::terminal::TerminalConst;
 // Unused in code, used in docs.
 use crate::terminal::Widget;
 
@@ -51,16 +52,16 @@ pub enum Error {
     /// For generic I/O related errors.
     #[error("Encountered an I/O error.")]
     Io,
-    /// This error is for when an implementor of [`TerminalDrawTarget`] fails to
+    /// This error is for when an implementor of [`draw::Target`] fails to
     /// render the screen for any reason.
     #[error("Failed to render terminal screen.")]
     RenderError,
-    /// This error is for when an out-of-bounds index occurs within any [`Terminal`]/[`Widget`] method.
+    /// This error is for when an out-of-bounds index occurs within any [`TerminalConst`]/[`Widget`] method.
     /// It does not include x,y co-ordinates, just the index into the character
     /// buffer slice.
     #[error("Attempted to access a character that was out of bounds at index {0}")]
     OutOfBoundsCharacter(usize),
-    /// This error is for when an out-of-bounds index occurs within any [`Terminal`]/[`Widget`] method.
+    /// This error is for when an out-of-bounds index occurs within any [`TerminalConst`]/[`Widget`] method.
     /// It includes the x,y coordinates used to index into the slice.
     #[error(
         "Attempted to access a character co-ordinate that was out of bounds at: (x: {:?}, y: {:?})",
@@ -85,17 +86,10 @@ pub enum Error {
     /// the error occurred within an object that was updating.
     #[error("{0}")]
     GenericUpdateError(#[source] anyhow::Error),
-    /// This error does not exist for use by [`tuit`], it exists for usage by the users of the library.
+    /// This error does not exist for use by [`crate`], it exists for usage by the users of the library.
     ///
     /// It is better to return an [`Error::Todo`] than to panic using the `todo!()` macro when you use a widget
     /// that is not fully implemented.
     #[error("This area has not been implemented!")]
     Todo,
-}
-
-#[cfg(feature = "std")]
-impl From<std::io::Error> for Error {
-    fn from(_value: std::io::Error) -> Self {
-        Self::Io
-    }
 }

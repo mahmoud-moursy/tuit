@@ -20,8 +20,10 @@
 #![feature(int_roundings)]
 // TODO: Remove this the moment documentation is complete.
 #![feature(rustdoc_missing_doc_code_examples)]
-// Never include the standard library unless the "std" feature is specified.
-#![cfg_attr(not(feature = "std"), no_std)]
+// // Never include the standard library unless the "std" feature is specified.
+// #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(clippy::collapsible_if)]
+#![no_std]
 
 #[doc(hidden)]
 pub use errors::Error;
@@ -45,8 +47,8 @@ pub mod prelude {
     //!
     //! *This module is intended to be glob-imported.
     pub use crate::{
-        draw::TerminalDrawTarget,
-        terminal::{Terminal, TerminalExtended, Widget},
+        draw::Target,
+        terminal::{extended::Extended, Metadata, Terminal, TerminalConst, TerminalMut, Widget},
     };
 }
 

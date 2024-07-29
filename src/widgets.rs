@@ -6,7 +6,7 @@
 //! at the moment.
 use crate::Error;
 use crate::prelude::*;
-use crate::terminal::{Colour, MouseButton, Style, UpdateInfo, UpdateResult, Widget};
+use crate::terminal::{Colour, MouseButton, Style, Terminal, UpdateInfo, UpdateResult, Widget};
 
 /// Provides a direction for elements
 pub enum Direction {
@@ -39,7 +39,7 @@ impl Widget for Sweeper {
     fn update(
         &mut self,
         _update_info: UpdateInfo,
-        _terminal: impl Terminal,
+        _terminal: impl TerminalConst,
     ) -> crate::Result<UpdateResult> {
         Ok(UpdateResult::NoEvent)
     }
@@ -132,7 +132,7 @@ impl<'a> CenteredText<'a> {
     /// the y-axis is flipped in Tuit, so `bottom` is actually the larger value, but on the x-axis, `right` is the larger
     /// value.
     #[must_use]
-    pub fn bounding_box(&self, terminal: &impl Terminal) -> ((usize, usize), (usize, usize)) {
+    pub fn bounding_box(&self, terminal: &impl TerminalConst) -> ((usize, usize), (usize, usize)) {
         let (terminal_width, terminal_height) = terminal.dimensions();
 
         let text_len = self.prompt_text.len();
@@ -159,7 +159,7 @@ impl<'a> Widget for CenteredText<'a> {
     fn update(
         &mut self,
         update_info: UpdateInfo,
-        terminal: impl Terminal,
+        terminal: impl TerminalConst,
     ) -> crate::Result<UpdateResult> {
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::LeftClick) => {
@@ -321,7 +321,7 @@ impl Widget for CenteredPrompt<'_> {
     fn update(
         &mut self,
         _update_info: UpdateInfo,
-        _terminal: impl Terminal,
+        _terminal: impl TerminalConst,
     ) -> crate::Result<UpdateResult> {
         Err(Error::Todo)
     }
@@ -470,7 +470,7 @@ impl Widget for Ruler {
     fn update(
         &mut self,
         _update_info: UpdateInfo,
-        _terminal: impl Terminal,
+        _terminal: impl TerminalConst,
     ) -> crate::Result<UpdateResult> {
         Ok(UpdateResult::NoEvent)
     }
