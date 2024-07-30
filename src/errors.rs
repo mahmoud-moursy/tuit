@@ -12,10 +12,9 @@
 //! use tuit::errors::Error;
 //!
 //! # struct MagicGPU;
-//!
 //! # impl Target for MagicGPU {
 //! #   fn render(&mut self, terminal: impl TerminalConst) -> tuit::Result<()> {
-//! #        todo!()
+//! #        Ok(())
 //! #    }
 //! # }
 //!
@@ -26,7 +25,7 @@
 //! let my_render = my_gpu.render(my_terminal);
 //!
 //! match my_render {
-//!    Ok(_) => { /* Happy path! */ }
+//!    Ok(_) => { /* Happy path! :D */ }
 //!    Err(Error::Generic(anyhow_error)) => { /* Depressing path :( */ }
 //!    Err(_) => { /* Miserable path ;( */ }
 //! }
@@ -37,15 +36,11 @@ use thiserror::Error;
 use crate::draw;
 use crate::terminal::TerminalConst;
 // Unused in code, used in docs.
-use crate::terminal::Widget;
+use crate::widgets::Widget;
 
 // Unused in code, used in docs.
 
 /// This enum contains errors that may occur at runtime
-///
-/// ```
-///
-/// ```
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
@@ -64,7 +59,7 @@ pub enum Error {
     /// This error is for when an out-of-bounds index occurs within any [`TerminalConst`]/[`Widget`] method.
     /// It includes the x,y coordinates used to index into the slice.
     #[error(
-        "Attempted to access a character co-ordinate that was out of bounds at: (x: {:?}, y: {:?})",
+    "Attempted to access a character co-ordinate that was out of bounds at: (x: {:?}, y: {:?})",
         x,
         y
     )]

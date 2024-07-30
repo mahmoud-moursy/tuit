@@ -2,7 +2,7 @@ use core::fmt::Formatter;
 
 use owo_colors::{DynColor, DynColors, Effect, XtermColors};
 
-use crate::terminal::{Ansi4, Colour, Style};
+use crate::style::{Ansi4, Colour, Style};
 
 impl From<Ansi4> for owo_colors::AnsiColors {
     fn from(value: Ansi4) -> Self {

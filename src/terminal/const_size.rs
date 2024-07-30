@@ -1,5 +1,6 @@
-use crate::prelude::{TerminalConst, TerminalMut};
-use crate::terminal::{Cell, Metadata, Style};
+use crate::prelude::*;
+use crate::style::Style;
+use crate::terminal::Cell;
 
 /// A zero-allocation terminal of constant size. The terminal's size is determined at compile time,
 /// and can't be changed at runtime.
@@ -20,6 +21,7 @@ use crate::terminal::{Cell, Metadata, Style};
 ///
 /// terminal.display(std_out).expect("Failed to draw terminal");
 /// ```
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct ConstantSize<const WIDTH: usize, const HEIGHT: usize> {
     // Modifying this does not lead to UB, so they are public.
     /// The characters that are within the terminal.

@@ -1,9 +1,11 @@
 use core::array;
 
 use crate::prelude::*;
-use crate::terminal::{Cell, Metadata, Style};
+use crate::style::Style;
+use crate::terminal::{Cell, Metadata};
 
 /// A zero-allocation re-scalable terminal that allocates the maximum size that it can scale to.
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct MaxSize<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> {
     characters: [[Cell; MAX_WIDTH]; MAX_HEIGHT],
     default_style: Style,
@@ -76,7 +78,7 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Metadata for MaxSize<MAX_W
 }
 
 impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> TerminalConst
-    for MaxSize<MAX_WIDTH, MAX_HEIGHT>
+for MaxSize<MAX_WIDTH, MAX_HEIGHT>
 {
     fn characters_slice(&self) -> &[Cell] {
         let (acting_width, acting_height) = self.dimensions;
@@ -86,7 +88,7 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> TerminalConst
 }
 
 impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> TerminalMut
-    for MaxSize<MAX_WIDTH, MAX_HEIGHT>
+for MaxSize<MAX_WIDTH, MAX_HEIGHT>
 {
     fn characters_slice_mut(&mut self) -> &mut [Cell] {
         let (acting_width, acting_height) = self.dimensions;

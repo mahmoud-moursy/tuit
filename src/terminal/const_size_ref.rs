@@ -1,7 +1,9 @@
 use crate::prelude::*;
-use crate::terminal::{Cell, Style};
+use crate::style::Style;
+use crate::terminal::{Cell, ConstantSize};
 
 /// An implementation of the [`ConstantSize`] that can be created from mutable references to arrays.
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct ConstantSizeRef<const WIDTH: usize, const HEIGHT: usize, T> {
     // Modifying this does not lead to UB, so they are public.
     /// The characters that are within the terminal.

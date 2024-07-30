@@ -1,6 +1,6 @@
 [package]
 name = "tuit"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 description = "A no_std, no_alloc TUI library"
 categories = ["no-std::no-alloc", "command-line-interface"]
@@ -45,4 +45,4 @@ unused_features = "deny"
 
 [lints.rustdoc]
 missing_doc_code_examples = "warn"
-broken_intra_doc_links = "warn"
+broken_intra_doc_links = "deny"

@@ -5,7 +5,7 @@
 //! When I began on my operating system journey, I noticed that there was not a single `no_std` TUI library. So I
 //! decided to make my own, and share it!
 //!
-//! API is inspired by [`embedded_graphics`], my beloved.
+//! API is partially inspired by `embedded_graphics`, my beloved.
 //!
 //! ```
 //! use tuit::terminal::ConstantSize;
@@ -17,19 +17,11 @@
 //!
 //! prompt.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
 //! ```
-#![feature(int_roundings)]
-// TODO: Remove this the moment documentation is complete.
-#![feature(rustdoc_missing_doc_code_examples)]
-// // Never include the standard library unless the "std" feature is specified.
-// #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::collapsible_if)]
 #![no_std]
 
 #[doc(hidden)]
 pub use errors::Error;
-
-/// This is a type alias used by `tuit` for its errors.
-pub type Result<T> = core::result::Result<T, Error>;
 
 #[cfg(feature = "alloc")]
 pub mod allocations;
@@ -40,6 +32,10 @@ pub mod std;
 pub mod terminal;
 #[cfg(feature = "widgets")]
 pub mod widgets;
+///
+pub mod style;
+/// Default implementations of traits for builtin structs.
+mod default_impls;
 
 pub mod prelude {
     //! The crate's prelude includes items that you'd usually want imported in a project that uses
@@ -48,9 +44,13 @@ pub mod prelude {
     //! *This module is intended to be glob-imported.
     pub use crate::{
         draw::Target,
-        terminal::{extended::Extended, Metadata, Terminal, TerminalConst, TerminalMut, Widget},
+        terminal::{extended::Extended, Metadata, Terminal, TerminalConst, TerminalMut},
+        widgets::Widget,
     };
 }
+
+/// This is a type alias used by [`tuit`] for its errors.
+pub type Result<T> = core::result::Result<T, Error>;
 
 #[doc(hidden)]
 #[cfg(test)]
@@ -61,8 +61,9 @@ mod test {
     use std::prelude::rust_2021::*;
 
     use crate::prelude::*;
-    use crate::terminal::{ConstantSize, Style};
+    use crate::style::Style;
     use crate::terminal::Cell;
+    use crate::terminal::ConstantSize;
 
     #[test]
     fn views() {
@@ -92,7 +93,7 @@ mod test {
 
         assert_eq!(
             terminal
-                .character(15, 15)
+                .character(10, 10)
                 .expect("Won't fail because we are indexing into a valid location")
                 .character,
             'h'

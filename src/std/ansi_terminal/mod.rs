@@ -12,7 +12,7 @@ use crate::terminal::Cell;
 
 #[cfg(feature = "ansi_terminal")]
 impl Target for std::io::Stdout {
-    fn render(&mut self, terminal: &impl TerminalConst) -> crate::Result<()> {
+    fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
         use std::io::Write;
         use std::prelude::rust_2021::*;
 
@@ -37,6 +37,8 @@ impl Target for std::io::Stdout {
 
             write!(self, "{character_cell}")?;
         }
+
+        self.flush()?;
 
         Ok(())
     }

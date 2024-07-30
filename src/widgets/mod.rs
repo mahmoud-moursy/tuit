@@ -6,7 +6,8 @@
 //! at the moment.
 use crate::Error;
 use crate::prelude::*;
-use crate::terminal::{Colour, MouseButton, Style, Terminal, UpdateInfo, UpdateResult, Widget};
+use crate::style::{Colour, Style};
+use crate::terminal::{MouseButton, Terminal, UpdateInfo, UpdateResult};
 
 /// Provides a direction for elements
 pub enum Direction {
@@ -61,9 +62,9 @@ impl Widget for Sweeper {
 /// A prompt that is centered
 ///
 /// ```
+/// use tuit::widgets::Widget;
 /// use tuit::terminal::ConstantSize;
 /// use tuit::widgets::CenteredText;
-/// use tuit::terminal::Widget;
 ///
 /// let small_terminal: ConstantSize<1, 1> = ConstantSize::new();
 /// let my_prompt = CenteredText::new("Hello world!");
@@ -104,7 +105,8 @@ impl<'a> CenteredText<'a> {
     /// Initializes a [`CenteredText`] with the given text.
     ///
     /// ```
-    /// use tuit::terminal::{Ansi4, ConstantSize, Style};
+    /// use tuit::terminal::{ConstantSize};
+    /// use tuit::style::{Ansi4, Style};
     /// use tuit::widgets::CenteredText;
     /// use tuit::prelude::*;
     ///
@@ -501,3 +503,110 @@ impl Widget for Ruler {
 #[doc(hidden)]
 /// Proud to be a great programmer who tests his code. :)
 mod test {}
+
+/// This trait defines the minimum requirements for a type to be capable of terminal display
+///
+/// ## Example
+///
+/// ```
+/// use tuit::prelude::{Terminal, TerminalConst};
+/// use tuit::terminal::{UpdateInfo, UpdateResult, TerminalMut};///
+///
+/// use tuit::widgets::Widget;
+///
+/// // Replaces the entire terminal with `my_char` on draw.
+/// struct MyObject {
+///     my_char: char
+/// }
+///
+/// impl Widget for MyObject {
+///     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> tuit::Result<UpdateResult> {
+///         match update_info {
+///             // Change my_char to the last key that was pressed
+///             UpdateInfo::KeyboardCharacter(character,_) => { self.my_char = character }
+///             // Don't worry about anything else :)
+///             _ => {}
+///         }
+///
+///         Ok(UpdateResult::NoEvent)
+///     }
+///
+///     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal)-> tuit::Result<UpdateResult> {
+///         // Set the terminal's top-left character to my_char.
+///         terminal.character_mut(0, 0).map(|x| x.character = self.my_char);
+///
+///         Ok(UpdateResult::NoEvent)
+///     }
+/// }
+/// ```
+pub trait Widget {
+    /// This method is called by the implementor once the terminal receives an update.
+    ///
+    /// ```
+    /// # pub struct MyObject;
+    /// # impl Widget for MyObject {
+    /// #     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> tuit::Result<UpdateResult> {
+    /// #         Ok(UpdateResult::NoEvent)
+    /// #     }
+    /// #     fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
+    /// #         Ok(UpdateResult::NoEvent)
+    /// #     }
+    /// # }
+    /// # fn await_input() -> UpdateInfo { UpdateInfo::KeyboardCharacter('x', KeyState::KeyDown) }
+    ///
+    /// use tuit::prelude::{Terminal, TerminalConst, Widget};
+    /// use tuit::terminal::{ConstantSize, KeyState, UpdateInfo, UpdateResult};
+    ///
+    /// let mut  my_terminal: ConstantSize<20, 20> = ConstantSize::new();
+    /// let mut my_terminal_object = MyObject;    ///
+    ///
+    /// let mut input: UpdateInfo = await_input();
+    ///
+    /// while input == UpdateInfo::NoInfo {
+    ///     input = await_input();
+    /// }
+    ///
+    /// my_terminal_object.update(input, &my_terminal).ok();
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// The function will return an [`Err`] when the *widget* that is being updated experiences an error.
+    fn update(
+        &mut self,
+        update_info: UpdateInfo,
+        terminal: impl TerminalConst,
+    ) -> crate::Result<UpdateResult>;
+
+    /// This method is called by the implementor whenever a widget redraw is requested.
+    ///
+    /// # Errors
+    ///
+    /// This will return an [`Err`] if the [`Widget`] fails to correctly draw itself. The underlying error may
+    /// provide more information on why the failure occurred.
+    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal)
+            -> crate::Result<UpdateResult>;
+
+    //      NOTE: There was a "ForceRedraw" enum variant for [`UpdateInfo`] that has been removed
+    //              because widgets should be expected to draw on every redraw call. Optimizing
+    //              draw calls is a detail for the implementor to handle.
+    // /// This method is called by the implementor when a force redraw is required.
+    // ///
+    // /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::ForceRedraw`] as `update_info`.
+    // fn force_redraw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    //     self.draw(UpdateInfo::ForceRedraw, terminal)
+    // }
+
+    /// This method is called by the implementor when a redraw is requested.
+    ///
+    /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::NoInfo`] as `update_info`.
+    ///
+    /// Essentially a shorthand for `object.draw(UpdateInfo::NoInfo, my_terminal)`.
+    ///
+    /// # Errors
+    ///
+    /// This will return an [`Err`] if the [`Widget`] cannot redraw itself.
+    fn drawn(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        self.draw(UpdateInfo::NoInfo, terminal)
+    }
+}

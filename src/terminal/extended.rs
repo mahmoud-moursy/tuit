@@ -229,16 +229,16 @@ pub trait Extended: Terminal {
             });
         }
 
-        // characters.advance_by(terminal_width * y_offset).ok();
-        let _ = characters.by_ref().take(terminal_width * y_offset);
-        // characters.advance_by(x_offset).ok();
-        let _ = characters.by_ref().take(x_offset);
+        let index = x_offset + (y_offset * terminal_width);
+
+        // Skips by n items.
+        characters.nth(index - 1);
 
         Ok(array::from_fn(|_y_coord| {
             // Have to use iterator pattern here, borrow checker does not like arbitrary mutable refs.
             let row: [&mut Cell; WIDTH] =
                 array::from_fn(|_x_coord| characters.next().expect("Should not error"));
-            let _ = characters.by_ref().take(terminal_width - WIDTH);
+            characters.nth((terminal_width) - 1);
             row
         }))
     }
@@ -289,4 +289,4 @@ pub trait Extended: Terminal {
     // }
 }
 
-impl<T: TerminalConst + TerminalMut + Metadata> extended::Extended for T {}
+impl<T: Terminal> extended::Extended for T {}

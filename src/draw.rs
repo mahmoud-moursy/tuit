@@ -11,8 +11,8 @@
 //! #[derive(GpuMagic)]
 //! struct MyGPU {}
 //!
-//! impl TerminalDrawTarget for MyGPU {
-//!     fn render(&mut self, terminal: impl Terminal) -> Result<(), Error> {
+//! impl Target for MyGPU {
+//!     fn render(&mut self, terminal: impl Terminal) -> tuit::Result<()> {
 //!         for character in terminal.characters_slice() {
 //!             self.gpu_magic(character)
 //!         }
@@ -31,8 +31,7 @@ use crate::terminal::TerminalConst;
 ///
 /// The method receives a reference to a type that implements the [`TerminalConst`] trait, and uses the data within to render the terminal.
 ///
-/// ```
-/// #![feature(ansi_terminal)]
+/// ```feature,ansi_terminal
 /// use tuit::draw::Target;
 /// use tuit::terminal::ConstantSize;
 ///
@@ -59,7 +58,7 @@ pub trait Target {
     /// }
     ///
     /// impl Target for MyGPU {
-    ///     fn render(&mut self, terminal: &impl TerminalConst) -> tuit::Result<()> {
+    ///     fn render(&mut self, terminal: impl TerminalConst) -> tuit::Result<()> {
     ///         let characters = terminal.characters_slice();
     ///
     ///         // Do some magic to render characters!
@@ -76,7 +75,7 @@ pub trait Target {
     ///
     /// When you implement [`Target`], you can return an [`Err`] that will help you better cope
     /// with render failures and may help with debugging.
-    fn render(&mut self, terminal: &impl TerminalConst) -> crate::Result<()>;
+    fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()>;
 }
 
 /// Doesn't really do anything when [`Target::render`] is called. I mean... what would you
@@ -84,7 +83,7 @@ pub trait Target {
 pub struct DummyTarget;
 
 impl Target for DummyTarget {
-    fn render(&mut self, _terminal: &impl TerminalConst) -> crate::Result<()> {
+    fn render(&mut self, _terminal: impl TerminalConst) -> crate::Result<()> {
         Ok(())
     }
 }

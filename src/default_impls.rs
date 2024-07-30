@@ -1,7 +1,16 @@
-use core::ops::{Deref, DerefMut};
+use core::ops::{BitOr, Deref, DerefMut};
 
-use crate::prelude::{Metadata, TerminalConst, TerminalMut};
-use crate::terminal::{Cell, Style};
+use crate::prelude::{Metadata, Terminal, TerminalConst, TerminalMut};
+use crate::style::{Ansi4, Style};
+use crate::terminal::Cell;
+
+impl BitOr for Ansi4 {
+    type Output = u8;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        (self as u8) << 4 | rhs as u8
+    }
+}
 
 impl<T: Deref<Target: Metadata>> Metadata for T {
     fn dimensions(&self) -> (usize, usize) {
@@ -35,3 +44,5 @@ impl<T: DerefMut<Target: TerminalMut>> TerminalMut for T {
         self.deref_mut().characters_slice_mut()
     }
 }
+
+impl<T: TerminalConst + TerminalMut + Metadata> Terminal for T {}
