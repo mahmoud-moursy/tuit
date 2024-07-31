@@ -1,6 +1,9 @@
 use crate::prelude::*;
 use crate::style::Style;
-use crate::terminal::{Cell, ConstantSize};
+use crate::terminal::Cell;
+#[allow(unused_imports)]
+// is used for rustdoc.
+use crate::terminal::ConstantSize;
 
 /// An implementation of the [`ConstantSize`] that can be created from mutable references to arrays.
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]

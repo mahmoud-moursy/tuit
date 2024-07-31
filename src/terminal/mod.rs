@@ -74,6 +74,7 @@ pub use max_size::MaxSize;
 
 use crate::prelude::*;
 use crate::style::Style;
+#[allow(unused_imports)]
 use crate::terminal;
 
 pub mod extended;

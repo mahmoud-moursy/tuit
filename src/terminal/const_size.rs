@@ -8,7 +8,7 @@ use crate::terminal::Cell;
 /// ```
 /// use tuit::terminal;
 /// use tuit::prelude::*;
-/// use tuit::widgets::CenteredText;
+/// use tuit::widgets::builtins::CenteredText;
 ///
 /// let mut terminal: terminal::ConstantSize<20, 20> = terminal::ConstantSize::new();
 ///

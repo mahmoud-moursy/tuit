@@ -5,7 +5,8 @@ use std::array;
 use tuit::prelude::*;
 use tuit::style::{Ansi4, Colour::Ansi16};
 use tuit::terminal::ConstantSize;
-use tuit::widgets::{CenteredPrompt, Sweeper};
+use tuit::widgets::builtins::centered_prompt::CenteredPrompt;
+use tuit::widgets::builtins::sweeper::Sweeper;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {

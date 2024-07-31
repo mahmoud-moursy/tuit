@@ -9,7 +9,7 @@
 //!
 //! ```
 //! use tuit::terminal::ConstantSize;
-//! use tuit::widgets::CenteredText;
+//! use tuit::widgets::builtins::CenteredText;
 //! use tuit::prelude::*;
 //!
 //! let mut terminal = ConstantSize::<20, 20>::new();
@@ -18,6 +18,7 @@
 //! prompt.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
 //! ```
 #![allow(clippy::collapsible_if)]
+#![deny(clippy::thread_local_initializer_can_be_made_const)]
 #![no_std]
 
 #[doc(hidden)]
@@ -30,9 +31,8 @@ pub mod errors;
 #[cfg(feature = "std")]
 pub mod std;
 pub mod terminal;
-#[cfg(feature = "widgets")]
 pub mod widgets;
-///
+/// Structs related to styles -- includes [`style::Style`] and [`style::Colour`]
 pub mod style;
 /// Default implementations of traits for builtin structs.
 mod default_impls;
@@ -49,7 +49,7 @@ pub mod prelude {
     };
 }
 
-/// This is a type alias used by [`tuit`] for its errors.
+/// This is a type alias used by `tuit` for its errors.
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[doc(hidden)]

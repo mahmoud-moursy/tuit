@@ -5,7 +5,7 @@ use std::io::stdout;
 use tuit::prelude::*;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::{Cell, ConstantSize};
-use tuit::widgets::Sweeper;
+use tuit::widgets::builtins::sweeper::Sweeper;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {

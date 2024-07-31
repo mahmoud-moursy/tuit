@@ -17,10 +17,10 @@ anyhow = "^1.0.86"
 owo-colors = { version = "^4.0.0", optional = true }
 
 [features]
-default = ["widgets"]
+default = ["builtin_widgets"]
 std = ["alloc"]
 alloc = []
-widgets = []
+builtin_widgets = []
 ansi_terminal = ["std", "owo_colors"]
 owo_colors = ["dep:owo-colors"]
 
@@ -31,7 +31,9 @@ all-features = true # Otherwise, it would not compile every feature -- causing s
 pedantic = "deny"
 nursery = "deny"
 perf = "warn"
+
 undocumented_unsafe_blocks = { level = "deny", priority = 1 } # Unsafe is forbidden in the library anyway, but it might not be in the future.
+
 unwrap_used = { level = "warn", priority = 1 }
 suspicious_doc_comments = { level = "warn", priority = 1 }
 todo = { level = "warn", priority = 1 }

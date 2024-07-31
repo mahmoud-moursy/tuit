@@ -1,13 +1,13 @@
 //! # Widgets
 //!
-//! The widgets module contains some pre-bundled widgets ready to go with Tuit.
-//!
-//! Every widget included is functional and document, but this is still a heavy TODO because it is very bare-bones
-//! at the moment.
-use crate::Error;
+//! The widgets module includes the necessary traits for widgets
+
 use crate::prelude::*;
-use crate::style::{Colour, Style};
-use crate::terminal::{MouseButton, Terminal, UpdateInfo, UpdateResult};
+use crate::terminal::{Terminal, UpdateInfo, UpdateResult};
+
+#[cfg(feature = "builtin_widgets")]
+/// Builtin widgets.
+pub mod builtins;
 
 /// Provides a direction for elements
 pub enum Direction {
@@ -20,489 +20,6 @@ pub enum Direction {
     /// Up (or top of terminal, in some contexts)
     Up,
 }
-
-/// A widget that will clear the entire terminal and replace it with a blank cell containing
-/// the specified colour.
-pub struct Sweeper {
-    /// The colour to use for the blank cells that clear the terminal.
-    pub colour: Colour,
-}
-
-impl Sweeper {
-    /// Creates a new [`Sweeper`] with the specified `colour`
-    #[must_use]
-    pub const fn new(colour: Colour) -> Self {
-        Self { colour }
-    }
-}
-
-impl Widget for Sweeper {
-    fn update(
-        &mut self,
-        _update_info: UpdateInfo,
-        _terminal: impl TerminalConst,
-    ) -> crate::Result<UpdateResult> {
-        Ok(UpdateResult::NoEvent)
-    }
-
-    fn draw(
-        &self,
-        _update_info: UpdateInfo,
-        mut terminal: impl Terminal,
-    ) -> crate::Result<UpdateResult> {
-        for character in terminal.characters_slice_mut() {
-            character.style.bg_colour = Some(self.colour);
-            character.character = ' ';
-        }
-
-        Ok(UpdateResult::NoEvent)
-    }
-}
-
-/// A prompt that is centered
-///
-/// ```
-/// use tuit::widgets::Widget;
-/// use tuit::terminal::ConstantSize;
-/// use tuit::widgets::CenteredText;
-///
-/// let small_terminal: ConstantSize<1, 1> = ConstantSize::new();
-/// let my_prompt = CenteredText::new("Hello world!");
-///
-/// my_prompt.drawn(small_terminal).expect_err("If the terminal is too small, then an OutOfBoundsCoordinate error is returned.");
-/// ```
-#[derive(Eq, PartialEq, Copy, Clone, Hash, Debug)]
-pub struct CenteredText<'a> {
-    /// The text to be displayed
-    pub prompt_text: &'a str,
-    /// The styling behind the prompt.
-    pub style: Style,
-}
-
-impl<'a> CenteredText<'a> {
-    /// Initializes a [`CenteredText`] with the given text.
-    ///
-    /// ```
-    /// use tuit::terminal::ConstantSize;
-    /// use tuit::widgets::CenteredText;
-    /// use tuit::prelude::*;
-    ///
-    /// let mut my_terminal = ConstantSize::<20, 20>::new();
-    /// let my_text = CenteredText::new("Hello!");
-    ///
-    /// my_text
-    ///     .drawn(&mut my_terminal)
-    ///     .expect("This only fails if the prompt text has more characters than the terminal can contain.");
-    /// ```
-    #[must_use]
-    pub const fn new(text: &'a str) -> Self {
-        Self {
-            prompt_text: text,
-            style: Style::new(),
-        }
-    }
-
-    /// Initializes a [`CenteredText`] with the given text.
-    ///
-    /// ```
-    /// use tuit::terminal::{ConstantSize};
-    /// use tuit::style::{Ansi4, Style};
-    /// use tuit::widgets::CenteredText;
-    /// use tuit::prelude::*;
-    ///
-    /// let mut my_terminal = ConstantSize::<20, 20>::new();
-    /// let my_style = Style::new().bg_ansi4(Ansi4::Blue);
-    /// let my_text = CenteredText::new("Hello!").style(my_style);
-    ///
-    /// my_text
-    ///     .drawn(&mut my_terminal)
-    ///     .expect("This only fails if the prompt text has more characters than the terminal can contain.");
-    /// ```
-    #[must_use]
-    pub const fn style(mut self, style: Style) -> Self {
-        self.style = style;
-
-        self
-    }
-
-    /// Calculates the bounding box of the centered prompt. This method is available so that other widgets can be
-    /// composed using the [`CenteredText`] widget, but it doesn't need to be used by the end-user for the TUI.
-    ///
-    /// [`CenteredText::bounding_box`] returns a `((usize, usize), (usize, usize))` which corresponds to x-y coordinates `((left, top), (right, bottom))`
-    ///
-    /// Width can be determined using `right - left`, and height can be determined using `bottom - top`. This is because
-    /// the y-axis is flipped in Tuit, so `bottom` is actually the larger value, but on the x-axis, `right` is the larger
-    /// value.
-    #[must_use]
-    pub fn bounding_box(&self, terminal: &impl TerminalConst) -> ((usize, usize), (usize, usize)) {
-        let (terminal_width, terminal_height) = terminal.dimensions();
-
-        let text_len = self.prompt_text.len();
-        // Calculate the width/height of the prompt, capping it to the terminal's width.
-        //    // div_ceil because if the terminal width is 12, and the text length is 13,
-        //    // we want the height to be 2 because it takes 2 lines.
-        let height = text_len.div_ceil(terminal_width).min(terminal_height);
-        let width = text_len.min(terminal_width);
-
-        let horizontal_center = terminal_width / 2;
-        let vertical_center = terminal_height / 2;
-
-        let left = horizontal_center - (width / 2);
-        let right = left + width;
-
-        let top = vertical_center - (height / 2);
-        let bottom = top + height;
-
-        ((left, top), (right, bottom))
-    }
-}
-
-impl<'a> Widget for CenteredText<'a> {
-    fn update(
-        &mut self,
-        update_info: UpdateInfo,
-        terminal: impl TerminalConst,
-    ) -> crate::Result<UpdateResult> {
-        match update_info {
-            UpdateInfo::CellClicked(x, y, MouseButton::LeftClick) => {
-                let ((left, top), (right, bottom)) = self.bounding_box(&terminal);
-
-                #[allow(clippy::collapsible_if)]
-                // Check if click was within bounds.
-                if x < left && right > x {
-                    if y > top && bottom < y {
-                        return Ok(UpdateResult::LifecycleEnd);
-                    }
-                }
-
-                Ok(UpdateResult::NoEvent)
-            }
-            _ => Ok(UpdateResult::NoRedraw),
-        }
-    }
-
-    fn draw(
-        &self,
-        _update_info: UpdateInfo,
-        mut terminal: impl Terminal,
-    ) -> crate::Result<UpdateResult> {
-        let ((left, top), (right, _bottom)) = self.bounding_box(&terminal);
-        let width = right - left;
-
-        for (i, character) in self.prompt_text.chars().enumerate() {
-            let x = (i % width) + left;
-            let y = (i / width) + top;
-
-            if let Some(cell) = terminal.character_mut(x, y) {
-                cell.character = character;
-                cell.style = self.style.inherits(cell.style);
-            } else {
-                return Err(Error::OutOfBoundsCoordinate {
-                    x: Some(x),
-                    y: Some(y),
-                });
-            }
-        }
-
-        Ok(UpdateResult::NoEvent)
-    }
-}
-
-#[derive(Eq, PartialEq, Copy, Clone, Hash, Debug)]
-/// A prompt that can be configured with several buttons
-pub struct CenteredPrompt<'a> {
-    /// The body text of the prompt.
-    pub centered_text: CenteredText<'a>,
-    /// An array containing the text values of each button.
-    pub buttons: &'a [&'a str],
-    /// The Cell Style for selected buttons. Leave `None` to use the same style as the text body.
-    pub selected_button_style: Style,
-    /// the Cell Style for unselected buttons. Leave `None` to use the same style as the text body.
-    pub unselected_button_style: Style,
-    /// The button currently hovered over. `None` means no button is selected.
-    hovered_button: Option<usize>,
-}
-
-impl<'a> CenteredPrompt<'a> {
-    /// Create a new [`CenteredPrompt`] with the specified buttons.
-    #[must_use]
-    pub const fn new(text: &'a str, buttons: &'a [&'a str]) -> Self {
-        Self {
-            centered_text: CenteredText::new(text),
-            selected_button_style: Style::new().underlined(),
-            unselected_button_style: Style::new(),
-            hovered_button: None,
-            buttons,
-        }
-    }
-
-    #[must_use]
-    /// Returns the currently selected button. Will be `None` if no button is selected.
-    pub const fn selected(&self) -> Option<usize> {
-        self.hovered_button
-    }
-
-    /// Select a button based on its order from left-to-right.
-    #[must_use]
-    pub const fn select(mut self, selection: usize) -> Self {
-        if selection < self.buttons.len() {
-            self.hovered_button = Some(selection);
-        }
-
-        self
-    }
-
-    /// Deselects button.
-    #[must_use]
-    pub const fn select_none(mut self) -> Self {
-        self.hovered_button = None;
-
-        self
-    }
-
-    /// Selects the rightmost available button, or `None` if there are no buttons.
-    #[must_use]
-    pub const fn select_rightmost(self) -> Self {
-        self.select(self.buttons.len() - 1)
-    }
-
-    /// Selects the rightmost available button, or `None` if there are no buttons.
-    ///
-    /// This is an alias for [`CenteredPrompt::select_rightmost`]. Right is not last in all languages.
-    #[must_use]
-    pub const fn select_last(self) -> Self {
-        self.select_rightmost()
-    }
-
-    /// Selects the leftmost button, or `None` if there are no buttons.
-    #[must_use]
-    pub const fn select_leftmost(self) -> Self {
-        self.select(0)
-    }
-
-    /// Selects the leftmost button, or `None` if there are no buttons.
-    ///
-    /// This is an alias for [`CenteredPrompt::select_leftmost`]. Left is not first in all languages.
-    #[must_use]
-    pub const fn select_first(self) -> Self {
-        self.select_leftmost()
-    }
-
-    /// Selects the button to the right of the cursor, or `None` if there are no buttons.
-    ///
-    /// If the cursor position is unset, it will select the rightmost item.
-    #[must_use]
-    pub const fn move_right(self) -> Self {
-        let Some(mut selected) = self.hovered_button else {
-            return self.select_rightmost();
-        };
-
-        selected += 1;
-
-        self.select(selected)
-    }
-
-    /// Selects the button to the right of the cursor, or `None` if there are no buttons.
-    ///
-    /// If the cursor position is unset, it will select the leftmost item.
-    #[must_use]
-    pub const fn move_left(self) -> Self {
-        let Some(selected) = self.hovered_button else {
-            return self.select_leftmost();
-        };
-
-        let Some(selected) = selected.checked_sub(1) else {
-            return self.select_leftmost();
-        };
-
-        self.select(selected)
-    }
-}
-
-impl Widget for CenteredPrompt<'_> {
-    fn update(
-        &mut self,
-        _update_info: UpdateInfo,
-        _terminal: impl TerminalConst,
-    ) -> crate::Result<UpdateResult> {
-        Err(Error::Todo)
-    }
-
-    fn draw(
-        &self,
-        update_info: UpdateInfo,
-        mut terminal: impl Terminal,
-    ) -> crate::Result<UpdateResult> {
-        self.centered_text.draw(update_info, &mut terminal)?; // Draw text.
-
-        let (term_width, _term_height) = terminal.dimensions();
-        let ((_left, _top), (_right, bottom)) = self.centered_text.bounding_box(&terminal);
-
-        let mut characters_used = self.buttons.first().unwrap_or(&"").len();
-        let term_chars = terminal.characters_slice_mut();
-
-        let lines = self.buttons.split_inclusive(|button_text| {
-            if button_text.len() > term_width {
-                todo!(
-                    "Failed to handle edge case properly... \
-                (This occurs when a button's text length is greater than the terminal width in a \
-                `CenteredPrompt` dialogue)"
-                )
-            }
-
-            if characters_used + button_text.len() >= term_width {
-                characters_used = button_text.len();
-                return true;
-            }
-
-            characters_used += button_text.len();
-
-            false
-        });
-
-        let mut current_button = 0;
-
-        for (line_offset, buttons) in lines.enumerate() {
-            let start = (bottom + line_offset) * term_width;
-
-            let mut col_no = 0;
-            // pluh? pluh 🗣
-            for button in buttons {
-                col_no += button.len();
-            }
-
-            let mut left_offset =
-                (term_width
-                    .checked_sub(col_no)
-                    .ok_or(Error::OutOfBoundsCoordinate {
-                        x: Some(col_no),
-                        y: Some(line_offset + bottom),
-                    })?)
-                    / 2; // find middle.
-
-            let text_style = self.centered_text.style;
-
-            for button in buttons {
-                for character in button.chars() {
-                    let current_cell = &mut term_chars[start + left_offset];
-
-                    let base_style = text_style.inherits(current_cell.style);
-
-                    current_cell.character = character;
-
-                    if Some(current_button) == self.hovered_button {
-                        current_cell.style = self.selected_button_style.inherits(base_style);
-                    } else {
-                        current_cell.style = self.unselected_button_style.inherits(base_style);
-                    }
-
-                    left_offset += 1;
-                }
-                current_button += 1;
-            }
-        }
-
-        Ok(UpdateResult::NoEvent)
-    }
-}
-
-/// This widget just marks the given [`Direction`] of the screen with x or y-coords.
-///
-/// For example, using this widget with [`Direction::Down`] will mark the bottom of the screen
-/// with the x-coordinate of each cell.
-pub struct Ruler(u32, pub Direction);
-
-impl Default for Ruler {
-    fn default() -> Self {
-        Self(16, Direction::Down)
-    }
-}
-impl Ruler {
-    /// Initializes a Ruler with the given radix.
-    ///
-    /// Returns [`None`] if supplied radix is invalid (radix must be in range 2..=36)
-    #[must_use]
-    pub const fn new(radix: u32, direction: Direction) -> Option<Self> {
-        if radix <= 36 && radix >= 2 {
-            Some(Self(radix, direction))
-        } else {
-            None
-        }
-    }
-
-    fn horizontal_draw(&self, mut terminal: impl Terminal) {
-        let (width, height) = terminal.dimensions();
-        let characters = terminal.characters_slice_mut();
-
-        let bar = match self.1 {
-            Direction::Up => &mut characters[..width],
-            Direction::Down => &mut characters[(height - 1) * width..],
-            _ => unreachable!(),
-        };
-
-        #[allow(clippy::cast_possible_truncation)]
-        for (x, character) in bar.iter_mut().enumerate() {
-            // Truncation here is impossible, unless you are on an architecture below 32-bits.
-            character.character = char::from_digit(x as u32 % self.0, self.0)
-                .expect("Should never fail. Tried to convert an invalid digit into a character!");
-        }
-    }
-
-    fn vertical_draw(&self, mut terminal: impl Terminal) {
-        let (width, height) = terminal.dimensions();
-        let characters = terminal.characters_slice_mut();
-
-        let x_offset = match self.1 {
-            Direction::Left => 0,
-            Direction::Right => width - 1,
-            _ => unreachable!(),
-        };
-
-        #[allow(clippy::cast_possible_truncation)]
-        for y in 0..height {
-            characters[(y * width) + x_offset].character =
-                char::from_digit(y as u32 % self.0, self.0).expect(
-                    "Should never fail. Tried to convert an invalid digit into a character!",
-                );
-        }
-    }
-}
-
-impl Widget for Ruler {
-    fn update(
-        &mut self,
-        _update_info: UpdateInfo,
-        _terminal: impl TerminalConst,
-    ) -> crate::Result<UpdateResult> {
-        Ok(UpdateResult::NoEvent)
-    }
-
-    fn draw(
-        &self,
-        _update_info: UpdateInfo,
-        terminal: impl Terminal,
-    ) -> crate::Result<UpdateResult> {
-        match self.1 {
-            Direction::Up | Direction::Down => self.horizontal_draw(terminal),
-            Direction::Left | Direction::Right => self.vertical_draw(terminal),
-        }
-
-        Ok(UpdateResult::NoEvent)
-    }
-}
-
-// #[cfg(feature = "alloc")]
-// pub mod alloc {
-//     //! This module is for widgets that rely upon allocation to function.
-//     //! The module is only included if the crate's `alloc` feature is enabled!
-//
-//     extern crate alloc;
-// }
-
-#[cfg(test)]
-#[doc(hidden)]
-/// Proud to be a great programmer who tests his code. :)
-mod test {}
 
 /// This trait defines the minimum requirements for a type to be capable of terminal display
 ///
@@ -589,7 +106,7 @@ pub trait Widget {
 
     //      NOTE: There was a "ForceRedraw" enum variant for [`UpdateInfo`] that has been removed
     //              because widgets should be expected to draw on every redraw call. Optimizing
-    //              draw calls is a detail for the implementor to handle.
+    //              when to do draw calls is a detail for the implementor to handle.
     // /// This method is called by the implementor when a force redraw is required.
     // ///
     // /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::ForceRedraw`] as `update_info`.
@@ -610,3 +127,232 @@ pub trait Widget {
         self.draw(UpdateInfo::NoInfo, terminal)
     }
 }
+
+#[derive(
+    Hash,
+    Eq,
+    PartialEq,
+    Copy,
+    Clone,
+    Debug,
+    Default
+)] // Ord and PartialOrd also implemented. check default_impls.rs
+/// Provides the edge coordinates for a tuit Square.
+pub struct Rectangle {
+    /// The top-left edge of the square.
+    left_top: (usize, usize),
+    /// The bottom-right edge of the square.
+    right_bottom: (usize, usize),
+}
+
+impl Rectangle {
+    /// Create a new [`Rectangle`] using the given set of (x,y) coordinates.
+    #[must_use]
+    pub const fn new(first_point: (usize, usize), second_point: (usize, usize)) -> Self {
+        let (first_x, first_y) = first_point;
+        let (second_x, second_y) = second_point;
+
+        let x_smaller;
+        let y_smaller;
+        let x_larger;
+        let y_larger;
+
+        if first_x > second_x {
+            x_larger = first_x;
+            x_smaller = second_x;
+        } else {
+            x_larger = second_x;
+            x_smaller = first_x;
+        }
+
+        if first_y > second_y {
+            y_larger = first_y;
+            y_smaller = second_y;
+        } else {
+            y_larger = second_y;
+            y_smaller = first_y;
+        }
+
+        Self {
+            left_top: (x_smaller, y_smaller),
+            right_bottom: (x_larger, y_larger),
+        }
+    }
+
+    /// Create a [`Rectangle`] with top-left at (0,0)
+    #[must_use]
+    pub const fn of_size(width: usize, height: usize) -> Self {
+        Self {
+            left_top: (0, 0),
+            right_bottom: (width, height),
+        }
+    }
+
+    /// Get the x-coordinate of the [`Rectangle`]'s leftmost edge.
+    #[must_use]
+    pub const fn left(&self) -> usize {
+        self.left_top.0
+    }
+
+    /// Get the y-coordinate of the [`Rectangle`]'s top edge.
+    ///
+    /// In Tuit's coordinates, the y-axis is flipped -- this means that the lower you go, the higher
+    /// the number becomes. Therefore, [`Rectangle::top`] is always less than [`Rectangle::bottom`]
+    #[must_use]
+    pub const fn top(&self) -> usize {
+        self.left_top.1
+    }
+
+
+    /// Get the x-coordinate of the [`Rectangle`]'s rightmost edge.
+    #[must_use]
+    pub const fn right(&self) -> usize {
+        self.right_bottom.0
+    }
+
+    /// Get the y-coordinate of the [`Rectangle`]'s bottom edge.
+    ///
+    /// In Tuit's coordinates, the y-axis is flipped -- this means that the lower you go, the higher
+    /// the number becomes. Therefore, [`Rectangle::bottom`] is always greater than [`Rectangle::top`]
+    #[must_use]
+    pub const fn bottom(&self) -> usize {
+        self.right_bottom.1
+    }
+
+    /// Get the top-left vertex of the [`Rectangle`].
+    #[must_use]
+    pub const fn left_top(&self) -> (usize, usize) {
+        (self.left(), self.top())
+    }
+
+    /// Get the bottom-right vertex of the [`Rectangle`].
+    #[must_use]
+    pub const fn right_bottom(&self) -> (usize, usize) {
+        (self.right(), self.bottom())
+    }
+
+    /// Get the bottom-left vertex of the [`Rectangle`].
+    #[must_use]
+    pub const fn left_bottom(&self) -> (usize, usize) {
+        (self.left(), self.bottom())
+    }
+
+    /// Get the top-right vertex of the [`Rectangle`].
+    #[must_use]
+    pub const fn right_top(&self) -> (usize, usize) {
+        (self.right(), self.top())
+    }
+
+    /// Get the width of the [`Rectangle`].
+    #[must_use]
+    pub const fn width(&self) -> usize {
+        self.right() - self.left()
+    }
+
+    /// Get the height of the [`Rectangle`].
+    #[must_use]
+    pub const fn height(&self) -> usize {
+        self.bottom() - self.top()
+    }
+
+    /// Returns the (width, height) of the [`Rectangle`]
+    #[must_use]
+    pub const fn dimensions(&self) -> (usize, usize) {
+        (self.width(), self.height())
+    }
+
+    /// Get the area of the [`Rectangle`].
+    #[must_use]
+    pub const fn area(&self) -> usize {
+        self.width() * self.height()
+    }
+
+    /// Get the edge-to-edge distance between the top-left and bottom-right vertices.
+    ///
+    /// ### Why isn't this `const`?
+    ///
+    /// Apparently the [`f32::sqrt`] function is not `const` (as of writing), so this function cannot be const.
+    #[must_use]
+    pub fn edge_to_edge(&self) -> f32 {
+        #[allow(clippy::cast_precision_loss)]
+        ((self.width().pow(2) + self.height().pow(2)) as f32).sqrt()
+    }
+
+
+    /// A method to set the right edge of the [`Rectangle`] to the specified x-coordinate.
+    #[must_use]
+    pub const fn right_to(mut self, new_edge: usize) -> Self {
+        if new_edge >= self.left() {
+            self.right_bottom.0 = new_edge;
+        } else {
+            self.right_bottom.0 = new_edge;
+            (self.right_bottom.0, self.left_top.0) = (self.left_top.0, self.right_bottom.0);
+        }
+
+        self
+    }
+
+    /// A method to set the left edge of the [`Rectangle`] to the specified x-coordinate.
+    #[must_use]
+    pub const fn left_to(mut self, new_edge: usize) -> Self {
+        if new_edge <= self.left() {
+            self.left_top.0 = new_edge;
+        } else {
+            self.left_top.0 = new_edge;
+            (self.right_bottom.0, self.left_top.0) = (self.left_top.0, self.right_bottom.0);
+        }
+
+        self
+    }
+
+    /// A method to set the bottom edge of the [`Rectangle`] to the specified y-coordinate.
+    #[must_use]
+    pub const fn bottom_to(mut self, new_edge: usize) -> Self {
+        if new_edge >= self.bottom() {
+            self.right_bottom.1 = new_edge;
+        } else {
+            self.right_bottom.1 = new_edge;
+            (self.left_top.1, self.right_bottom.1) = (self.right_bottom.1, self.left_top.1);
+        }
+
+        self
+    }
+
+    /// A method to set the top edge of the [`Rectangle`] to the specified y-coordinate.
+    #[must_use]
+    pub const fn top_to(mut self, new_edge: usize) -> Self {
+        if new_edge <= self.top() {
+            self.left_top.1 = new_edge;
+        } else {
+            self.left_top.1 = new_edge;
+            (self.left_top.1, self.right_bottom.1) = (self.right_bottom.1, self.left_top.1);
+        }
+
+        self
+    }
+}
+
+/// The [`BoundingBox`] trait allows widgets to show the area of the [`Terminal`] that they cover.
+/// This is useful for optimizing draw calls by only redrawing the area in the [`BoundingBox`], and it's also
+/// useful for composing widgets from other widgets because you can obtain data about the widget's
+pub trait BoundingBox: Widget {
+    /// Calculates the bounding box of the widget. This method is available so that other widgets can be
+    /// composed using the [`BoundingBox`] widget, but it doesn't need to be used by the end-user of the [`Widget`].
+    ///
+    /// [`BoundingBox::bounding_box`] returns a [`Rectangle`] which contains the coordinates of the [`Rectangle`]'s edges and vertices.
+    ///
+    /// Keep in mind, the y-axis is flipped in Tuit, so [`Rectangle::bottom`] is actually the larger value,
+    /// not [`Rectangle::top`]
+    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle;
+    /// The [`BoundingBox::completely_covered`] method allows the widget to communicate whether it
+    /// completely covers the space specified by its bounding box.
+    ///
+    /// For example, if a widget is circular, it will return [`false`] because it doesn't completely
+    /// cover the space in its bounding box.
+    fn completely_covered(&self, rectangle: Rectangle) -> bool;
+}
+
+#[cfg(test)]
+#[doc(hidden)]
+/// Proud to be a great programmer who tests his code. :)
+mod test {}

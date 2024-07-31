@@ -1,5 +1,3 @@
-#![allow(unused_imports)] // For rustdoc to work.
-
 //! # Errors
 //!
 //! This module contains errors that may occur during the execution of the program.
@@ -31,14 +29,16 @@
 //! }
 //! ```
 
+pub use anyhow::Error as AnyhowError;
 use thiserror::Error;
 
-use crate::draw;
-use crate::terminal::TerminalConst;
 // Unused in code, used in docs.
-use crate::widgets::Widget;
-
-// Unused in code, used in docs.
+#[allow(unused_imports)]
+use crate::{
+    draw,
+    terminal::TerminalConst,
+    widgets::Widget,
+};
 
 /// This enum contains errors that may occur at runtime
 #[derive(Debug, Error)]
