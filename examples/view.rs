@@ -9,7 +9,7 @@ use tuit::widgets::builtins::sweeper::Sweeper;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {
-    compile_error!("You must apply the ansi_terminal feature to view this example. Use `cargo --features ansi_terminal`");
+    println!("You must apply the ansi_terminal feature to view this example. Use `cargo --features ansi_terminal`");
 }
 
 #[cfg(feature = "ansi_terminal")]

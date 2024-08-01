@@ -20,13 +20,16 @@ state, you are the one ultimately in control of program logic.
 
 ### Virtual terminals
 
-At the basis of Tuit is an abstraction on the terminal; the virtual terminal.
+At the base of Tuit is an abstraction on the terminal; the virtual terminal.
 
 Virtual terminals are anything that implements the `tuit::terminal::Terminal`, and there
-are
-a few options that both avoid and utilize allocation (note that the `alloc` feature is
-required for
-certain dynamically resizing terminals, but there is also a no-alloc `MaxSize` which can
-finitely scale until
-the specified parameters).
+are a few options that both avoid and utilize allocation (note that the `alloc` feature is
+required for certain dynamically resizing terminals, but there is also a no-alloc `MaxSize` which can
+finitely scale until the specified parameters).
 
+### MSRV Policy
+
+Current minimum required version: Rust Stable 1.80
+
+My personal recommendation is to stick to the latest stable release. Up until recently, the library was based on nightly
+because some needed features were missing -- however, as of writing on Rust 1.80, they are all available, so I can move to stable.

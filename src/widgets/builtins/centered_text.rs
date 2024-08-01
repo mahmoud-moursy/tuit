@@ -71,34 +71,6 @@ impl<'a> CenteredText<'a> {
     }
 }
 
-impl BoundingBox for CenteredText<'_> {
-    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
-        let (terminal_width, terminal_height) = terminal.dimensions();
-
-        let text_len = self.prompt_text.len();
-        // Calculate the width/height of the prompt, capping it to the terminal's width.
-        //    // div_ceil because if the terminal width is 12, and the text length is 13,
-        //    // we want the height to be 2 because it takes 2 lines.
-        let height = text_len.div_ceil(terminal_width).min(terminal_height);
-        let width = text_len.min(terminal_width);
-
-        let horizontal_center = terminal_width / 2;
-        let vertical_center = terminal_height / 2;
-
-        let left = horizontal_center - (width / 2);
-        let right = left + width;
-
-        let top = vertical_center - (height / 2);
-        let bottom = top + height;
-
-        Rectangle::new((left, top), (right, bottom))
-    }
-
-    fn completely_covered(&self, rectangle: Rectangle) -> bool {
-        rectangle.area() <= self.prompt_text.len()
-    }
-}
-
 impl<'a> Widget for CenteredText<'a> {
     fn update(
         &mut self,
@@ -147,5 +119,33 @@ impl<'a> Widget for CenteredText<'a> {
         }
 
         Ok(UpdateResult::NoEvent)
+    }
+}
+
+impl BoundingBox for CenteredText<'_> {
+    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
+        let (terminal_width, terminal_height) = terminal.dimensions();
+
+        let text_len = self.prompt_text.len();
+        // Calculate the width/height of the prompt, capping it to the terminal's width.
+        //    // div_ceil because if the terminal width is 12, and the text length is 13,
+        //    // we want the height to be 2 because it takes 2 lines.
+        let height = text_len.div_ceil(terminal_width).min(terminal_height);
+        let width = text_len.min(terminal_width);
+
+        let horizontal_center = terminal_width / 2;
+        let vertical_center = terminal_height / 2;
+
+        let left = horizontal_center - (width / 2);
+        let right = left + width;
+
+        let top = vertical_center - (height / 2);
+        let bottom = top + height;
+
+        Rectangle::new((left, top), (right, bottom))
+    }
+
+    fn completely_covered(&self, rectangle: Rectangle) -> bool {
+        rectangle.area() <= self.prompt_text.len()
     }
 }

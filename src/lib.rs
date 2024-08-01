@@ -18,7 +18,6 @@
 //! prompt.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
 //! ```
 #![allow(clippy::collapsible_if)]
-#![deny(clippy::thread_local_initializer_can_be_made_const)]
 #![no_std]
 
 #[doc(hidden)]
