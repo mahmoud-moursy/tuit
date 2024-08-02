@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::terminal::{UpdateInfo, UpdateResult};
+use crate::terminal::{Cell, UpdateInfo, UpdateResult};
 use crate::widgets::Direction;
 
 /// This widget just marks the given [`Direction`] of the screen with x or y-coords.
@@ -29,25 +29,25 @@ impl Ruler {
 
     fn horizontal_draw(&self, mut terminal: impl Terminal) {
         let (width, height) = terminal.dimensions();
-        let characters = terminal.characters_slice_mut();
+        let characters = terminal.cells_mut();
 
-        let bar = match self.1 {
-            Direction::Up => &mut characters[..width],
-            Direction::Down => &mut characters[(height - 1) * width..],
+        let bar: &mut dyn Iterator<Item = &mut Cell> = match self.1 {
+            Direction::Up => &mut characters.take(width),
+            Direction::Down => &mut characters.skip((height - 1) * width),
             _ => unreachable!(),
         };
 
         #[allow(clippy::cast_possible_truncation)]
-        for (x, character) in bar.iter_mut().enumerate() {
+        for (x, cell) in bar.enumerate() {
             // Truncation here is impossible, unless you are on an architecture below 32-bits.
-            character.character = char::from_digit(x as u32 % self.0, self.0)
+            cell.character = char::from_digit(x as u32 % self.0, self.0)
                 .expect("Should never fail. Tried to convert an invalid digit into a character!");
         }
     }
 
     fn vertical_draw(&self, mut terminal: impl Terminal) {
         let (width, height) = terminal.dimensions();
-        let characters = terminal.characters_slice_mut();
+        let mut characters = terminal.cells_mut();
 
         let x_offset = match self.1 {
             Direction::Left => 0,
@@ -57,7 +57,7 @@ impl Ruler {
 
         #[allow(clippy::cast_possible_truncation)]
         for y in 0..height {
-            characters[(y * width) + x_offset].character =
+            characters.nth(x_offset).unwrap().character =
                 char::from_digit(y as u32 % self.0, self.0).expect(
                     "Should never fail. Tried to convert an invalid digit into a character!",
                 );

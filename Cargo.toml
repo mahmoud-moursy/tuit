@@ -23,6 +23,7 @@ alloc = []
 builtin_widgets = []
 ansi_terminal = ["std", "owo_colors"]
 owo_colors = ["dep:owo-colors"]
+extras = []
 
 [package.metadata.docs.rs]
 all-features = true # Otherwise, it would not compile every feature -- causing some docs to be missing.
@@ -31,6 +32,8 @@ all-features = true # Otherwise, it would not compile every feature -- causing s
 pedantic = "deny"
 nursery = "deny"
 perf = "warn"
+
+collapsible_if = { level = "allow", priority = 1 }
 
 undocumented_unsafe_blocks = { level = "deny", priority = 1 } # Unsafe is forbidden in the library anyway, but it might not be in the future.
 
@@ -46,5 +49,5 @@ missing_docs = "warn"
 unused_features = "deny"
 
 [lints.rustdoc]
-missing_doc_code_examples = "warn"
+#missing_doc_code_examples = "warn"
 broken_intra_doc_links = "deny"

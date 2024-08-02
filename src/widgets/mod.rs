@@ -9,7 +9,7 @@ use crate::terminal::{Terminal, UpdateInfo, UpdateResult};
 /// Builtin widgets.
 pub mod builtins;
 
-/// Provides a direction for elements
+/// Provides a direction for [`Widget`]s to optionally use where it makes sense.
 pub enum Direction {
     /// Left
     Left,
@@ -50,7 +50,7 @@ pub enum Direction {
 ///
 ///     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal)-> tuit::Result<UpdateResult> {
 ///         // Set the terminal's top-left character to my_char.
-///         terminal.character_mut(0, 0).map(|x| x.character = self.my_char);
+///         terminal.cell_mut(0, 0).map(|x| x.character = self.my_char);
 ///
 ///         Ok(UpdateResult::NoEvent)
 ///     }
@@ -77,13 +77,15 @@ pub trait Widget {
     /// let mut  my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     /// let mut my_terminal_object = MyObject;    ///
     ///
-    /// let mut input: UpdateInfo = await_input();
+    /// // Collecting input is not Tuit's responsibility -- so `await_input` here is an external function
+    /// // created by a magical user of this library. 🧙
+    /// let mut magical_input: UpdateInfo = await_input();
     ///
-    /// while input == UpdateInfo::NoInfo {
-    ///     input = await_input();
+    /// while magical_input == UpdateInfo::NoInfo {
+    ///     magical_input = await_input();
     /// }
     ///
-    /// my_terminal_object.update(input, &my_terminal).ok();
+    /// my_terminal_object.update(magical_input, &my_terminal).ok();
     /// ```
     ///
     /// # Errors
@@ -95,7 +97,7 @@ pub trait Widget {
         terminal: impl TerminalConst,
     ) -> crate::Result<UpdateResult>;
 
-    /// This method is called by the implementor whenever a widget redraw is requested.
+    /// This method is called by the implementor whenever they want the widget to redraw.
     ///
     /// # Errors
     ///
@@ -104,17 +106,7 @@ pub trait Widget {
     fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal)
             -> crate::Result<UpdateResult>;
 
-    //      NOTE: There was a "ForceRedraw" enum variant for [`UpdateInfo`] that has been removed
-    //              because widgets should be expected to draw on every redraw call. Optimizing
-    //              when to do draw calls is a detail for the implementor to handle.
-    // /// This method is called by the implementor when a force redraw is required.
-    // ///
-    // /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::ForceRedraw`] as `update_info`.
-    // fn force_redraw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-    //     self.draw(UpdateInfo::ForceRedraw, terminal)
-    // }
-
-    /// This method is called by the implementor when a redraw is requested.
+    /// This method is called by the implementor when redrawing is requested.
     ///
     /// Equivalent to [`Widget::draw`] when called with [`UpdateInfo::NoInfo`] as `update_info`.
     ///
@@ -136,8 +128,8 @@ pub trait Widget {
     Clone,
     Debug,
     Default
-)] // Ord and PartialOrd also implemented. check default_impls.rs
-/// Provides the edge coordinates for a tuit Square.
+)] // Ord and PartialOrd also implemented. Check default_impls.rs
+/// Provides the edge coordinates for a tuit [`Rectangle`].
 pub struct Rectangle {
     /// The top-left edge of the square.
     left_top: (usize, usize),
@@ -272,6 +264,11 @@ impl Rectangle {
     /// ### Why isn't this `const`?
     ///
     /// Apparently the [`f32::sqrt`] function is not `const` (as of writing), so this function cannot be const.
+    ///
+    /// #### Additional notes
+    ///
+    /// With large rectangle sizes, there is a risk of some precision loss because the function converts
+    /// the `usize` integers used to store lengths into `f32` floats.
     #[must_use]
     pub fn edge_to_edge(&self) -> f32 {
         #[allow(clippy::cast_precision_loss)]
@@ -330,26 +327,96 @@ impl Rectangle {
 
         self
     }
+
+    /// Check if the given (x,y) coordinate is within the [`Rectangle`].
+    ///
+    /// ```
+    /// use tuit::widgets::Rectangle;
+    ///
+    /// let rectangle = Rectangle::of_size(20, 20);
+    /// let coordinate = (5, 5);
+    ///
+    /// assert!(rectangle.contains(coordinate))
+    /// ```
+    #[must_use]
+    pub const fn contains(&self, point: (usize, usize)) -> bool {
+        let (x, y) = point;
+        let leftmost = self.left();
+        let rightmost = self.right();
+
+        let topmost = self.top();
+        let bottommost = self.bottom();
+
+        let x_in_bounds = x >= leftmost && x <= rightmost;
+        let y_in_bounds = y >= topmost && y <= bottommost;
+
+        x_in_bounds && y_in_bounds
+    }
+
+    /// Check if the given [`Rectangle`] is within the bounds of this [`Rectangle`].
+    ///
+    /// ```
+    /// # use std::ops::Not;
+    /// use tuit::widgets::Rectangle;
+    ///
+    /// let rectangle = Rectangle::of_size(20, 20);
+    /// let other_rectangle = Rectangle::new((1,2), (21, 21));
+    ///
+    /// assert!(rectangle.contains_rect(other_rectangle).not())
+    /// ```
+    #[must_use]
+    pub const fn contains_rect(&self, rect: Self) -> bool {
+        let (left_top, right_bottom) = (rect.left_top(), rect.right_bottom());
+
+        self.contains(left_top) && self.contains(right_bottom)
+    }
+
+    /// Moves the [`Rectangle`] to the specified position, centered around the top-left vertex.
+    #[must_use]
+    pub const fn to(mut self, new_left_top: (usize, usize)) -> Self {
+        let width = self.width();
+        let height = self.height();
+
+        self.left_top = new_left_top;
+        self.right_bottom = (new_left_top.0 + width, new_left_top.1 + height);
+
+        self
+    }
 }
 
 /// The [`BoundingBox`] trait allows widgets to show the area of the [`Terminal`] that they cover.
-/// This is useful for optimizing draw calls by only redrawing the area in the [`BoundingBox`], and it's also
-/// useful for composing widgets from other widgets because you can obtain data about the widget's
+/// This is useful for optimizing draw calls by only redrawing the area in the [`BoundingBox`],
+/// and it's also useful for composing widgets from other widgets because you can collect data
+/// about the widget's draw area.
 pub trait BoundingBox: Widget {
-    /// Calculates the bounding box of the widget. This method is available so that other widgets can be
-    /// composed using the [`BoundingBox`] widget, but it doesn't need to be used by the end-user of the [`Widget`].
+    /// Calculates the bounding box of the widget. This method is available so that other widgets
+    /// can be composed using the [`BoundingBox`] widget, but it doesn't need to be used by the
+    /// end-user of the [`Widget`].
     ///
-    /// [`BoundingBox::bounding_box`] returns a [`Rectangle`] which contains the coordinates of the [`Rectangle`]'s edges and vertices.
+    /// It can potentially be used to optimize redrawing by only redrawing the bounding box.
+    ///
+    /// [`BoundingBox::bounding_box`] returns a [`Rectangle`] which contains the coordinates of
+    /// the [`Rectangle`]'s edges and vertices.
     ///
     /// Keep in mind, the y-axis is flipped in Tuit, so [`Rectangle::bottom`] is actually the larger value,
-    /// not [`Rectangle::top`]
+    /// not [`Rectangle::top`].
     fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle;
-    /// The [`BoundingBox::completely_covered`] method allows the widget to communicate whether it
-    /// completely covers the space specified by its bounding box.
+    /// The [`BoundingBox::completely_covers`] method allows the widget to communicate whether it
+    /// completely covers the space specified by the specified [`Rectangle`].
     ///
     /// For example, if a widget is circular, it will return [`false`] because it doesn't completely
-    /// cover the space in its bounding box.
-    fn completely_covered(&self, rectangle: Rectangle) -> bool;
+    /// cover the space in the [`Rectangle`].
+    fn completely_covers(&self, rectangle: Rectangle) -> bool;
+
+    /// The [`BoundingBox::covered_in`] method allows the widget to communicate whether it
+    /// completely covers the space specified by its own bounding box in the specified
+    /// [`TerminalConst`].
+    ///
+    /// For example, if the widget is circular, it will return [`false`] because it doesn't
+    /// completely cover the space in its bounding box.
+    fn covered_in(&self, terminal: impl TerminalConst) -> bool {
+        self.completely_covers(self.bounding_box(terminal))
+    }
 }
 
 #[cfg(test)]

@@ -14,7 +14,7 @@ pub struct CenteredPrompt<'a> {
     pub buttons: &'a [&'a str],
     /// The Cell Style for selected buttons. Leave `None` to use the same style as the text body.
     pub selected_button_style: Style,
-    /// the Cell Style for unselected buttons. Leave `None` to use the same style as the text body.
+    /// The Cell Style for unselected buttons. Leave `None` to use the same style as the text body.
     pub unselected_button_style: Style,
     /// The button currently hovered over. `None` means no button is selected.
     hovered_button: Option<usize>,
@@ -132,11 +132,11 @@ impl Widget for CenteredPrompt<'_> {
     ) -> crate::Result<UpdateResult> {
         self.centered_text.draw(update_info, &mut terminal)?; // Draw text.
 
-        let (term_width, _term_height) = terminal.dimensions();
-        let ((_left, _top), (_right, bottom)) = (self.centered_text.bounding_box(&terminal).left_top(), self.centered_text.bounding_box(&terminal).right_bottom());
+        let term_width = terminal.width();
+        let bottom = self.centered_text.bounding_box(&terminal).bottom();
 
         let mut characters_used = self.buttons.first().unwrap_or(&"").len();
-        let term_chars = terminal.characters_slice_mut();
+        let term_chars = terminal.cells_mut();
 
         let lines = self.buttons.split_inclusive(|button_text| {
             if button_text.len() > term_width {
@@ -159,16 +159,17 @@ impl Widget for CenteredPrompt<'_> {
 
         let mut current_button = 0;
 
-        for (line_offset, buttons) in lines.enumerate() {
-            let start = (bottom + line_offset) * term_width;
+        let mut term_chars = term_chars.skip(bottom * term_width);
 
+
+        for (line_offset, buttons) in lines.enumerate() {
             let mut col_no = 0;
             // pluh? pluh 🗣
             for button in buttons {
                 col_no += button.len();
             }
 
-            let mut left_offset =
+            let mut cursor =
                 (term_width
                     .checked_sub(col_no)
                     .ok_or(Error::OutOfBoundsCoordinate {
@@ -177,11 +178,16 @@ impl Widget for CenteredPrompt<'_> {
                     })?)
                     / 2; // find middle.
 
+            let mut term_chars = term_chars.by_ref().skip(cursor);
+
             let text_style = self.centered_text.style;
 
             for button in buttons {
                 for character in button.chars() {
-                    let current_cell = &mut term_chars[start + left_offset];
+                    let current_cell = term_chars.next().ok_or(Error::OutOfBoundsCoordinate {
+                        x: Some(col_no),
+                        y: Some(line_offset + bottom),
+                    })?;
 
                     let base_style = text_style.inherits(current_cell.style);
 
@@ -193,10 +199,11 @@ impl Widget for CenteredPrompt<'_> {
                         current_cell.style = self.unselected_button_style.inherits(base_style);
                     }
 
-                    left_offset += 1;
+                    cursor += 1;
                 }
                 current_button += 1;
             }
+            term_chars.nth(term_width - cursor - 1);
         }
 
         Ok(UpdateResult::NoEvent)

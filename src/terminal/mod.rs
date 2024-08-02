@@ -5,7 +5,7 @@
 //!
 //! ## Implement a Terminal.
 //!
-//! The [`Terminal`] trait is a trait that is auto-implemented when you fulfill three criteria:
+//! The [`Terminal`] trait is a trait auto-implemented when you fulfill three criteria:
 //!
 //! 1. Your terminal struct has the [`Metadata`] trait
 //! 2. Your terminal struct has the [`TerminalConst`] trait
@@ -61,11 +61,50 @@
 //! # }
 //!
 //! impl TerminalConst for BasicTerminal {
-//!     fn characters_slice(&self) -> &[Cell] {
-//!         &[]
+//!     fn cells(&self) -> impl Iterator<Item = &Cell> {
+//!         [].iter()
 //!     }
 //! }
 //! ```
+//!
+//! ### The [`TerminalMut`] trait
+//!
+//! This trait is basically like [`TerminalConst`], but it gives a mutable view instead, so you can
+//! modify each [`Cell`] if you were, for example, a widget!
+//!
+//! ```
+//! use tuit::prelude::{Metadata, TerminalConst, TerminalMut};
+//! use tuit::terminal::Cell;
+//! # use tuit::style::Style;
+//! # pub struct BasicTerminal;
+//! # impl Metadata for BasicTerminal {
+//! #    fn dimensions(&self) -> (usize, usize) {
+//! #        (42, 13) // width: 42 cells, height: 13 cells
+//! #    }
+//! #
+//! #    fn default_style(&self) -> Style {
+//! #        Style::new() // a style with all fields set to `None`.
+//! #    }
+//! # }
+//!
+//! impl TerminalMut for BasicTerminal {
+//!     fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
+//!         [].iter_mut()
+//!     }
+//! }
+//! ```
+//!
+//! ### A Complete Set.
+//!
+//! After implementing these three traits, we now automatically get an implementation of [`Terminal`].
+//! Any immutable references to our terminal automatically get [`TerminalConst`], and mutable references
+//! get a complete [`Terminal`]
+//!
+//! ### A more complicated terminal?
+//!
+//! If you're looking for some more-complicated examples, perhaps you should take a look at this module's
+//! source code. A terminal like the [`ConstantSize`] terminal can be a good starting point if you are
+//! well-acquainted with generics.
 
 pub use const_size::ConstantSize;
 pub use const_size_ref::ConstantSizeRef;
@@ -77,6 +116,7 @@ use crate::style::Style;
 #[allow(unused_imports)]
 use crate::terminal;
 
+#[cfg(feature = "extras")]
 pub mod extended;
 /// Module containing all the code required for the "interactive" aspects of Tuit. This includes code
 /// like structs for handling input, like [`interactive::MouseButton`] or [`interactive::KeyState`].
@@ -93,7 +133,7 @@ pub mod max_size;
 
 #[cfg(feature = "owo_colors")]
 mod owo_colors;
-
+mod dummy;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
@@ -151,24 +191,24 @@ pub trait Metadata {
 #[allow(clippy::module_name_repetitions)]
 pub trait TerminalConst: Metadata {
     /// Returns an immutable reference to the terminal's characters
-    fn characters_slice(&self) -> &[Cell];
+    fn cells(&self) -> impl Iterator<Item = &Cell>;
 
     /// Retrieves an immutable reference to a terminal cell
-    fn character(&self, x: usize, y: usize) -> Option<&Cell> {
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
         let (width, height) = self.dimensions();
 
         if x >= width || y >= height {
             return None;
         }
 
-        self.characters_slice().get(x + (width * y))
+        self.cells().nth(x + (width * y))
     }
 
-    /// You can pass any value that implements [`Target`] to get the terminal to update.
+    /// You can pass any value that implements [`Renderer`] to get the terminal to update.
     ///
-    /// Inversely, you can call [`Target::render`] on any Terminal and draw the screen
+    /// Inversely, you can call [`Renderer::render`] on any Terminal and draw the screen
     ///
-    /// ```feature,ansi_terminal
+    /// ```rust
     /// use std::io::stdout;
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
@@ -177,13 +217,14 @@ pub trait TerminalConst: Metadata {
     ///
     /// let mut stdout = stdout();
     ///
+    /// #[cfg(feature = "ansi_terminal")]
     /// my_terminal.display(stdout).expect("Failed to display the terminal");
     /// ```
     ///
     /// # Errors
     ///
-    /// This will fail when the [`Target`] implementor experiences aa problem rendering
-    fn display(&self, mut display: impl Target) -> crate::Result<()>
+    /// This will fail when the [`Renderer`] implementor experiences aa problem rendering
+    fn display(&self, mut display: impl Renderer) -> crate::Result<()>
     where
         Self: Sized,
     {
@@ -196,7 +237,7 @@ pub trait TerminalConst: Metadata {
 /// terminal information like the default style, the dimensions, or anything else.
 pub trait TerminalMut: Metadata {
     /// Returns a mutable reference to the terminal's characters
-    fn characters_slice_mut(&mut self) -> &mut [Cell];
+    fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell>;
 
     /// Retrieves a mutable reference to a terminal character
     ///
@@ -206,7 +247,7 @@ pub trait TerminalMut: Metadata {
     ///
     /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
-    /// let my_character_ref = terminal.character_mut(0, 0).expect("There should always be a character here!");
+    /// let my_character_ref = terminal.cell_mut(0, 0).expect("There should always be a character here!");
     ///
     /// // Set the top-right character to 'h'.
     /// my_character_ref.character = 'h';
@@ -216,17 +257,21 @@ pub trait TerminalMut: Metadata {
     ///
     /// terminal.display(std_out).expect("Failed to display terminal");
     /// ```
-    fn character_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+    fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
         let (width, height) = self.dimensions();
 
         if x >= width || y >= height {
             return None;
         }
 
-        self.characters_slice_mut().get_mut((width * y) + x)
+        if (width * y) + x == 0 {
+            self.cells_mut().next()
+        } else {
+            self.cells_mut().nth((width * y) + x - 1)
+        }
     }
 }
 
-/// This trait combines both [`TerminalMut`] and [`TerminalConst`] and is auto-implemented for any
-/// type that implements both.
+/// This is a marker trait for types that have both [`TerminalMut`] and [`TerminalConst`].
+/// It is auto-implemented for any type that implements both.
 pub trait Terminal: TerminalConst + TerminalMut + Metadata {}

@@ -23,7 +23,7 @@ use crate::terminal::Cell;
 /// ```
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct ConstantSize<const WIDTH: usize, const HEIGHT: usize> {
-    // Modifying this does not lead to UB, so they are public.
+    // Modifying these values does not lead to UB or crashing, so they are public.
     /// The characters that are within the terminal.
     pub characters: [[Cell; WIDTH]; HEIGHT],
     /// The terminal's default style.
@@ -70,13 +70,13 @@ impl<const WIDTH: usize, const HEIGHT: usize> Metadata for ConstantSize<WIDTH, H
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> TerminalConst for ConstantSize<WIDTH, HEIGHT> {
-    fn characters_slice(&self) -> &[Cell] {
-        self.characters.as_flattened()
+    fn cells(&self) -> impl Iterator<Item = &Cell> {
+        self.characters.iter().flatten()
     }
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> TerminalMut for ConstantSize<WIDTH, HEIGHT> {
-    fn characters_slice_mut(&mut self) -> &mut [Cell] {
-        self.characters.as_flattened_mut()
+    fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
+        self.characters.iter_mut().flatten()
     }
 }

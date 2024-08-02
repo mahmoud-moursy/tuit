@@ -27,7 +27,7 @@ use crate::terminal::TerminalConst;
 /// This trait is written by the implementor and is responsible for rendering the terminal's data
 /// to the screen.
 ///
-/// It only has one method, which is [`Target::render`].
+/// It only has one method, which is [`Renderer::render`].
 ///
 /// The method receives a reference to a type that implements the [`TerminalConst`] trait, and uses the data within to render the terminal.
 ///
@@ -41,7 +41,7 @@ use crate::terminal::TerminalConst;
 /// stdout.render(&my_terminal).expect("Failed to draw to stdout");
 /// ```
 ///
-pub trait Target {
+pub trait Renderer {
     /// This method gets called when the implementor calls [`TerminalConst::display`]
     ///
     /// ## Dummy render implementation:
@@ -57,13 +57,13 @@ pub trait Target {
     ///     }
     /// }
     ///
-    /// impl Target for MyGPU {
+    /// impl Renderer for MyGPU {
     ///     fn render(&mut self, terminal: impl TerminalConst) -> tuit::Result<()> {
-    ///         let characters = terminal.characters_slice();
+    ///         let cells = terminal.cells();
     ///
     ///         // Do some magic to render characters!
-    ///         for character in characters {
-    ///             self.gpu_magic(character)
+    ///         for cell in cells {
+    ///             self.gpu_magic(cell)
     ///         }
     ///
     ///         return Ok(());
@@ -73,16 +73,16 @@ pub trait Target {
     ///
     /// # Errors
     ///
-    /// When you implement [`Target`], you can return an [`Err`] that will help you better cope
+    /// When you implement [`Renderer`], you can return an [`Err`] that will help you better cope
     /// with render failures and may help with debugging.
     fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()>;
 }
 
-/// Doesn't really do anything when [`Target::render`] is called. I mean... what would you
+/// Doesn't really do anything when [`Renderer::render`] is called. I mean... what would you
 /// expect a struct called [`DummyTarget`] to accomplish? World peace?
 pub struct DummyTarget;
 
-impl Target for DummyTarget {
+impl Renderer for DummyTarget {
     fn render(&mut self, _terminal: impl TerminalConst) -> crate::Result<()> {
         Ok(())
     }

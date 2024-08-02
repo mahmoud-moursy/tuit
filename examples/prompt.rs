@@ -1,7 +1,5 @@
 //! Demonstrates centered prompts.
 
-use std::array;
-
 use tuit::prelude::*;
 use tuit::style::{Ansi4, Colour::Ansi16};
 use tuit::terminal::ConstantSize;
@@ -22,27 +20,36 @@ fn main() {
     // text.drawn(&mut terminal)
     //     .expect("This method CAN fail, but only if the prompt is too large. Here, it is not.");
 
-    let sweeper = Sweeper::new(Ansi16(Ansi4::BrightCyan));
+    let mut stdio = std::io::stdout();
 
-    sweeper.drawn(&mut terminal).ok();
+    let sweeper = Sweeper::of_colour(Ansi16(Ansi4::BrightCyan));
 
-    let test_buttons: [String; 25] = array::from_fn(|x| format!(" Test {x:>02} ")); // A format! String can have a dynamic length, thus requires dynamic allocation...
-    let test_buttons: [&str; 25] = array::from_fn(|x| test_buttons[x].as_str()); // So we allocate each String, and then borrow it from where it is already owned...
-    // So no more errors about a value being dropped!
+    let mut x = -1;
 
-    let mut prompt = CenteredPrompt::new("Hello\0\tworld!", &test_buttons).select(2);
+    loop {
+        x += 1;
 
-    prompt.centered_text.style = prompt
-        .centered_text
-        .style
-        .bg(Ansi16(Ansi4::Red))
-        .fg(Ansi16(Ansi4::BrightWhite));
-    prompt.selected_button_style = prompt.selected_button_style.inverted();
+        let test_buttons: Vec<String> = (0..x).map(|x| format!(" Test {x:>02} ")).collect();
+        let test_buttons: Vec<&str> = test_buttons[..].iter().map(String::as_str).collect();
 
-    prompt.drawn(&mut terminal).expect("Oops...");
+        sweeper.drawn(&mut terminal).ok();
 
-    let stdio = std::io::stdout();
+        let mut prompt = CenteredPrompt::new("Hello world!", &test_buttons).select(2);
 
-    // Make sure to enable the "ansi-terminal" feature!
-    terminal.display(stdio).expect("Failed to display terminal");
+        prompt.centered_text.style = prompt
+            .centered_text
+            .style
+            .bg(Ansi16(Ansi4::Red))
+            .fg(Ansi16(Ansi4::BrightWhite));
+        prompt.selected_button_style = prompt.selected_button_style.inverted();
+
+        if prompt.drawn(&mut terminal).is_err() {
+            break;
+        }
+
+
+        stdio.render(terminal).ok();
+    }
+
+    println!("\nWe managed to draw a prompt with up to {x} buttons!");
 }

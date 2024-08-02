@@ -1,19 +1,27 @@
 use crate::prelude::{Terminal, TerminalConst, Widget};
-use crate::style::Colour;
+use crate::style::{Colour, Style};
 use crate::terminal::{UpdateInfo, UpdateResult};
 
 /// A widget that will clear the entire terminal and replace it with a blank cell containing
-/// the specified colour.
+/// the specified style.
 pub struct Sweeper {
-    /// The colour to use for the blank cells that clear the terminal.
-    pub colour: Colour,
+    /// The style to use for the blank cells that clear the terminal.
+    pub style: Style,
 }
 
 impl Sweeper {
-    /// Creates a new [`Sweeper`] with the specified `colour`
+    /// Creates a new [`Sweeper`] with the specified [`Style`]
     #[must_use]
-    pub const fn new(colour: Colour) -> Self {
-        Self { colour }
+    pub const fn new(style: Style) -> Self {
+        Self { style }
+    }
+
+    /// Creates a new [`Sweeper`] with the specified [`Colour`] and a blank style
+    #[must_use]
+    pub const fn of_colour(colour: Colour) -> Self {
+        Self {
+            style: Style::new().bg(colour)
+        }
     }
 }
 
@@ -31,8 +39,8 @@ impl Widget for Sweeper {
         _update_info: UpdateInfo,
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
-        for character in terminal.characters_slice_mut() {
-            character.style.bg_colour = Some(self.colour);
+        for character in terminal.cells_mut() {
+            character.style = self.style;
             character.character = ' ';
         }
 

@@ -44,8 +44,8 @@ impl<const WIDTH: usize, const HEIGHT: usize, T> TerminalConst for ConstantSizeR
 where
     T: AsRef<[[Cell; WIDTH]; HEIGHT]>,
 {
-    fn characters_slice(&self) -> &[Cell] {
-        self.characters.as_ref().as_flattened()
+    fn cells(&self) -> impl Iterator<Item = &Cell> {
+        self.characters.as_ref().iter().flatten()
     }
 }
 
@@ -53,7 +53,7 @@ impl<const WIDTH: usize, const HEIGHT: usize, T> TerminalMut for ConstantSizeRef
 where
     T: AsMut<[[Cell; WIDTH]; HEIGHT]> + AsRef<[[Cell; WIDTH]; HEIGHT]>,
 {
-    fn characters_slice_mut(&mut self) -> &mut [Cell] {
-        self.characters.as_mut().as_flattened_mut()
+    fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
+        self.characters.as_mut().iter_mut().flatten()
     }
 }

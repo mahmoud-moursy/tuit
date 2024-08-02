@@ -1,11 +1,11 @@
-//! All the important types for styling in Tuit. Contains structs like [`Colour`] and [`Style`].
+//! All the important types for styling in Tuit. Contains structs like `Colour` and `Style`.
 
 /// Represents a 4-bit ANSI terminal colour.
 /// <br /> <br />
 /// Usually, two of these are used in a terminal to create an 8-bit colour consisting
 /// of a foreground and a background.
 /// <br /> <br />
-/// Note: Ansi4 was decided upon instead of Ansi16 in order to avoid name collisions when importing
+/// Note: Ansi4 was decided upon instead of Ansi16 to avoid name collisions when importing
 /// both [`Ansi4`] and when glob-importing [`Colour`]
 ///
 /// ```
@@ -43,8 +43,8 @@ pub enum Ansi4 {
 ///
 ///
 /// [`Colour`] supports many terminal colour schemes; some terminals may not be capable of
-/// displaying certain colours, or may represent colours differently (for example, ANSI colours
-/// may be overwritten by user themes on some terminals).
+/// displaying certain colours, or may represent colours differently (for example, user themes
+/// may change the ANSI colours to something else on some terminals).
 ///
 /// [`Colour`] supports the following colour formats:
 /// - 16-colour ANSI

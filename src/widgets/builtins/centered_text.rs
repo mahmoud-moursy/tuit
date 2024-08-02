@@ -107,7 +107,7 @@ impl<'a> Widget for CenteredText<'a> {
             let x = (i % width) + left;
             let y = (i / width) + top;
 
-            if let Some(cell) = terminal.character_mut(x, y) {
+            if let Some(cell) = terminal.cell_mut(x, y) {
                 cell.character = character;
                 cell.style = self.style.inherits(cell.style);
             } else {
@@ -128,7 +128,7 @@ impl BoundingBox for CenteredText<'_> {
 
         let text_len = self.prompt_text.len();
         // Calculate the width/height of the prompt, capping it to the terminal's width.
-        //    // div_ceil because if the terminal width is 12, and the text length is 13,
+        //    // `div_ceil` because if the terminal width is 12, and the text length is 13,
         //    // we want the height to be 2 because it takes 2 lines.
         let height = text_len.div_ceil(terminal_width).min(terminal_height);
         let width = text_len.min(terminal_width);
@@ -145,7 +145,7 @@ impl BoundingBox for CenteredText<'_> {
         Rectangle::new((left, top), (right, bottom))
     }
 
-    fn completely_covered(&self, rectangle: Rectangle) -> bool {
+    fn completely_covers(&self, rectangle: Rectangle) -> bool {
         rectangle.area() <= self.prompt_text.len()
     }
 }

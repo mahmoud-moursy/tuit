@@ -6,19 +6,19 @@ use core::fmt::Formatter;
 
 use owo_colors::OwoColorize;
 
-use crate::draw::Target;
+use crate::draw::Renderer;
 use crate::prelude::TerminalConst;
 use crate::terminal::Cell;
 
 #[cfg(feature = "ansi_terminal")]
-impl Target for std::io::Stdout {
+impl Renderer for std::io::Stdout {
     fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
         use std::io::Write;
         use std::prelude::rust_2021::*;
 
         let terminal_width = terminal.width();
 
-        let characters = terminal.characters_slice().iter();
+        let characters = terminal.cells();
 
         for (idx, character_cell) in characters.enumerate() {
             if idx % terminal_width == 0 {

@@ -3,14 +3,14 @@
 //! This module contains errors that may occur during the execution of the program.
 //!
 //! ```
-//! use tuit::draw::Target;
+//! use tuit::draw::Renderer;
 //! use tuit::prelude::TerminalConst;
 //! use tuit::terminal::ConstantSize;
 //!
 //! use tuit::errors::Error;
 //!
 //! # struct MagicGPU;
-//! # impl Target for MagicGPU {
+//! # impl Renderer for MagicGPU {
 //! #   fn render(&mut self, terminal: impl TerminalConst) -> tuit::Result<()> {
 //! #        Ok(())
 //! #    }
@@ -47,7 +47,7 @@ pub enum Error {
     /// For generic I/O related errors.
     #[error("Encountered an I/O error.")]
     Io,
-    /// This error is for when an implementor of [`draw::Target`] fails to
+    /// This error is for when an implementor of [`draw::Renderer`] fails to
     /// render the screen for any reason.
     #[error("Failed to render terminal screen.")]
     RenderError,

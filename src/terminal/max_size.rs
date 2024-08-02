@@ -80,19 +80,19 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Metadata for MaxSize<MAX_W
 impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> TerminalConst
 for MaxSize<MAX_WIDTH, MAX_HEIGHT>
 {
-    fn characters_slice(&self) -> &[Cell] {
+    fn cells(&self) -> impl Iterator<Item = &Cell> {
         let (acting_width, acting_height) = self.dimensions;
 
-        &self.characters.as_flattened()[..acting_width * acting_height]
+        self.characters.iter().flatten().take(acting_width * acting_height)
     }
 }
 
 impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> TerminalMut
 for MaxSize<MAX_WIDTH, MAX_HEIGHT>
 {
-    fn characters_slice_mut(&mut self) -> &mut [Cell] {
+    fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
         let (acting_width, acting_height) = self.dimensions;
 
-        &mut self.characters.as_flattened_mut()[..acting_width * acting_height]
+        self.characters.iter_mut().flatten().take(acting_width * acting_height)
     }
 }

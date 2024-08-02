@@ -1,6 +1,5 @@
 use core::cmp::Ordering;
 use core::ops::{BitOr, Deref, DerefMut};
-
 use crate::prelude::{Metadata, Terminal, TerminalConst, TerminalMut};
 use crate::style::{Ansi4, Style};
 use crate::terminal::Cell;
@@ -58,13 +57,13 @@ impl<T: Deref<Target: TerminalConst>> TerminalConst for T {
     //     (**self).characters_slice_mut()
     // }
 
-    fn characters_slice(&self) -> &[Cell] {
-        (**self).characters_slice()
+    fn cells(&self) -> impl Iterator<Item = &Cell> {
+        (**self).cells()
     }
 }
 impl<T: DerefMut<Target: TerminalMut>> TerminalMut for T {
-    fn characters_slice_mut(&mut self) -> &mut [Cell] {
-        self.deref_mut().characters_slice_mut()
+    fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
+        self.deref_mut().cells_mut()
     }
 }
 impl<T: TerminalConst + TerminalMut + Metadata> Terminal for T {}
