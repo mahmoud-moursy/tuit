@@ -1,12 +1,12 @@
 use crate::style::Style;
-use crate::terminal::{Cell, Metadata};
+use crate::terminal::{Cell, Metadata, TerminalConst};
 use crate::terminal::extended::view_iterator::ViewIterator;
 use crate::terminal::TerminalMut;
 use crate::widgets::Rectangle;
 
 /// A mutable view into another [`TerminalMut`].
-pub struct ViewMut<T>
- {
+pub struct View<T>
+{
     /// The parent terminal containing the characters inside the view
     parent: T,
     /// The default style of the parent terminal
@@ -15,8 +15,8 @@ pub struct ViewMut<T>
     rect: Rectangle,
 }
 
-impl<T> Metadata for ViewMut<T>
-where T: TerminalMut {
+impl<T> Metadata for View<T>
+where T: TerminalConst {
     fn dimensions(&self) -> (usize, usize) {
         self.rect.dimensions()
     }
@@ -26,26 +26,26 @@ where T: TerminalMut {
     }
 }
 
-impl<T> TerminalMut for ViewMut<T>
-where T: TerminalMut {
-    fn cells_mut(&mut self) -> impl Iterator<Item=&mut Cell> {
+impl<T> TerminalConst for View<T>
+where T: TerminalConst {
+    fn cells(&self) -> impl Iterator<Item=&Cell> {
         let parent_dimensions = self.parent.dimensions();
         let view_top = self.rect.top();
         let view_left = self.rect.left();
-        let cells = self.parent.cells_mut();
+        let cells = self.parent.cells();
 
-            ViewIterator {
-                child: cells
-                    .skip(view_left)
-                    .skip(view_top * parent_dimensions.0),
-                current_coord: (0,0),
-                parent_dimensions,
-                view_rect: self.rect
-            }
+        ViewIterator {
+            child: cells
+                .skip(view_left)
+                .skip(view_top * parent_dimensions.0),
+            current_coord: (0,0),
+            parent_dimensions,
+            view_rect: self.rect
+        }
     }
 }
 
-impl<T> ViewMut<T> {
+impl<T> View<T> {
     /// Creates a new [`ViewMut`] from the given [`TerminalMut`] and the left-top
     /// coordinate.
     pub fn new(terminal: T, view_rect: Rectangle) -> Self

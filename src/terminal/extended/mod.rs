@@ -1,18 +1,20 @@
 //! This module contains the [`Extended`] trait that contains some extra methods.
 
-/// The [`ViewMut`] terminal.
-pub mod view_mut;
-
 use crate::prelude::*;
 use crate::terminal::extended::view_mut::ViewMut;
+use crate::widgets::Rectangle;
+
+/// The [`ViewMut`] terminal.
+pub mod view_mut;
+mod view;
+mod view_iterator;
 
 /// Some things here require extra dependencies that I didn't want to add to needlessly add to the
 /// crate... so they got broken off into their own thing.
 pub trait Extended: Terminal {
     /// Returns a mutable view into
-    fn view_mut<const WIDTH: usize, const HEIGHT: usize>
-    (&mut self, left_top: (usize, usize)) -> ViewMut<WIDTH, HEIGHT, &mut Self> {
-        ViewMut::new(self, left_top)
+    fn view_mut(&mut self, rect: Rectangle) -> ViewMut<&mut Self> {
+        ViewMut::new(self, rect)
     }
 
     // Returns a copied view to the [`Cell`]s within the specified area.

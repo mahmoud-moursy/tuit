@@ -7,6 +7,7 @@ use tuit::style::{Ansi4, Colour};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::sweeper::Sweeper;
 use tuit::widgets::builtins::Uv;
+use tuit::widgets::Rectangle;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {
@@ -19,7 +20,7 @@ fn main() {
 #[allow(clippy::needless_borrows_for_generic_args)]
 #[cfg(feature = "ansi_terminal")]
 fn main() {
-    let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
+    let mut terminal: ConstantSize<100, 20> = ConstantSize::new();
 
     let sweeper = Sweeper::of_colour(Colour::Ansi16(Ansi4::Cyan));
 
@@ -29,14 +30,13 @@ fn main() {
 
     uv.drawn(&mut terminal).ok();
 
-    // let view: [[&mut Cell; 5]; 5] = terminal.view_mut(5, 5).expect("Should not fail");
+    let mut view = terminal.view_mut(Rectangle::of_size(30, 12).to((5, 5)));
+    let mut x: usize = 0;
 
-    let mut view = terminal.view_mut::<6, 6>((5, 5));
-    let mut x = 0;
-
+    #[allow(clippy::cast_possible_truncation)]
     for character in view.cells_mut() {
         print!("{character}");
-        character.style.bg_colour = Some(Colour::Ansi16(Ansi4::BrightGreen));
+        character.style.bg_colour = Some(Colour::Rgb24(0, 255-(x as u8), x as u8));
         x += 1;
     }
 

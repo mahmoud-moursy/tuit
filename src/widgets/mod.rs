@@ -378,7 +378,7 @@ impl Rectangle {
         let height = self.height();
 
         self.left_top = new_left_top;
-        self.right_bottom = (new_left_top.0 + width, new_left_top.1 + height);
+        self.right_bottom = (self.left_top.0 + width, self.left_top.1 + height);
 
         self
     }
