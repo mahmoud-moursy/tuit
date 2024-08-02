@@ -1,4 +1,4 @@
-use crate::widgets::Rectangle;
+use crate::terminal::Rectangle;
 
 pub struct ViewIterator<I: Iterator> {
     pub(crate) child: I,
@@ -11,10 +11,10 @@ impl<I: Iterator> Iterator for ViewIterator<I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let (parent_width, parent_height) = self.parent_dimensions;
+        let (parent_width, _parent_height) = self.parent_dimensions;
         let (width, height) = self.view_rect.dimensions();
         let (x, y) = &mut self.current_coord;
-        
+
         *x += 1;
 
         if *x > width {

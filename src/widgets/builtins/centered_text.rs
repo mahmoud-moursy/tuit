@@ -1,8 +1,8 @@
 use crate::Error;
 use crate::prelude::*;
 use crate::style::Style;
-use crate::terminal::{MouseButton, UpdateInfo, UpdateResult};
-use crate::widgets::{BoundingBox, Rectangle};
+use crate::terminal::{MouseButton, UpdateInfo, UpdateResult, Rectangle};
+use crate::widgets::{BoundingBox, };
 
 /// A prompt that is centered
 ///

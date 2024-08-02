@@ -1,8 +1,8 @@
 use crate::Error;
 use crate::prelude::{Terminal, TerminalConst, Widget};
 use crate::style::Style;
-use crate::terminal::{UpdateInfo, UpdateResult};
-use crate::widgets::{BoundingBox, Rectangle};
+use crate::terminal::{UpdateInfo, UpdateResult, Rectangle};
+use crate::widgets::{BoundingBox, };
 
 /// Text at the top-left of the terminal.
 pub struct Text<'a> {

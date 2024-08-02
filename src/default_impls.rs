@@ -3,7 +3,7 @@ use core::ops::{BitOr, Deref, DerefMut};
 use crate::prelude::{Metadata, Terminal, TerminalConst, TerminalMut};
 use crate::style::{Ansi4, Style};
 use crate::terminal::Cell;
-use crate::widgets::Rectangle;
+use crate::terminal::Rectangle;
 
 impl BitOr for Ansi4 {
     type Output = u8;
@@ -58,12 +58,20 @@ impl<T: Deref<Target: TerminalConst>> TerminalConst for T {
     // }
 
     fn cells(&self) -> impl Iterator<Item = &Cell> {
-        (**self).cells()
+        self.deref().cells()
+    }
+
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        self.deref().cell(x, y)
     }
 }
 impl<T: DerefMut<Target: TerminalMut>> TerminalMut for T {
     fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
         self.deref_mut().cells_mut()
+    }
+
+    fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        self.deref_mut().cell_mut(x, y)
     }
 }
 impl<T: TerminalConst + TerminalMut + Metadata> Terminal for T {}

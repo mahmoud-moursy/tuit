@@ -1,8 +1,8 @@
 use crate::style::Style;
 use crate::terminal::{Cell, Metadata, TerminalConst};
-use crate::terminal::extended::view_iterator::ViewIterator;
+use crate::terminal::view_iterator::ViewIterator;
 use crate::terminal::TerminalMut;
-use crate::widgets::Rectangle;
+use crate::terminal::Rectangle;
 
 /// A mutable view into another [`TerminalMut`].
 pub struct View<T>

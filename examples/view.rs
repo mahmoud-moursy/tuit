@@ -6,7 +6,7 @@ use tuit::prelude::*;
 use tuit::style::Colour;
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::Uv;
-use tuit::widgets::Rectangle;
+use tuit::terminal::Rectangle;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {
@@ -27,9 +27,9 @@ fn main() -> anyhow::Result<()> {
 
     let mut view_text = "V I E W T E X T ".chars().cycle();
     let mut view = terminal
-        .view_mut(Rectangle::of_size(10, 10).to((5, 5)))
+        .view_mut(Rectangle::of_size(95, 15).to((5, 5)))
         .expect("Should always create a view successfully");
-    
+
     for cell in view.cells_mut() {
         cell.style.bg_colour = Some(Colour::Rgb24(0, 127, 0));
         cell.character = view_text.next().expect("Won't fail yo. like... ever... trust me bro.");

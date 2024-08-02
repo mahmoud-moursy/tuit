@@ -47,9 +47,6 @@ pub mod prelude {
         terminal::{Metadata, Terminal, TerminalConst, TerminalMut},
         widgets::Widget,
     };
-
-    #[cfg(feature = "extras")]
-    pub use crate::terminal::extended::Extended;
 }
 
 /// This is a type alias used by `tuit` for its errors.
