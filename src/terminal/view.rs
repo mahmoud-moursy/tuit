@@ -43,6 +43,14 @@ where T: TerminalConst {
             view_rect: self.rect
         }
     }
+
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        if self.rect.contains((x, y)) {
+            self.parent.cell(x, y)
+        } else {
+            None
+        }
+    }
 }
 
 impl<T> TerminalMut for View<T>
@@ -60,6 +68,14 @@ where T: TerminalMut {
             current_coord: (0,0),
             parent_dimensions,
             view_rect: self.rect
+        }
+    }
+
+    fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        if self.rect.contains((x, y)) {
+            self.parent.cell_mut(x, y)
+        } else {
+            None
         }
     }
 }

@@ -4,7 +4,9 @@
 
 - While the flesh of the library is there and documented well-enough, what Tuit is really
   missing is some more widgets!
-  Currently, only about two widgets exist, `CenteredText` and`CenteredPrompt`.
+- And some more testing, too!
+  
+- Currently, only about two functional widgets exist, `CenteredText` and`CenteredPrompt`.
   They demonstrate what is possible with Tuit, but without more widgets,
   and a proper book, I cannot really call this a true TUI library.
 

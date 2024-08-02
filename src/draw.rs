@@ -12,8 +12,8 @@
 //! struct MyGPU {}
 //!
 //! impl Target for MyGPU {
-//!     fn render(&mut self, terminal: impl Terminal) -> tuit::Result<()> {
-//!         for character in terminal.characters_slice() {
+//!     fn render(&mut self, terminal: impl TerminalConst) -> tuit::Result<()> {
+//!         for character in terminal.cells() {
 //!             self.gpu_magic(character)
 //!         }
 //!
