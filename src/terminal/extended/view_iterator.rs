@@ -14,7 +14,7 @@ impl<I: Iterator> Iterator for ViewIterator<I> {
         let (parent_width, parent_height) = self.parent_dimensions;
         let (width, height) = self.view_rect.dimensions();
         let (x, y) = &mut self.current_coord;
-
+        
         *x += 1;
 
         if *x > width {

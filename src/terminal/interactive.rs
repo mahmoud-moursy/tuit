@@ -60,8 +60,9 @@ pub enum UpdateInfo {
 pub enum UpdateResult {
     /// No event has occurred, the object will continue to live.
     NoEvent,
-    /// The object will continue to live, and it has not changed anything about how it draws itself.
-    NoRedraw,
+    /// The widget has been interacted with during the last update.
+    /// (i.e. it has been clicked on, or a keystroke affected it).
+    Interacted,
     /// The object's lifecycle has ended, and it should now be destructured.
     LifecycleEnd,
 }

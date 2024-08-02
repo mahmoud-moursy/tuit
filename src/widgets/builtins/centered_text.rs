@@ -79,19 +79,13 @@ impl<'a> Widget for CenteredText<'a> {
     ) -> crate::Result<UpdateResult> {
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::LeftClick) => {
-                let ((left, top), (right, bottom)) = (self.bounding_box(&terminal).left_top(), self.bounding_box(&terminal).right_bottom());
-
-                #[allow(clippy::collapsible_if)]
-                // Check if click was within bounds.
-                if x < left && right > x {
-                    if y > top && bottom < y {
-                        return Ok(UpdateResult::LifecycleEnd);
-                    }
+                if self.bounding_box(&terminal).contains((x, y)) {
+                    return Ok(UpdateResult::Interacted)
                 }
 
                 Ok(UpdateResult::NoEvent)
             }
-            _ => Ok(UpdateResult::NoRedraw),
+            _ => Ok(UpdateResult::NoEvent),
         }
     }
 

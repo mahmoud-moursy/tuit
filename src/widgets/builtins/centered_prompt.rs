@@ -7,6 +7,11 @@ use crate::widgets::builtins::centered_text::CenteredText;
 
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug)]
 /// A prompt that can be configured with several buttons
+/// 
+/// # Panics
+/// 
+/// Rendering panics if any button is wider than the terminal's width.
+/// Make sure to truncate your button text so that it only fits on one line.
 pub struct CenteredPrompt<'a> {
     /// The body text of the prompt.
     pub centered_text: CenteredText<'a>,

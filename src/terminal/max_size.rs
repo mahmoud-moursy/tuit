@@ -85,6 +85,22 @@ for MaxSize<MAX_WIDTH, MAX_HEIGHT>
 
         self.characters.iter().flatten().take(acting_width * acting_height)
     }
+
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        let (acting_width, acting_height) = self.dimensions;
+
+        if x > acting_width {
+            return None
+        }
+
+        if y > acting_height {
+            return None
+        }
+
+        let row = self.characters.get(y)?;
+
+        row.get(x)
+    }
 }
 
 impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> TerminalMut
@@ -94,5 +110,21 @@ for MaxSize<MAX_WIDTH, MAX_HEIGHT>
         let (acting_width, acting_height) = self.dimensions;
 
         self.characters.iter_mut().flatten().take(acting_width * acting_height)
+    }
+
+    fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        let (acting_width, acting_height) = self.dimensions;
+        
+        if x > acting_width {
+            return None
+        }
+        
+        if y > acting_height {
+            return None
+        }
+        
+        let row = self.characters.get_mut(y)?;
+        
+        row.get_mut(x)
     }
 }

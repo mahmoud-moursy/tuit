@@ -115,6 +115,7 @@ use crate::prelude::*;
 use crate::style::Style;
 #[allow(unused_imports)]
 use crate::terminal;
+use crate::widgets::Rectangle;
 
 #[cfg(feature = "extras")]
 pub mod extended;
@@ -182,6 +183,11 @@ pub trait Metadata {
         let (_, height) = self.dimensions();
 
         height
+    }
+
+    /// Get a [`Rectangle`] with the width and height of the terminal. The left-top is at (0,0).
+    fn bounding_box(&self) -> Rectangle {
+        Rectangle::of_size(self.width(), self.height())
     }
 }
 

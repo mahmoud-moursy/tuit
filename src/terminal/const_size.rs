@@ -73,10 +73,22 @@ impl<const WIDTH: usize, const HEIGHT: usize> TerminalConst for ConstantSize<WID
     fn cells(&self) -> impl Iterator<Item = &Cell> {
         self.characters.iter().flatten()
     }
+
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        let row = self.characters.get(y)?;
+
+        row.get(x)
+    }
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> TerminalMut for ConstantSize<WIDTH, HEIGHT> {
     fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
         self.characters.iter_mut().flatten()
+    }
+
+    fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        let row = self.characters.get_mut(y)?;
+
+        row.get_mut(x)
     }
 }

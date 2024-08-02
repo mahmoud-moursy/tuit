@@ -16,7 +16,7 @@ pub struct View<T>
 }
 
 impl<T> Metadata for View<T>
-where T: TerminalConst {
+where T: Metadata {
     fn dimensions(&self) -> (usize, usize) {
         self.rect.dimensions()
     }
@@ -45,15 +45,38 @@ where T: TerminalConst {
     }
 }
 
+impl<T> TerminalMut for View<T>
+where T: TerminalMut {
+    fn cells_mut(&mut self) -> impl Iterator<Item=&mut Cell> {
+        let parent_dimensions = self.parent.dimensions();
+        let view_top = self.rect.top();
+        let view_left = self.rect.left();
+        let cells = self.parent.cells_mut();
+
+        ViewIterator {
+            child: cells
+                .skip(view_left)
+                .skip(view_top * parent_dimensions.0),
+            current_coord: (0,0),
+            parent_dimensions,
+            view_rect: self.rect
+        }
+    }
+}
+
 impl<T> View<T> {
     /// Creates a new [`ViewMut`] from the given [`TerminalMut`] and the left-top
     /// coordinate.
-    pub fn new(terminal: T, view_rect: Rectangle) -> Self
+    pub fn new(terminal: T, view_rect: Rectangle) -> Option<Self>
     where T: Metadata {
-        Self {
-            default_style: terminal.default_style(),
-            parent: terminal,
-            rect: view_rect
+        if terminal.bounding_box().contains_rect(view_rect) {
+            Some(Self {
+                default_style: terminal.default_style(),
+                parent: terminal,
+                rect: view_rect
+            })
+        } else {
+            None
         }
     }
 }

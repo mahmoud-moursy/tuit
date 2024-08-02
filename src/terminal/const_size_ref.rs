@@ -28,8 +28,6 @@ impl<const WIDTH: usize, const HEIGHT: usize, T> ConstantSizeRef<WIDTH, HEIGHT, 
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize, T> Metadata for ConstantSizeRef<WIDTH, HEIGHT, T>
-where
-    T: AsRef<[[Cell; WIDTH]; HEIGHT]>,
 {
     fn dimensions(&self) -> (usize, usize) {
         (WIDTH, HEIGHT)
@@ -47,6 +45,12 @@ where
     fn cells(&self) -> impl Iterator<Item = &Cell> {
         self.characters.as_ref().iter().flatten()
     }
+
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        let row = self.characters.as_ref().get(y)?;
+
+        row.get(x)
+    }
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize, T> TerminalMut for ConstantSizeRef<WIDTH, HEIGHT, T>
@@ -55,5 +59,11 @@ where
 {
     fn cells_mut(&mut self) -> impl Iterator<Item = &mut Cell> {
         self.characters.as_mut().iter_mut().flatten()
+    }
+
+    fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        let row = self.characters.as_mut().get_mut(y)?;
+
+        row.get_mut(x)
     }
 }

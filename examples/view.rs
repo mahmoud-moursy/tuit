@@ -3,9 +3,8 @@
 use std::io::stdout;
 
 use tuit::prelude::*;
-use tuit::style::{Ansi4, Colour};
+use tuit::style::Colour;
 use tuit::terminal::ConstantSize;
-use tuit::widgets::builtins::sweeper::Sweeper;
 use tuit::widgets::builtins::Uv;
 use tuit::widgets::Rectangle;
 
@@ -19,28 +18,24 @@ fn main() {
 // so I disabled it.
 #[allow(clippy::needless_borrows_for_generic_args)]
 #[cfg(feature = "ansi_terminal")]
-fn main() {
+fn main() -> anyhow::Result<()> {
     let mut terminal: ConstantSize<100, 20> = ConstantSize::new();
-
-    let sweeper = Sweeper::of_colour(Colour::Ansi16(Ansi4::Cyan));
-
-    sweeper.drawn(&mut terminal).expect("Should not fail");
 
     let uv = Uv;
 
-    uv.drawn(&mut terminal).ok();
+    uv.drawn(&mut terminal)?;
 
-    let mut view = terminal.view_mut(Rectangle::of_size(30, 12).to((5, 5)));
-    let mut x: usize = 0;
-
-    #[allow(clippy::cast_possible_truncation)]
-    for character in view.cells_mut() {
-        print!("{character}");
-        character.style.bg_colour = Some(Colour::Rgb24(0, 255-(x as u8), x as u8));
-        x += 1;
+    let mut view_text = "V I E W T E X T ".chars().cycle();
+    let mut view = terminal
+        .view_mut(Rectangle::of_size(10, 10).to((5, 5)))
+        .expect("Should always create a view successfully");
+    
+    for cell in view.cells_mut() {
+        cell.style.bg_colour = Some(Colour::Rgb24(0, 127, 0));
+        cell.character = view_text.next().expect("Won't fail yo. like... ever... trust me bro.");
     }
 
-    println!("\nI counted {x} cells");
+    terminal.display(stdout())?;
 
-    terminal.display(stdout()).unwrap();
+    Ok(())
 }
