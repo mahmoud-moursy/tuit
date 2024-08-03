@@ -24,12 +24,10 @@ fn main() {
 
     let sweeper = Sweeper::of_colour(Ansi16(Ansi4::BrightCyan));
 
-    let mut x = -1;
+    let mut x = 0;
 
     loop {
-        x += 1;
-
-        let test_buttons: Vec<String> = (0..x).map(|x| format!(" Test {x:>02} ")).collect();
+        let test_buttons: Vec<String> = (0..=x).map(|x| format!(" Test {x:>02} ")).collect();
         let test_buttons: Vec<&str> = test_buttons[..].iter().map(String::as_str).collect();
 
         sweeper.drawn(&mut terminal).ok();
@@ -44,8 +42,11 @@ fn main() {
         prompt.selected_button_style = prompt.selected_button_style.inverted();
 
         if prompt.drawn(&mut terminal).is_err() {
+            x -= 1;
             break;
         }
+
+        x += 1;
 
 
         stdio.render(terminal).ok();

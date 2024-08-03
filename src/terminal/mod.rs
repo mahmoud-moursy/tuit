@@ -106,6 +106,8 @@
 //! source code. A terminal like the [`ConstantSize`] terminal can be a good starting point if you are
 //! well-acquainted with generics.
 
+use core::ops::RangeInclusive;
+
 pub use const_size::ConstantSize;
 pub use const_size_ref::ConstantSizeRef;
 pub use interactive::*;
@@ -133,7 +135,7 @@ pub mod max_size;
 #[cfg(feature = "owo_colors")]
 mod owo_colors;
 mod dummy;
-/// The [`View`] terminal, that can provide mutable or immutable views into terminals.
+/// The [`View`] terminal that can provide mutable or immutable views into terminals.
 mod view;
 mod view_iterator;
 
@@ -554,5 +556,29 @@ impl Rectangle {
         self.right_bottom = (self.left_top.0 + width, self.left_top.1 + height);
 
         self
+    }
+
+    /// Get the center of the rectangle.
+    #[must_use]
+    pub const fn center(&self) -> (usize, usize) {
+        let (left, right) = (self.left(), self.right());
+        let (top, bottom) = (self.top(), self.bottom());
+
+        let center_x = (left + right) / 2;
+        let center_y = (top + bottom) / 2;
+
+        (center_x, center_y)
+    }
+
+    /// Get the range of X values that the [`Rectangle`] spans over.
+    #[must_use]
+    pub const fn range_x(&self) -> RangeInclusive<usize> {
+        self.left()..=self.right()
+    }
+
+    /// Get the range of Y values that the [`Rectangle`] spans over.
+    #[must_use]
+    pub const fn range_y(&self) -> RangeInclusive<usize> {
+        self.top()..=self.bottom()
     }
 }

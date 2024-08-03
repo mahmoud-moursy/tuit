@@ -1,8 +1,8 @@
-use crate::Error;
 use crate::prelude::*;
 use crate::style::Style;
-use crate::terminal::{MouseButton, UpdateInfo, UpdateResult, Rectangle};
-use crate::widgets::{BoundingBox, };
+use crate::terminal::{MouseButton, Rectangle, UpdateInfo, UpdateResult};
+use crate::widgets::BoundingBox;
+use crate::widgets::builtins::Text;
 
 /// A prompt that is centered
 ///
@@ -94,23 +94,13 @@ impl<'a> Widget for CenteredText<'a> {
         _update_info: UpdateInfo,
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
-        let ((left, top), (right, _bottom)) = (self.bounding_box(&terminal).left_top(), self.bounding_box(&terminal).right_bottom());
-        let width = right - left;
+        let view = terminal
+            .view_mut(self.bounding_box(&terminal))
+            .expect("CenteredText should always produce a valid bounding box");
 
-        for (i, character) in self.prompt_text.chars().enumerate() {
-            let x = (i % width) + left;
-            let y = (i / width) + top;
+        let text = Text::new(self.prompt_text).styled(self.style);
 
-            if let Some(cell) = terminal.cell_mut(x, y) {
-                cell.character = character;
-                cell.style = self.style.inherits(cell.style);
-            } else {
-                return Err(Error::OutOfBoundsCoordinate {
-                    x: Some(x),
-                    y: Some(y),
-                });
-            }
-        }
+        text.drawn(view)?;
 
         Ok(UpdateResult::NoEvent)
     }

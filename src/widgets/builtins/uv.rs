@@ -16,7 +16,7 @@ pub struct Uv;
 
 impl Widget for Uv {
     fn update(&mut self, _update_info: UpdateInfo, _terminal: impl TerminalConst) ->
-                                                                                  crate::Result<UpdateResult> {
+                                                                      crate::Result<UpdateResult> {
         Ok(UpdateResult::NoEvent)
     }
 
@@ -27,6 +27,7 @@ impl Widget for Uv {
         let height = terminal.height();
 
 
+        // ...just how many lints does clippy have for this!?
         #[allow(clippy::cast_precision_loss)]
         #[allow(clippy::cast_sign_loss)]
         #[allow(clippy::cast_possible_truncation)]

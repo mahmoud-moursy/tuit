@@ -15,6 +15,8 @@ pub struct Text<'a> {
 impl<'a> Text<'a> {
     /// Create a new [`Text`] with the default style.
     ///
+    /// ## Create a new [`Text`]
+    ///
     /// ```
     /// use tuit::style::Style;
     /// use tuit::widgets::builtins::Text;
@@ -24,12 +26,49 @@ impl<'a> Text<'a> {
     /// assert_eq!(text_widget.text, "Hello!");
     /// assert_eq!(text_widget.style, Style::new());
     /// ```
+    ///
+    /// ## Using [`Text`]
+    ///
+    /// ```
+    /// use tuit::prelude::*;
+    /// use tuit::widgets::builtins::Text;
+    /// use tuit::terminal::ConstantSize;
+    ///
+    /// // 20x20 cells terminal. Okay... maybe not tremendous, but... you get it, right?
+    /// let mut tremendous_terminal: ConstantSize<20, 20> = ConstantSize::new();
+    /// // 1x3 cells terminal
+    /// let mut tiny_terminal: ConstantSize<1, 3> = ConstantSize::new();
+    ///
+    /// let text_widget = Text::new("Hello!");
+    ///
+    /// text_widget.drawn(&mut tremendous_terminal).expect("There is enough space");
+    /// text_widget.drawn(&mut tiny_terminal).expect_err("There is not enough space, so we get an `Err`.");
+    /// ```
     #[must_use]
     pub const fn new(text: &'a str) -> Self {
         Self {
             text,
             style: Style::new()
         }
+    }
+
+    /// Apply a [`Style`] to the [`Text`].
+    ///
+    /// ```
+    /// use tuit::style::{Ansi4, Style};
+    /// use tuit::widgets::builtins::Text;
+    ///
+    /// let style = Style::new().bg_ansi4(Ansi4::BrightCyan);
+    /// let text_widget = Text::new("Hello!").styled(style);
+    ///
+    /// assert_eq!(text_widget.text, "Hello!");
+    /// assert_eq!(text_widget.style, style);
+    /// ```
+    #[must_use]
+    pub const fn styled(mut self, style: Style) -> Self{
+        self.style = style;
+
+        self
     }
 }
 
