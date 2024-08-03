@@ -1,10 +1,11 @@
 use crate::terminal::Rectangle;
 
+/// The iterator internally used by the [`crate::terminal::View`] type.
 pub struct ViewIterator<I: Iterator> {
-    pub(crate) child: I,
-    pub(crate) parent_dimensions: (usize, usize),
-    pub(crate) current_coord: (usize, usize),
-    pub(crate) view_rect: Rectangle
+    pub(super) child: I,
+    pub(super) parent_dimensions: (usize, usize),
+    pub(super) current_coord: (usize, usize),
+    pub(super) view_rect: Rectangle
 }
 
 impl<I: Iterator> Iterator for ViewIterator<I> {

@@ -5,7 +5,8 @@ use crate::terminal::Cell;
 // is used for rustdoc.
 use crate::terminal::ConstantSize;
 
-/// An implementation of the [`ConstantSize`] that can be created from mutable references to arrays.
+/// An implementation of the [`ConstantSize`] that can be created from mutable references to arrays,
+/// or even [`alloc::Box`] if your terminal's cells are too big to fit on the stack.
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct ConstantSizeRef<const WIDTH: usize, const HEIGHT: usize, T> {
     // Modifying this does not lead to UB, so they are public.

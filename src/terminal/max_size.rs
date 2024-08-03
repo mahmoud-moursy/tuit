@@ -2,7 +2,7 @@ use core::array;
 
 use crate::prelude::*;
 use crate::style::Style;
-use crate::terminal::{Cell, Metadata};
+use crate::terminal::{Cell, Metadata, Rescalable};
 
 /// A zero-allocation re-scalable terminal that allocates the maximum size that it can scale to.
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
@@ -28,37 +28,17 @@ impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> MaxSize<MAX_WIDTH, MAX_HEI
             dimensions: (MAX_WIDTH, MAX_HEIGHT),
         }
     }
+}
 
-    /// Rescales the terminal if the new specified width and height are below the maximum limits.
-    /// Otherwise, it will return an Err, containing the values put into it.
-    ///
-    /// It is wise to redraw the terminal after doing this, since [`MaxSize`] will completely reorder all characters
-    /// after doing this.
-    ///
-    /// ```
-    /// use tuit::terminal::MaxSize;
-    /// use tuit::prelude::*;
-    ///
-    /// let mut my_max_terminal: MaxSize<20, 20> = MaxSize::new();
-    ///
-    /// my_max_terminal.rescale(10, 10).expect("This won't fail because the size is below the limit.");
-    ///
-    /// let (overflowing_width, height) = my_max_terminal.rescale(21, 10).expect_err("This must always be an error!");
-    ///
-    /// assert_eq!(overflowing_width, 21);
-    /// assert_eq!(height, 10);
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// This function will return an [`Err`] when the specified new width and height are larger than the maximum allocated amount.
-    pub fn rescale(&mut self, new_width: usize, new_height: usize) -> Result<(), (usize, usize)> {
-        if new_width > MAX_WIDTH {
-            return Err((new_width, new_height));
-        }
+impl<const MAX_WIDTH: usize, const MAX_HEIGHT: usize> Rescalable for MaxSize<MAX_WIDTH, MAX_HEIGHT> {
+    fn rescale(&mut self, (new_width, new_height): (usize, usize)) -> Result<(), (usize, usize)> {
+        let bounding_box = self.bounding_box();
 
-        if new_height > MAX_HEIGHT {
-            return Err((new_width, new_height));
+        if !bounding_box.contains((new_width, new_height)) {
+            return Err((
+                new_width.min(MAX_WIDTH),
+                new_height.min(MAX_HEIGHT)
+            ));
         }
 
         self.dimensions = (new_width, new_height);

@@ -27,7 +27,7 @@ fn main() -> anyhow::Result<()> {
 
     let mut view_text = "V I E W T E X T ".chars().cycle();
     let mut view = terminal
-        .view_mut(Rectangle::of_size(95, 15).to((5, 5)))
+        .view_mut(Rectangle::of_size((95, 15)).to((5, 5)))
         .expect("Should always create a view successfully");
 
     for cell in view.cells_mut() {

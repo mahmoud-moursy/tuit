@@ -112,12 +112,13 @@ pub use const_size::ConstantSize;
 pub use const_size_ref::ConstantSizeRef;
 pub use interactive::*;
 pub use max_size::MaxSize;
+pub use view::View;
+pub use view_split::ViewSplit;
 
 use crate::prelude::*;
 use crate::style::Style;
 #[allow(unused_imports)]
 use crate::terminal;
-use crate::terminal::view::View;
 
 /// Module containing all the code required for the "interactive" aspects of Tuit. This includes code
 /// like structs for handling input, like [`interactive::MouseButton`] or [`interactive::KeyState`].
@@ -136,9 +137,11 @@ pub mod max_size;
 mod owo_colors;
 mod dummy;
 /// The [`View`] terminal that can provide mutable or immutable views into terminals.
-mod view;
-mod view_iterator;
-mod view_split;
+pub mod view;
+/// The iterator used by the [`View`] terminal.
+pub mod view_iterator;
+/// The [`ViewSplit`] struct, which is used to split the terminal along its axes.
+pub mod view_split;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
@@ -191,7 +194,7 @@ pub trait Metadata {
 
     /// Get a [`Rectangle`] with the width and height of the terminal. The left-top is at (0,0).
     fn bounding_box(&self) -> Rectangle {
-        Rectangle::of_size(self.width(), self.height())
+        Rectangle::of_size((self.width(), self.height()))
     }
 }
 
@@ -296,6 +299,37 @@ pub trait TerminalMut: Metadata {
 /// It is auto-implemented for any type that implements both.
 pub trait Terminal: TerminalConst + TerminalMut {}
 
+/// Implement this for your [`Terminal`] if you want to allow it to rescale.
+pub trait Rescalable {
+    /// A method that tries to rescale the terminal to a new size.
+    ///
+    /// It is wise to redraw the terminal after doing this,
+    /// since [`Rescalable`] never guarantees that the terminal
+    /// screen will be in a valid state after doing this. It's likely that
+    ///
+    /// ```
+    /// use tuit::terminal::{MaxSize, Rescalable};
+    /// use tuit::prelude::*;
+    ///
+    /// let mut my_max_terminal: MaxSize<20, 20> = MaxSize::new();
+    ///
+    /// my_max_terminal.rescale((10, 10)).expect("This won't fail because the size is below the limit.");
+    ///
+    /// let (hint_x, hint_y) = my_max_terminal.rescale((21, 10)).expect_err("This must always be an error!");
+    ///
+    /// assert_eq!(hint_x, 20);
+    /// assert_eq!(hint_y, 10);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Rescaling can fail for reasons like running out of allocated memory or screen space.
+    /// In this case, a size *hint* for the maximum area of the terminal is returned.
+    /// This means that the terminal will *always* be smaller than the size hint, however, its minimum
+    /// area may be smaller.
+    fn rescale(&mut self, new_size: (usize, usize)) -> Result<(), (usize, usize)>;
+}
+
 #[derive(
     Hash,
     Eq,
@@ -349,7 +383,7 @@ impl Rectangle {
 
     /// Create a [`Rectangle`] with top-left at (0,0)
     #[must_use]
-    pub const fn of_size(width: usize, height: usize) -> Self {
+    pub const fn of_size((width, height): (usize, usize)) -> Self {
         Self {
             left_top: (0, 0),
             right_bottom: (width, height),
@@ -509,7 +543,7 @@ impl Rectangle {
     /// ```
     /// use tuit::terminal::Rectangle;
     ///
-    /// let rectangle = Rectangle::of_size(20, 20);
+    /// let rectangle = Rectangle::of_size((20, 20));
     /// let coordinate = (5, 5);
     ///
     /// assert!(rectangle.contains(coordinate))
@@ -535,7 +569,7 @@ impl Rectangle {
     /// # use std::ops::Not;
     /// use tuit::terminal::Rectangle;
     ///
-    /// let rectangle = Rectangle::of_size(20, 20);
+    /// let rectangle = Rectangle::of_size((20, 20));
     /// let other_rectangle = Rectangle::new((1,2), (21, 21));
     ///
     /// assert!(rectangle.contains_rect(other_rectangle).not())
@@ -564,9 +598,8 @@ impl Rectangle {
     pub const fn center_x(&self) -> usize {
         let (left, right) = (self.left(), self.right());
 
-        let center_x = (left + right) / 2;
-
-        center_x
+        // Average of left/right
+        (left + right) / 2
     }
 
     /// Get the center of the rectangle on the y-axis.
@@ -574,9 +607,8 @@ impl Rectangle {
     pub const fn center_y(&self) -> usize {
         let (top, bottom) = (self.top(), self.bottom());
 
-        let center_y = (top + bottom) / 2;
-
-        center_y
+        // Average of top/bottom
+        (top + bottom) / 2
     }
 
     /// Get the center of the rectangle.

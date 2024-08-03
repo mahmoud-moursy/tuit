@@ -15,6 +15,7 @@ license = "GPL-3.0+"
 thiserror = { version = "^1.0.38", package = "thiserror-core" }
 anyhow = "^1.0.86"
 owo-colors = { version = "^4.0.0", optional = true }
+ndarray = { version = "0.16.0", default-features = false, optional = true }
 
 [features]
 default = ["builtin_widgets"]
@@ -23,7 +24,7 @@ alloc = []
 builtin_widgets = []
 ansi_terminal = ["std", "owo_colors"]
 owo_colors = ["dep:owo-colors"]
-extras = []
+extras = ["dep:ndarray"]
 
 [package.metadata.docs.rs]
 all-features = true # Otherwise, it would not compile every feature -- causing some docs to be missing.

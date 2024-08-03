@@ -20,6 +20,7 @@
 #![feature(iter_array_chunks)]
 #![allow(clippy::collapsible_if)]
 #![no_std]
+extern crate alloc;
 
 #[doc(hidden)]
 pub use errors::Error;

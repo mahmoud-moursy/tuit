@@ -57,7 +57,7 @@ impl Ruler {
 
         #[allow(clippy::cast_possible_truncation)]
         for y in 0..height {
-            characters.nth(x_offset).unwrap().character =
+            characters.nth(x_offset).expect("Character should always be valid").character =
                 char::from_digit(y as u32 % self.0, self.0).expect(
                     "Should never fail. Tried to convert an invalid digit into a character!",
                 );

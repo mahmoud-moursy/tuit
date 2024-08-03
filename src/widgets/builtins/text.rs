@@ -98,7 +98,7 @@ impl BoundingBox for Text<'_> {
         let height = self.text.len() / terminal.width();
         let width = self.text.len().min(terminal.width());
 
-        Rectangle::of_size(width, height)
+        Rectangle::of_size((width, height))
     }
 
     fn completely_covers(&self, rectangle: Rectangle) -> bool {
