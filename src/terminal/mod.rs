@@ -138,6 +138,7 @@ mod dummy;
 /// The [`View`] terminal that can provide mutable or immutable views into terminals.
 mod view;
 mod view_iterator;
+mod view_split;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
@@ -558,17 +559,33 @@ impl Rectangle {
         self
     }
 
+    /// Get the center of the rectangle on the x-axis.
+    #[must_use]
+    pub const fn center_x(&self) -> usize {
+        let (left, right) = (self.left(), self.right());
+
+        let center_x = (left + right) / 2;
+
+        center_x
+    }
+
+    /// Get the center of the rectangle on the y-axis.
+    #[must_use]
+    pub const fn center_y(&self) -> usize {
+        let (top, bottom) = (self.top(), self.bottom());
+
+        let center_y = (top + bottom) / 2;
+
+        center_y
+    }
+
     /// Get the center of the rectangle.
     #[must_use]
     pub const fn center(&self) -> (usize, usize) {
-        let (left, right) = (self.left(), self.right());
-        let (top, bottom) = (self.top(), self.bottom());
-
-        let center_x = (left + right) / 2;
-        let center_y = (top + bottom) / 2;
-
-        (center_x, center_y)
+        (self.center_x(), self.center_y())
     }
+
+
 
     /// Get the range of X values that the [`Rectangle`] spans over.
     #[must_use]

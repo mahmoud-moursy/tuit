@@ -4,14 +4,17 @@
 
 use crate::prelude::*;
 use crate::terminal::{Rectangle, Terminal, UpdateInfo, UpdateResult};
+use crate::widgets::Direction::{Down, Left, Right, Up};
 
 #[cfg(feature = "builtin_widgets")]
 /// Builtin widgets.
 pub mod builtins;
 
 /// Provides a direction for [`Widget`]s to optionally use where it makes sense.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Default, Debug, Hash)]
 pub enum Direction {
     /// Left
+    #[default]
     Left,
     /// Right
     Right,
@@ -19,6 +22,15 @@ pub enum Direction {
     Down,
     /// Up (or top of terminal, in some contexts)
     Up,
+}
+
+impl Direction {
+    /// Get an iterator of all the possible [`Direction`]s.
+    pub fn enumerate() -> impl Iterator<Item = Self> {
+        use Direction::{Down, Left, Right, Up};
+
+        [Left, Right, Down, Up].into_iter()
+    }
 }
 
 /// This trait defines the minimum requirements for a type to be capable of terminal display
