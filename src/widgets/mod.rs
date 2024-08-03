@@ -4,7 +4,6 @@
 
 use crate::prelude::*;
 use crate::terminal::{Rectangle, Terminal, UpdateInfo, UpdateResult};
-use crate::widgets::Direction::{Down, Left, Right, Up};
 
 #[cfg(feature = "builtin_widgets")]
 /// Builtin widgets.
