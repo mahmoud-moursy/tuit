@@ -42,6 +42,7 @@ impl<T> Margin<T> {
 
 impl<T> BoundingBox for Margin<T>
 where T: BoundingBox {
+    #[allow(clippy::cast_possible_wrap)]
     fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
         terminal
             .bounding_box()
