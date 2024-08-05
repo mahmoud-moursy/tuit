@@ -493,7 +493,11 @@ impl Rectangle {
         if new_edge >= self.left() {
             self.right_bottom.0 = new_edge;
         } else {
+            // because this edge is further left than self.left_top...
+            // when we set the new right edge...
             self.right_bottom.0 = new_edge;
+            // it becomes further to the left than self.left_top...
+            // so we swap them around so that the order is correct.
             (self.right_bottom.0, self.left_top.0) = (self.left_top.0, self.right_bottom.0);
         }
 
@@ -506,7 +510,10 @@ impl Rectangle {
         if new_edge <= self.right() {
             self.left_top.0 = new_edge;
         } else {
+            // when we set the new left edge...
             self.left_top.0 = new_edge;
+            // it becomes further to the right than self.right_bottom...
+            // so we swap them around so that the order is correct.
             (self.right_bottom.0, self.left_top.0) = (self.left_top.0, self.right_bottom.0);
         }
 
@@ -519,7 +526,10 @@ impl Rectangle {
         if new_edge >= self.top() {
             self.right_bottom.1 = new_edge;
         } else {
+            // when we set the bottom to the new value...
             self.right_bottom.1 = new_edge;
+            // it becomes higher than self.left_top...
+            // so we swap them around to make sure that the order is still correct.
             (self.left_top.1, self.right_bottom.1) = (self.right_bottom.1, self.left_top.1);
         }
 
@@ -532,7 +542,10 @@ impl Rectangle {
         if new_edge <= self.bottom() {
             self.left_top.1 = new_edge;
         } else {
+            // when we set the top to the new value...
             self.left_top.1 = new_edge;
+            // it becomes lower than self.right_bottom...
+            // so we swap them around to make sure that the order is still correct.
             (self.left_top.1, self.right_bottom.1) = (self.right_bottom.1, self.left_top.1);
         }
 
