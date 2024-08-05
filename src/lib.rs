@@ -62,42 +62,23 @@ mod test {
     use std::prelude::rust_2021::*;
 
     use crate::prelude::*;
-    use crate::style::Style;
-    use crate::terminal::Cell;
+    use crate::terminal::{Cell, Rectangle};
     use crate::terminal::ConstantSize;
 
     #[test]
     fn views() {
         let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
 
-        *(terminal.cells_mut().nth(20).unwrap()) = Cell {
-            character: 'h',
-            style: Style::default(),
-        };
+        let mut view = terminal
+            .view_mut(Rectangle::of_size((5, 5)).at((5, 5)))
+            .expect("Terminal should have been big enough!?");
 
-        // let my_array = terminal
-        //     .view_copied::<8, 5>(1, 1)
-        //     .expect("Should never fail!");
-        //
-        // let my_array = my_array.as_flattened();
-        //
-        // assert_eq!(my_array[0].character, 'h');
+        view.cell_mut(0, 0).expect("Cell should have been valid!?").character = 't';
+
+        assert!(view.cell_mut(6, 6).is_none());
+        assert_eq!(
+            *terminal.cell_mut(5, 5).expect("Cell should have been valid?"),
+            Cell::new('t')
+        );
     }
-
-    // #[test]
-    // fn mutable_views() {
-    //     let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
-    //
-    //     let view: [[&mut Cell; 5]; 5] = terminal.view_mut(10, 10).expect("Should not fail.");
-        //
-        // view[0][0].character = 'h';
-        //
-        // assert_eq!(
-        //     terminal
-        //         .character(10, 10)
-        //         .expect("Won't fail because we are indexing into a valid location")
-        //         .character,
-        //     'h'
-        // );
-    // }
 }

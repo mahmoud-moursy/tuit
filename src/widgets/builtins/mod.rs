@@ -4,6 +4,7 @@ pub use ruler::Ruler;
 pub use sweeper::Sweeper;
 pub use text::Text;
 pub use uv::Uv;
+pub use margin::Margin;
 
 /// The code for the [`Sweeper`] widget.
 pub mod sweeper;
@@ -17,3 +18,6 @@ pub mod ruler;
 pub mod text;
 /// The code for the [`Uv`] widget.
 pub mod uv;
+mod margin;
+/// The code the [`dummy::Dummy`] widget.
+pub mod dummy;

@@ -25,7 +25,7 @@ fn main() {
             text.drawn(&mut terminal).ok();
             centered_prompt.drawn(&mut terminal).ok();
 
-            let mut view = terminal.view_mut(Rectangle::of_size((500, 500)).to((200, 200))).expect("Always valid");
+            let mut view = terminal.view_mut(Rectangle::of_size((500, 500)).at((200, 200))).expect("Always valid");
 
             uv.drawn(&mut view).ok();
             text.drawn(&mut view).ok();

@@ -198,6 +198,8 @@ impl Widget for CenteredPrompt<'_> {
 
                     current_cell.character = character;
 
+                    // if button is hovered, apply hovered button style. otherwise, apply standard
+                    // style.
                     if Some(current_button) == self.hovered_button {
                         current_cell.style = self.selected_button_style.inherits(base_style);
                     } else {

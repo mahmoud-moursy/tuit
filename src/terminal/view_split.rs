@@ -3,6 +3,9 @@ use crate::terminal::{Cell, Metadata, Rectangle, Rescalable, TerminalConst, Term
 use crate::terminal::view::View;
 use crate::widgets::Direction;
 
+#[allow(unused_imports)] // used in docs.
+use crate::terminal::Terminal;
+
 /// A view splitter -- can split views both horizontally and vertically.
 pub struct ViewSplit<T> {
     child: T
@@ -19,6 +22,11 @@ impl<T> ViewSplit<T> {
     /// Convert the [`ViewSplit`] into its inner value (the terminal with which it was created).
     pub fn into_inner(self) -> T {
         self.child
+    }
+
+    /// Get a reference to the [`Terminal`] inside the [`ViewSplit`].
+    pub const fn inner(&self) -> &T {
+        &self.child
     }
 
     /// Splits the terminal into left/right, and returns the left [`View`].

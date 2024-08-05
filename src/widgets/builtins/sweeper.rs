@@ -1,6 +1,7 @@
 use crate::prelude::{Terminal, TerminalConst, Widget};
 use crate::style::{Colour, Style};
-use crate::terminal::{UpdateInfo, UpdateResult};
+use crate::terminal::{Rectangle, UpdateInfo, UpdateResult};
+use crate::widgets::BoundingBox;
 
 /// A widget that will clear the entire terminal and replace it with a blank cell containing
 /// the specified style.
@@ -45,5 +46,15 @@ impl Widget for Sweeper {
         }
 
         Ok(UpdateResult::NoEvent)
+    }
+}
+
+impl BoundingBox for Sweeper {
+    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
+        terminal.bounding_box()
+    }
+
+    fn completely_covers(&self, _rectangle: Rectangle) -> bool {
+        true
     }
 }

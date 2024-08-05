@@ -86,7 +86,7 @@ impl Widget for Text<'_> {
                 .ok_or(Error::OutOfBoundsCharacter(idx))?;
 
             current_cell.character = character;
-            current_cell.style = self.style;
+            current_cell.style = self.style.inherits(current_cell.style);
         }
 
         Ok(UpdateResult::NoEvent)

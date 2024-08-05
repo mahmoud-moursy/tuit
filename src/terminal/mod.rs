@@ -117,7 +117,7 @@ pub use view_split::ViewSplit;
 
 use crate::prelude::*;
 use crate::style::Style;
-#[allow(unused_imports)]
+#[allow(unused_imports)] // used in docs.
 use crate::terminal;
 
 /// Module containing all the code required for the "interactive" aspects of Tuit. This includes code
@@ -132,16 +132,17 @@ pub mod const_size_ref;
 /// Code for the [`MaxSize`] terminal.
 pub mod max_size;
 
-
-#[cfg(feature = "owo_colors")]
-mod owo_colors;
-mod dummy;
+/// An empty [`Terminal`] that doesn't do anything.
+pub mod dummy;
 /// The [`View`] terminal that can provide mutable or immutable views into terminals.
 pub mod view;
 /// The iterator used by the [`View`] terminal.
 pub mod view_iterator;
 /// The [`ViewSplit`] struct, which is used to split the terminal along its axes.
 pub mod view_split;
+
+#[cfg(feature = "owo_colors")]
+mod owo_colors;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
@@ -502,7 +503,7 @@ impl Rectangle {
     /// A method to set the left edge of the [`Rectangle`] to the specified x-coordinate.
     #[must_use]
     pub const fn left_to(mut self, new_edge: usize) -> Self {
-        if new_edge <= self.left() {
+        if new_edge <= self.right() {
             self.left_top.0 = new_edge;
         } else {
             self.left_top.0 = new_edge;
@@ -515,7 +516,7 @@ impl Rectangle {
     /// A method to set the bottom edge of the [`Rectangle`] to the specified y-coordinate.
     #[must_use]
     pub const fn bottom_to(mut self, new_edge: usize) -> Self {
-        if new_edge >= self.bottom() {
+        if new_edge >= self.top() {
             self.right_bottom.1 = new_edge;
         } else {
             self.right_bottom.1 = new_edge;
@@ -528,7 +529,7 @@ impl Rectangle {
     /// A method to set the top edge of the [`Rectangle`] to the specified y-coordinate.
     #[must_use]
     pub const fn top_to(mut self, new_edge: usize) -> Self {
-        if new_edge <= self.top() {
+        if new_edge <= self.bottom() {
             self.left_top.1 = new_edge;
         } else {
             self.left_top.1 = new_edge;
@@ -583,7 +584,7 @@ impl Rectangle {
 
     /// Moves the [`Rectangle`] to the specified position, centered around the top-left vertex.
     #[must_use]
-    pub const fn to(mut self, new_left_top: (usize, usize)) -> Self {
+    pub const fn at(mut self, new_left_top: (usize, usize)) -> Self {
         let width = self.width();
         let height = self.height();
 
@@ -620,14 +621,189 @@ impl Rectangle {
 
 
     /// Get the range of X values that the [`Rectangle`] spans over.
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((20, 20)).at((40, 40));
+    /// let columns = rect
+    ///         .range_x()
+    ///         .map(|x| Rectangle::of_size((1, 20)).at((x, 40)));
+    /// ```
     #[must_use]
     pub const fn range_x(&self) -> RangeInclusive<usize> {
         self.left()..=self.right()
     }
 
     /// Get the range of Y values that the [`Rectangle`] spans over.
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((20, 20)).at((40, 40));
+    /// let rows = rect
+    ///         .range_y()
+    ///         .map(|y| Rectangle::of_size((20, 1)).at((40, y)));
+    ///
+    /// ```
     #[must_use]
     pub const fn range_y(&self) -> RangeInclusive<usize> {
         self.top()..=self.bottom()
+    }
+
+
+    /// Shift the left edge of the [`Rectangle`] inwards by the specified distance.
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
+    ///
+    /// let Some(rect) = rect.shift_right(20) else {
+    ///     unreachable!()
+    /// };
+    ///
+    /// assert_eq!(rect.right(), 40, "The former `left` should have become the new right side.");
+    /// assert_eq!(rect.left(), 25, "Left and right should have swapped because the right shift was greater than the width.");
+    /// ```
+    ///
+    /// # Errors
+    /// Will return `None` if the edge's new X-coordinate is less than zero.
+    #[must_use]
+    pub const fn shift_left(self, distance: isize) -> Option<Self> {
+        let Some(shift) = self.left().checked_add_signed(distance) else {
+            return None
+        };
+
+        Some(self.left_to(shift))
+    }
+
+    /// Shift the right edge of the [`Rectangle`] inwards by the specified distance.
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
+    ///
+    /// let Some(rect) = rect.shift_right(20) else {
+    ///     unreachable!()
+    /// };
+    ///
+    /// assert_eq!(rect.right(), 40, "The former `left` has become the new right side.");
+    /// assert_eq!(rect.left(), 25, "Left and right have swapped because the right shift was greater than the width.");
+    /// ```
+    ///
+    /// # Errors
+    /// Will return `None` if the edge's new X-coordinate is less than zero.
+    #[must_use]
+    pub const fn shift_right(self, distance: isize) -> Option<Self> {
+        let Some(shift) = self.right().checked_add_signed(-distance) else {
+            return None
+        };
+
+        Some(self.right_to(shift))
+    }
+
+    /// Shift the top edge of the [`Rectangle`] inwards by the specified distance.
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
+    ///
+    /// let Some(rect) = rect.shift_right(20) else {
+    ///     unreachable!()
+    /// };
+    ///
+    /// assert_eq!(rect.right(), 40, "The former `left` has become the new right side.");
+    /// assert_eq!(rect.left(), 25, "Left and right have swapped because the right shift was greater than the width.");
+    /// ```
+    ///
+    /// # Errors
+    /// Will return `None` if the edge's new Y-coordinate is less than zero.
+    #[must_use]
+    pub const fn shift_top(self, distance: isize) -> Option<Self> {
+        let Some(shift) = self.top().checked_add_signed(distance) else {
+            return None
+        };
+
+        Some(self.top_to(shift))
+    }
+
+    /// Shift the bottom edge of the [`Rectangle`] inwards by the specified distance.
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
+    ///
+    /// let Some(rect) = rect.shift_right(20) else {
+    ///     unreachable!()
+    /// };
+    ///
+    /// assert_eq!(rect.right(), 40, "The former `left` has become the new right side.");
+    /// assert_eq!(rect.left(), 25, "Left and right have swapped because the right shift was greater than the width.");
+    /// ```
+    ///
+    /// # Errors
+    /// Will return `None` if the edge's new Y-coordinate is less than zero.
+    #[must_use]
+    pub const fn shift_bottom(self, distance: isize) -> Option<Self> {
+        let Some(shift) = self.bottom().checked_add_signed(-distance) else {
+            return None
+        };
+
+        Some(self.bottom_to(shift))
+    }
+
+    /// Extend the dimensions of the [`Rectangle`] on both the top and bottom edges.
+    ///
+    /// # Errors
+    /// Will return `None` if either of the edges' new coordinates is below zero.
+    #[must_use]
+    pub const fn extend_y(self, distance: isize) -> Option<Self> {
+        let Some(this) = self.shift_top(-distance) else {
+            return None
+        };
+
+        let Some(this) = this.shift_bottom(-distance) else {
+            return None
+        };
+
+        Some(this)
+    }
+
+    /// Extend the dimensions of the [`Rectangle`] on both the right and left edges.
+    ///
+    /// # Errors
+    /// Will return `None` if either of the edges' new coordinates is below zero.
+    #[must_use]
+    pub const fn extend_x(self, distance: isize) -> Option<Self> {
+        let Some(this) = self.shift_left(-distance) else {
+            return None
+        };
+
+        let Some(this) = this.shift_right(-distance) else {
+            return None
+        };
+
+        Some(this)
+    }
+
+    /// Extend the dimensions of a [`Rectangle`] by the specified distance on all edges.
+    ///
+    /// # Errors
+    /// Will return if `None` if the new edges' coordinates flow are less than zero.
+    #[must_use]
+    pub const fn extend(self, distance: isize) -> Option<Self> {
+        let Some(this) = self.extend_x(distance) else {
+            return None
+        };
+
+        let Some(this) = this.extend_y(distance) else {
+            return None
+        };
+
+        Some(this)
     }
 }

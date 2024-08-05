@@ -45,6 +45,9 @@ where T: TerminalConst {
     }
 
     fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        let x = x + self.rect.left();
+        let y = y + self.rect.top();
+
         if self.rect.contains((x, y)) {
             self.parent.cell(x, y)
         } else {
@@ -72,6 +75,9 @@ where T: TerminalMut {
     }
 
     fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        let x = x + self.rect.left();
+        let y = y + self.rect.top();
+
         if self.rect.contains((x, y)) {
             self.parent.cell_mut(x, y)
         } else {
@@ -80,9 +86,9 @@ where T: TerminalMut {
     }
 }
 
+
 impl<T> View<T> {
-    /// Creates a new [`ViewMut`] from the given [`TerminalMut`] and the left-top
-    /// coordinate.
+    /// Creates a new [`View`] from the given [`TerminalMut`] or [`TerminalConst`] and the given [`Rectangle`]
     pub fn new(terminal: T, view_rect: Rectangle) -> Option<Self>
     where T: Metadata {
         if terminal.bounding_box().contains_rect(view_rect) {
