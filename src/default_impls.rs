@@ -45,18 +45,6 @@ impl<T: Deref<Target: Metadata>> Metadata for T {
     }
 }
 impl<T: Deref<Target: TerminalConst>> TerminalConst for T {
-    // fn dimensions(&self) -> (usize, usize) {
-    //     (**self).dimensions()
-    // }
-    //
-    // fn default_style(&self) -> Style {
-    //     (**self).default_style()
-    // }
-
-    // fn characters_slice_mut(&mut self) -> &mut [Cell] {
-    //     (**self).characters_slice_mut()
-    // }
-
     fn cells(&self) -> impl Iterator<Item = &Cell> {
         self.deref().cells()
     }

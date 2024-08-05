@@ -17,7 +17,6 @@
 //!
 //! prompt.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
 //! ```
-#![feature(iter_array_chunks)]
 #![allow(clippy::collapsible_if)]
 #![no_std]
 extern crate alloc;

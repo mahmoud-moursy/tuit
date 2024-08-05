@@ -69,6 +69,15 @@ pub enum Error {
         /// The Y out-of-bounds coordinate. This may be `None` in cases where a coordinate cannot be provided.
         y: Option<usize>,
     },
+    /// If a terminal or a widget encounters an error due to running out of space,
+    /// it should return an [`Error::RequestRescale`] to a suitable new size.
+    #[error("There was not enough space in the terminal, so a rescale to a width of {new_width} and a height of {new_height}")]
+    RequestRescale {
+        /// The requested new width.
+        new_width: usize,
+        /// The requested new height.
+        new_height: usize
+    },
     /// For when an error case is not covered by Tuit. If you are forced to use this, and think
     /// that your use-case for the error is in fact general enough, please feel free to submit a PR!
     #[error(transparent)]

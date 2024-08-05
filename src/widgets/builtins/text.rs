@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::prelude::{Terminal, TerminalConst, Widget};
+use crate::prelude::{Metadata, Terminal, TerminalConst, Widget};
 use crate::style::Style;
 use crate::terminal::{UpdateInfo, UpdateResult, Rectangle};
 use crate::widgets::{BoundingBox, };
@@ -94,11 +94,11 @@ impl Widget for Text<'_> {
 }
 
 impl BoundingBox for Text<'_> {
-    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
-        let height = self.text.len() / terminal.width();
+    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle> {
+        let height = (self.text.len() / terminal.width()).min(terminal.height());
         let width = self.text.len().min(terminal.width());
 
-        Rectangle::of_size((width, height))
+        Ok(Rectangle::of_size((width, height)))
     }
 
     fn completely_covers(&self, rectangle: Rectangle) -> bool {

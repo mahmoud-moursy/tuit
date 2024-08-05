@@ -1,4 +1,4 @@
-use crate::prelude::{Terminal, TerminalConst, Widget};
+use crate::prelude::{Metadata, Terminal, TerminalConst, Widget};
 use crate::style::{Colour, Style};
 use crate::terminal::{Rectangle, UpdateInfo, UpdateResult};
 use crate::widgets::BoundingBox;
@@ -50,8 +50,8 @@ impl Widget for Sweeper {
 }
 
 impl BoundingBox for Sweeper {
-    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
-        terminal.bounding_box()
+    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle> {
+        Ok(terminal.bounding_box())
     }
 
     fn completely_covers(&self, _rectangle: Rectangle) -> bool {

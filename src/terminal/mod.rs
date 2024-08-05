@@ -655,6 +655,12 @@ impl Rectangle {
     /// let columns = rect
     ///         .range_x()
     ///         .map(|x| Rectangle::of_size((1, 20)).at((x, 40)));
+    /// 
+    /// let cool_x_coordinate = 57;
+    ///
+    /// let in_range = rect.range_x().contains(&cool_x_coordinate);
+    ///
+    /// assert!(in_range)
     /// ```
     #[must_use]
     pub const fn range_x(&self) -> RangeInclusive<usize> {
@@ -671,6 +677,11 @@ impl Rectangle {
     ///         .range_y()
     ///         .map(|y| Rectangle::of_size((20, 1)).at((40, y)));
     ///
+    /// let cool_y_coordinate = 57;
+    ///
+    /// let in_range = rect.range_y().contains(&cool_y_coordinate);
+    ///
+    /// assert!(in_range)
     /// ```
     #[must_use]
     pub const fn range_y(&self) -> RangeInclusive<usize> {
@@ -679,13 +690,14 @@ impl Rectangle {
 
 
     /// Shift the left edge of the [`Rectangle`] inwards by the specified distance.
+    /// Effectively "trimming" the edge by the number of cells.
     ///
     /// ```
     /// use tuit::terminal::Rectangle;
     ///
     /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
     ///
-    /// let Some(rect) = rect.shift_right(20) else {
+    /// let Some(rect) = rect.trim_right(20) else {
     ///     unreachable!()
     /// };
     ///
@@ -696,7 +708,7 @@ impl Rectangle {
     /// # Errors
     /// Will return `None` if the edge's new X-coordinate is less than zero.
     #[must_use]
-    pub const fn shift_left(self, distance: isize) -> Option<Self> {
+    pub const fn trim_left(self, distance: isize) -> Option<Self> {
         let Some(shift) = self.left().checked_add_signed(distance) else {
             return None
         };
@@ -705,13 +717,14 @@ impl Rectangle {
     }
 
     /// Shift the right edge of the [`Rectangle`] inwards by the specified distance.
+    /// Effectively "trimming" the edge by the number of cells.
     ///
     /// ```
     /// use tuit::terminal::Rectangle;
     ///
     /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
     ///
-    /// let Some(rect) = rect.shift_right(20) else {
+    /// let Some(rect) = rect.trim_right(20) else {
     ///     unreachable!()
     /// };
     ///
@@ -722,7 +735,7 @@ impl Rectangle {
     /// # Errors
     /// Will return `None` if the edge's new X-coordinate is less than zero.
     #[must_use]
-    pub const fn shift_right(self, distance: isize) -> Option<Self> {
+    pub const fn trim_right(self, distance: isize) -> Option<Self> {
         let Some(shift) = self.right().checked_add_signed(-distance) else {
             return None
         };
@@ -731,13 +744,14 @@ impl Rectangle {
     }
 
     /// Shift the top edge of the [`Rectangle`] inwards by the specified distance.
+    /// Effectively "trimming" the edge by the number of cells.
     ///
     /// ```
     /// use tuit::terminal::Rectangle;
     ///
     /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
     ///
-    /// let Some(rect) = rect.shift_right(20) else {
+    /// let Some(rect) = rect.trim_right(20) else {
     ///     unreachable!()
     /// };
     ///
@@ -748,7 +762,7 @@ impl Rectangle {
     /// # Errors
     /// Will return `None` if the edge's new Y-coordinate is less than zero.
     #[must_use]
-    pub const fn shift_top(self, distance: isize) -> Option<Self> {
+    pub const fn trim_top(self, distance: isize) -> Option<Self> {
         let Some(shift) = self.top().checked_add_signed(distance) else {
             return None
         };
@@ -757,13 +771,14 @@ impl Rectangle {
     }
 
     /// Shift the bottom edge of the [`Rectangle`] inwards by the specified distance.
+    /// Effectively "trimming" the edge by the number of cells.
     ///
     /// ```
     /// use tuit::terminal::Rectangle;
     ///
     /// let rect = Rectangle::of_size((5, 5)).at((40, 40));
     ///
-    /// let Some(rect) = rect.shift_right(20) else {
+    /// let Some(rect) = rect.trim_right(20) else {
     ///     unreachable!()
     /// };
     ///
@@ -774,7 +789,7 @@ impl Rectangle {
     /// # Errors
     /// Will return `None` if the edge's new Y-coordinate is less than zero.
     #[must_use]
-    pub const fn shift_bottom(self, distance: isize) -> Option<Self> {
+    pub const fn trim_bottom(self, distance: isize) -> Option<Self> {
         let Some(shift) = self.bottom().checked_add_signed(-distance) else {
             return None
         };
@@ -788,11 +803,11 @@ impl Rectangle {
     /// Will return `None` if either of the edges' new coordinates is below zero.
     #[must_use]
     pub const fn extend_y(self, distance: isize) -> Option<Self> {
-        let Some(this) = self.shift_top(-distance) else {
+        let Some(this) = self.trim_top(-distance) else {
             return None
         };
 
-        let Some(this) = this.shift_bottom(-distance) else {
+        let Some(this) = this.trim_bottom(-distance) else {
             return None
         };
 
@@ -805,11 +820,11 @@ impl Rectangle {
     /// Will return `None` if either of the edges' new coordinates is below zero.
     #[must_use]
     pub const fn extend_x(self, distance: isize) -> Option<Self> {
-        let Some(this) = self.shift_left(-distance) else {
+        let Some(this) = self.trim_left(-distance) else {
             return None
         };
 
-        let Some(this) = this.shift_right(-distance) else {
+        let Some(this) = this.trim_right(-distance) else {
             return None
         };
 

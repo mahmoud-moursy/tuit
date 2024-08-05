@@ -79,7 +79,7 @@ impl<'a> Widget for CenteredText<'a> {
     ) -> crate::Result<UpdateResult> {
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::LeftClick) => {
-                if self.bounding_box(&terminal).contains((x, y)) {
+                if self.bounding_box(&terminal)?.contains((x, y)) {
                     return Ok(UpdateResult::Interacted)
                 }
 
@@ -95,7 +95,7 @@ impl<'a> Widget for CenteredText<'a> {
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
         let view = terminal
-            .view_mut(self.bounding_box(&terminal))
+            .view_mut(self.bounding_box(&terminal)?)
             .expect("CenteredText should always produce a valid bounding box");
 
         let text = Text::new(self.prompt_text).styled(self.style);
@@ -107,7 +107,7 @@ impl<'a> Widget for CenteredText<'a> {
 }
 
 impl BoundingBox for CenteredText<'_> {
-    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle {
+    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle> {
         let (terminal_width, terminal_height) = terminal.dimensions();
 
         let text_len = self.prompt_text.len();
@@ -126,7 +126,7 @@ impl BoundingBox for CenteredText<'_> {
         let top = vertical_center - (height / 2);
         let bottom = top + height;
 
-        Rectangle::new((left, top), (right, bottom))
+        Ok(Rectangle::new((left, top), (right, bottom)))
     }
 
     fn completely_covers(&self, rectangle: Rectangle) -> bool {

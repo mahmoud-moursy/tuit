@@ -147,7 +147,7 @@ pub trait BoundingBox: Widget {
     ///
     /// Keep in mind, the y-axis is flipped in Tuit, so [`Rectangle::bottom`] is actually the larger value,
     /// not [`Rectangle::top`].
-    fn bounding_box(&self, terminal: impl TerminalConst) -> Rectangle;
+    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle>;
     /// The [`BoundingBox::completely_covers`] method allows the widget to communicate whether it
     /// completely covers the space specified by the specified [`Rectangle`].
     ///
@@ -162,7 +162,11 @@ pub trait BoundingBox: Widget {
     /// For example, if the widget is circular, it will return [`false`] because it doesn't
     /// completely cover the space in its bounding box.
     fn covered_in(&self, terminal: impl TerminalConst) -> bool {
-        self.completely_covers(self.bounding_box(terminal))
+        let Ok(bounding_box) = self.bounding_box(terminal) else {
+            return false
+        };
+        
+        self.completely_covers(bounding_box)
     }
 }
 

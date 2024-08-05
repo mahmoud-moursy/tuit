@@ -5,6 +5,7 @@ pub use sweeper::Sweeper;
 pub use text::Text;
 pub use uv::Uv;
 pub use margin::Margin;
+pub use centered::Centered;
 
 /// The code for the [`Sweeper`] widget.
 pub mod sweeper;
@@ -21,3 +22,5 @@ pub mod uv;
 mod margin;
 /// The code the [`dummy::Dummy`] widget.
 pub mod dummy;
+/// The code for the [`Centered`] widget.
+pub mod centered;

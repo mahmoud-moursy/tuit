@@ -138,7 +138,7 @@ impl Widget for CenteredPrompt<'_> {
         self.centered_text.draw(update_info, &mut terminal)?; // Draw text.
 
         let term_width = terminal.width();
-        let bottom = self.centered_text.bounding_box(&terminal).bottom();
+        let bottom = self.centered_text.bounding_box(&terminal)?.bottom();
 
         let mut characters_used = self.buttons.first().unwrap_or(&"").len();
         let term_chars = terminal.cells_mut();
