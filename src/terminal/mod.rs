@@ -119,6 +119,7 @@ use crate::prelude::*;
 use crate::style::Style;
 #[allow(unused_imports)] // used in docs.
 use crate::terminal;
+use crate::widgets::Direction;
 
 /// Module containing all the code required for the "interactive" aspects of Tuit. This includes code
 /// like structs for handling input, like [`interactive::MouseButton`] or [`interactive::KeyState`].
@@ -550,6 +551,18 @@ impl Rectangle {
         }
 
         self
+    }
+
+    /// Similar to [`Rectangle::top_to`] and its siblings, but you can select which edge to move
+    /// based on the specified [`Direction`]
+    #[must_use]
+    pub const fn edge_to(self, new_edge: usize, edge: Direction) -> Self {
+        match edge {
+            Direction::Right => self.right_to(new_edge),
+            Direction::Left => self.left_to(new_edge),
+            Direction::Up => self.top_to(new_edge),
+            Direction::Down => self.bottom_to(new_edge),
+        }
     }
 
     /// Check if the given (x,y) coordinate is within the [`Rectangle`].
