@@ -9,6 +9,17 @@ use crate::terminal::{Cell, TerminalConst, TerminalMut};
 use crate::terminal::ConstantSize;
 
 /// A [`ConstantSize`] that initializes its [`Cell`]s inside a [`Box`] to avoid a stack overflow.
+///
+/// ## Why not a `Vec`?
+///
+/// `Vec` holds no intrinsic guarantee that the shape will be consistent.
+/// A bug in a feature like, e.g. rescaling, could cause unexpected results.
+///
+/// If you want a resizable terminal, the `extras`+`alloc`
+/// features will enable the [`super::extras::Rescale`]
+/// terminal.
+/// 
+/// Enabling extras will also add a dependency on `ndarray`.
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct ConstantBoxed<const WIDTH: usize, const HEIGHT: usize> {
     cells: Box<[Box<[Cell; WIDTH]>; HEIGHT]>,
