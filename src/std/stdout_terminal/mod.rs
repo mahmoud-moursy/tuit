@@ -1,5 +1,3 @@
-#![doc(hidden)]
-
 extern crate std;
 
 use std::io::Write;
@@ -9,6 +7,19 @@ use anyhow::anyhow;
 use crate::draw::Renderer;
 use crate::terminal::TerminalConst;
 
+/// Use [`StdoutTerminal::default`] to create a new [`StdoutTerminal`].
+/// 
+/// # Example
+/// ```
+/// use tuit::std::stdout_terminal::StdoutTerminal;
+/// use tuit::prelude::*;
+/// use tuit::terminal::ConstantSize;
+///
+/// let mut stdout = StdoutTerminal::default();
+/// let mut terminal = ConstantSize::<20, 20>::new();
+///
+/// stdout.render(&terminal).expect("Failed to draw to stdout");
+/// ```
 pub struct StdoutTerminal(pub std::io::Stdout);
 
 impl Default for StdoutTerminal {

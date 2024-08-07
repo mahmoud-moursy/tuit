@@ -7,6 +7,7 @@ pub use uv::Uv;
 pub use margin::Margin;
 pub use centered::Centered;
 pub use stacked::Stacked;
+pub use buttons::Buttons;
 use crate::widgets::BoundingBox;
 
 /// The code for the [`Sweeper`] widget.

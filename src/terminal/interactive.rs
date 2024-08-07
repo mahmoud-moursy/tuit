@@ -58,7 +58,7 @@ pub enum UpdateInfo {
 /// `UpdateResult` includes information about the object's status. Objects are unable to destruct themselves,
 /// and thus are reliant on the implementor to get rid of them once their lifecycle is over.
 /// 
-/// In the case that you are handling multiple widgets under the same [`Widget::update`] method,
+/// In the case that you are handling multiple widgets under the same [`Widget::update`](crate::widgets::Widget::update) method,
 /// you can use ordering to determine which [`UpdateResult`] to return.
 pub enum UpdateResult {
     /// No event has occurred, the object will continue to live.

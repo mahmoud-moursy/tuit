@@ -249,7 +249,7 @@ pub trait BoundingBox: Widget {
     ///
     /// # Errors
     ///
-    /// This will return an [`Error`] if the [`BoundingBox::bounding_box`] method fails.
+    /// This will return an [`Error`](crate::Error) if the [`BoundingBox::bounding_box`] method fails.
     ///
     /// # Examples
     ///

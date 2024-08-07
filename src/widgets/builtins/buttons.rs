@@ -28,87 +28,87 @@ impl<'a> Buttons<'a> {
         }
     }
 
-    #[must_use]
-    /// Returns the currently selected button. Will be `None` if no button is selected.
-    pub const fn selected(&self) -> Option<usize> {
-        self.hovered_button
-    }
-
-    /// Select a button based on its order from left-to-right.
-    #[must_use]
-    pub const fn select(mut self, selection: usize) -> Self {
-        if selection < self.buttons.len() {
-            self.hovered_button = Some(selection);
-        }
-
-        self
-    }
-
-    /// Deselects button.
-    #[must_use]
-    pub const fn select_none(mut self) -> Self {
-        self.hovered_button = None;
-
-        self
-    }
-
-    /// Selects the rightmost available button, or `None` if there are no buttons.
-    #[must_use]
-    pub const fn select_rightmost(self) -> Self {
-        self.select(self.buttons.len() - 1)
-    }
-
-    /// Selects the rightmost available button, or `None` if there are no buttons.
-    ///
-    /// This is an alias for [`CenteredPrompt::select_rightmost`]. Right is not last in all languages.
-    #[must_use]
-    pub const fn select_last(self) -> Self {
-        self.select_rightmost()
-    }
-
-    /// Selects the leftmost button, or `None` if there are no buttons.
-    #[must_use]
-    pub const fn select_leftmost(self) -> Self {
-        self.select(0)
-    }
-
-    /// Selects the leftmost button, or `None` if there are no buttons.
-    ///
-    /// This is an alias for [`CenteredPrompt::select_leftmost`]. Left is not first in all languages.
-    #[must_use]
-    pub const fn select_first(self) -> Self {
-        self.select_leftmost()
-    }
-
-    /// Selects the button to the right of the cursor, or `None` if there are no buttons.
-    ///
-    /// If the cursor position is unset, it will select the rightmost item.
-    #[must_use]
-    pub const fn move_right(self) -> Self {
-        let Some(mut selected) = self.hovered_button else {
-            return self.select_rightmost();
-        };
-
-        selected += 1;
-
-        self.select(selected)
-    }
-
-    /// Selects the button to the right of the cursor, or `None` if there are no buttons.
-    ///
-    /// If the cursor position is unset, it will select the leftmost item.
-    #[must_use]
-    pub const fn move_left(self) -> Self {
-        let Some(selected) = self.hovered_button else {
-            return self.select_leftmost();
-        };
-
-        let Some(selected) = selected.checked_sub(1) else {
-            return self.select_leftmost();
-        };
-
-        self.select(selected)
-    }
+    // #[must_use]
+    // /// Returns the currently selected button. Will be `None` if no button is selected.
+    // pub const fn selected(&self) -> Option<usize> {
+    //     self.hovered_button
+    // }
+    // 
+    // /// Select a button based on its order from left-to-right.
+    // #[must_use]
+    // pub const fn select(mut self, selection: usize) -> Self {
+    //     if selection < self.buttons.len() {
+    //         self.hovered_button = Some(selection);
+    //     }
+    // 
+    //     self
+    // }
+    // 
+    // /// Deselects button.
+    // #[must_use]
+    // pub const fn select_none(mut self) -> Self {
+    //     self.hovered_button = None;
+    // 
+    //     self
+    // }
+    // 
+    // /// Selects the rightmost available button, or `None` if there are no buttons.
+    // #[must_use]
+    // pub const fn select_rightmost(self) -> Self {
+    //     self.select(self.buttons.len() - 1)
+    // }
+    // 
+    // /// Selects the rightmost available button, or `None` if there are no buttons.
+    // ///
+    // /// This is an alias for [`CenteredPrompt::select_rightmost`]. Right is not last in all languages.
+    // #[must_use]
+    // pub const fn select_last(self) -> Self {
+    //     self.select_rightmost()
+    // }
+    // 
+    // /// Selects the leftmost button, or `None` if there are no buttons.
+    // #[must_use]
+    // pub const fn select_leftmost(self) -> Self {
+    //     self.select(0)
+    // }
+    // 
+    // /// Selects the leftmost button, or `None` if there are no buttons.
+    // ///
+    // /// This is an alias for [`CenteredPrompt::select_leftmost`](crate::widgets::builtins::CenteredPrompt::select_leftmost). Left is not first in all languages.
+    // #[must_use]
+    // pub const fn select_first(self) -> Self {
+    //     self.select_leftmost()
+    // }
+    // 
+    // /// Selects the button to the right of the cursor, or `None` if there are no buttons.
+    // ///
+    // /// If the cursor position is unset, it will select the rightmost item.
+    // #[must_use]
+    // pub const fn move_right(self) -> Self {
+    //     let Some(mut selected) = self.hovered_button else {
+    //         return self.select_rightmost();
+    //     };
+    // 
+    //     selected += 1;
+    // 
+    //     self.select(selected)
+    // }
+    // 
+    // /// Selects the button to the right of the cursor, or `None` if there are no buttons.
+    // ///
+    // /// If the cursor position is unset, it will select the leftmost item.
+    // #[must_use]
+    // pub const fn move_left(self) -> Self {
+    //     let Some(selected) = self.hovered_button else {
+    //         return self.select_leftmost();
+    //     };
+    // 
+    //     let Some(selected) = selected.checked_sub(1) else {
+    //         return self.select_leftmost();
+    //     };
+    // 
+    //     self.select(selected)
+    // }
 }
 
 impl Widget for Buttons<'_> {
