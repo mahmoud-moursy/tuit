@@ -144,6 +144,7 @@ pub mod view_split;
 
 #[cfg(feature = "owo_colors")]
 mod owo_colors;
+mod debug;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
@@ -272,7 +273,7 @@ pub trait TerminalMut: Metadata {
     /// // Set the top-right character to 'h'.
     /// my_character_ref.character = 'h';
     ///
-    /// // NOTE: You need to enable the "ansi_terminal" feature for Stdout to implement TerminalDisplayTarget
+    /// // NOTE: You need to enable the "stdout_terminal" feature for Stdout to implement TerminalDisplayTarget
     /// let std_out = std::io::stdout();
     ///
     /// terminal.display(std_out).expect("Failed to display terminal");
@@ -383,6 +384,45 @@ impl Rectangle {
         }
     }
 
+    /// Get the (x,y) coordinates of the specified index.
+    /// 
+    /// # Errors
+    /// Will return `None` if the index is out of bounds.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    /// 
+    /// let rect = Rectangle::of_size((20, 20));
+    /// let (x, y) = rect.index_into(10).unwrap();
+    /// 
+    /// assert_eq!(x, 10);
+    /// assert_eq!(y, 0);
+    /// 
+    /// let (x, y) = rect.index_into(25).unwrap();
+    /// 
+    /// assert_eq!(x, 5);
+    /// assert_eq!(y, 1);
+    ///
+    /// let (x, y) = rect.index_into(20).unwrap();
+    ///
+    /// assert_eq!(x, 0);
+    /// assert_eq!(y, 1);
+    /// ```
+    #[must_use] pub const fn index_into(&self, index: usize) -> Option<(usize, usize)> {
+        let (width, height) = self.dimensions();
+
+        if index > width * height {
+            return None
+        }
+
+        let x = index % width;
+        let y = index / width;
+
+        Some((x, y))
+    }
+    
     /// Create a [`Rectangle`] with top-left at (0,0)
     #[must_use]
     pub const fn of_size((width, height): (usize, usize)) -> Self {

@@ -1,8 +1,9 @@
 //! Show how split views can be used.
 
 use std::io::stdout;
-
+use tuit::draw::AnsiTerminal;
 use tuit::prelude::*;
+use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::{ConstantSize, ViewSplit};
 use tuit::widgets::builtins::{Margin, Sweeper, Text};
@@ -31,5 +32,5 @@ fn main() {
     blue.drawn(&mut left).ok();
     long_left_text.drawn(&mut left).ok();
     
-    terminal.display(stdout()).expect("Can't fail");
+    terminal.display(StdoutTerminal::default()).expect("Can't fail");
 }

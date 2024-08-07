@@ -47,6 +47,9 @@ pub mod prelude {
         terminal::{Metadata, Terminal, TerminalConst, TerminalMut},
         widgets::Widget,
     };
+    
+    #[cfg(feature = "builtin_widgets")]
+    pub use crate::widgets::builtins::WithLayout;
 }
 
 /// This is a type alias used by `tuit` for its errors.

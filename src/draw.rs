@@ -22,7 +22,9 @@
 //! }
 //! ```
 
-use crate::terminal::TerminalConst;
+use core::fmt::{Formatter, Write};
+use anyhow::anyhow;
+use crate::terminal::{Cell, TerminalConst};
 
 /// This trait is written by the implementor and is responsible for rendering the terminal's data
 /// to the screen.
@@ -31,7 +33,7 @@ use crate::terminal::TerminalConst;
 ///
 /// The method receives a reference to a type that implements the [`TerminalConst`] trait, and uses the data within to render the terminal.
 ///
-/// ```feature,ansi_terminal
+/// ```feature,stdout_terminal
 /// use tuit::draw::Target;
 /// use tuit::terminal::ConstantSize;
 ///
@@ -85,5 +87,49 @@ pub struct DummyTarget;
 impl Renderer for DummyTarget {
     fn render(&mut self, _terminal: impl TerminalConst) -> crate::Result<()> {
         Ok(())
+    }
+}
+
+#[cfg(feature = "ansi_terminal")]
+/// A [`Renderer`] that takes in a writer and outputs ANSI escape codes to it to use for formatting.
+pub struct AnsiTerminal<T>(pub T);
+
+#[cfg(feature = "ansi_terminal")]
+impl<T: Write> Renderer for AnsiTerminal<T> {
+    fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
+        let terminal_width = terminal.width();
+
+        let characters = terminal.cells();
+
+        for (idx, character_cell) in characters.enumerate() {
+            if idx % terminal_width == 0 {
+                writeln!(self.0).map_err(|e| anyhow!(e))?;
+            }
+
+            let mut character_cell = *character_cell;
+
+            // Protect against alignment issues that can arise from characters
+            // like `\0` or `\t` by replacing them with a space.
+            //
+            // FIXME: Wide characters not handled.
+            if character_cell.character.is_whitespace() || character_cell.character.is_control() {
+                character_cell.character = ' ';
+            }
+
+            write!(self.0, "{character_cell}").map_err(|e| anyhow!(e))?;
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(feature = "ansi_terminal")]
+impl core::fmt::Display for Cell {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        use owo_colors::OwoColorize;
+
+        let owo_style: owo_colors::Style = self.style.into();
+
+        write!(f, "{}", self.character.style(owo_style))
     }
 }

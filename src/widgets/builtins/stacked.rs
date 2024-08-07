@@ -50,18 +50,18 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     /// use tuit::terminal::ConstantSize;
     /// use tuit::widgets::builtins::{Stacked, Text};
     ///
-    /// fn main() {
-    ///     use tuit::terminal::UpdateInfo;
-    ///     let top_text = Text::new("Top text");
-    ///     let bottom_text = Text::new("Bottom text");
+    /// use tuit::terminal::UpdateInfo;
+    /// 
+    /// 
+    /// let top_text = Text::new("Top text");
+    /// let bottom_text = Text::new("Bottom text");
     ///
-    ///     let stacked = Stacked::new(top_text, bottom_text);
+    /// let stacked = Stacked::new(top_text, bottom_text);
     ///
-    ///     let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
+    /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
-    ///     stacked.draw_top(UpdateInfo::default(), &mut terminal).unwrap();
-    ///     stacked.draw_bottom(UpdateInfo::default(), &mut terminal).unwrap();
-    /// }
+    /// stacked.draw_top(UpdateInfo::NoInfo, &mut terminal).unwrap();
+    /// stacked.draw_bottom(UpdateInfo::NoInfo, &mut terminal).unwrap();
     /// ```
     pub fn draw_top(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
     where
@@ -76,16 +76,16 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
 
         self.higher_widget.draw(update_info, higher_view)
     }
-    
+
     /// Draws both widgets, and returns their update results. This is better than using [`Widget::draw`]
     /// because it returns draw update results from both widgets.
     pub fn draw_both(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> (crate::Result<UpdateResult>, crate::Result<UpdateResult>)
-    where 
+    where
         TOP: BoundingBox,
         BOT: BoundingBox {
         let res_higher = self.draw_top(update_info, &mut terminal);
         let res_lower = self.draw_bottom(update_info, &mut terminal);
-        
+
         (res_higher, res_lower)
     }
 

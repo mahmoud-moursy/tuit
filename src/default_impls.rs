@@ -1,5 +1,6 @@
 use core::cmp::Ordering;
 use core::ops::{BitOr, Deref, DerefMut};
+use crate::draw::Renderer;
 use crate::prelude::{Metadata, Terminal, TerminalConst, TerminalMut};
 use crate::style::{Ansi4, Style};
 use crate::terminal::Cell;
@@ -60,6 +61,11 @@ impl<T: DerefMut<Target: TerminalMut>> TerminalMut for T {
 
     fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
         self.deref_mut().cell_mut(x, y)
+    }
+}
+impl<T: DerefMut<Target: Renderer>> Renderer for T {
+    fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
+        self.deref_mut().render(terminal)
     }
 }
 impl<T: TerminalConst + TerminalMut + Metadata> Terminal for T {}

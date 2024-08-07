@@ -2,8 +2,10 @@
 
 use std::io::stdout;
 use tuit::allocations::terminal::extras::rescale::Rescale;
+use tuit::draw::AnsiTerminal;
 use tuit::terminal::Rescalable;
 use tuit::prelude::*;
+use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::widgets::builtins::Uv;
 
 fn main() {
@@ -17,16 +19,16 @@ fn main() {
     rescalable.rescale((20, 20)).ok();
 
     print!("This should be a UV texture but... woah, what happened!?");
-    rescalable.display(stdout()).ok();
+    rescalable.display(StdoutTerminal::default()).ok();
     print!("\nYou just saw blue because the terminal wasn't redrawn after scaling.");
     uv.drawn(&mut rescalable).ok();
 
-    rescalable.display(stdout()).ok();
+    rescalable.display(StdoutTerminal::default()).ok();
 
     print!("\nHere is the correct UV texture. This is why you should re-draw after re-scaling");
 
     rescalable.rescale((200, 20)).ok();
     uv.drawn(&mut rescalable).ok();
-    rescalable.display(stdout()).ok();
+    rescalable.display(StdoutTerminal::default()).ok();
     println!("\n...and this is what the large-scale image is.");
 }

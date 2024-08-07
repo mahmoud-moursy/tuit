@@ -3,6 +3,7 @@
 use std::io::stdout;
 
 use tuit::prelude::*;
+use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::style::Colour;
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::Uv;
@@ -10,7 +11,7 @@ use tuit::terminal::Rectangle;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {
-    println!("You must apply the ansi_terminal feature to view this example. Use `cargo --features ansi_terminal`");
+    println!("You must apply the stdout_terminal feature to view this example. Use `cargo --features stdout_terminal`");
 }
 
 // a regression causes this
@@ -35,7 +36,7 @@ fn main() -> anyhow::Result<()> {
         cell.character = view_text.next().expect("Won't fail yo. like... ever... trust me bro.");
     }
 
-    terminal.display(stdout())?;
+    terminal.display(StdoutTerminal::default())?;
 
     Ok(())
 }

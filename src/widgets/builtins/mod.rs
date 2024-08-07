@@ -28,6 +28,8 @@ pub mod dummy;
 pub mod centered;
 /// The code for the [`Stacked`] widget.
 pub mod stacked;
+/// The code for the [`Buttons`] widget.
+pub mod buttons;
 
 impl<T: BoundingBox> From<T> for Centered<T> {
     fn from(value: T) -> Self {
@@ -52,9 +54,9 @@ pub trait WithLayout: Sized {
     fn centered(self) -> Centered<Self> {
         Centered::new(self)
     }
-    
+
     /// Stacks the widget on top of another widget.
-    fn on_top_of(self, other: Self) -> Stacked<Self, Self> {
+    fn on_top_of<T>(self, other: T) -> Stacked<Self, T> {
         Stacked::new(self, other)
     }
 }

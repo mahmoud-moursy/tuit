@@ -20,7 +20,7 @@
         stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
       } {
         packages = with pkgs; [
-          rust-bin.nightly.latest.default
+          rust-bin.stable.latest.default
           bacon
         ];
       };
