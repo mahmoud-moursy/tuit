@@ -6,9 +6,8 @@
   missing is some more widgets!
 - And some more testing, too!
   
-- Currently, only about two functional widgets exist, `CenteredText` and`CenteredPrompt`.
-  They demonstrate what is possible with Tuit, but without more widgets,
-  and a proper book, I cannot really call this a true TUI library.
+- Currently, several layout widgets exist, like `Stacked`, `Centered`, and `Margin`. See the [docs](https://docs.rs/tuit/latest) for more information.
+- There is a `Buttons` widget and a `Text` widget. See the [docs](https://docs.rs/tuit/latest) for more information.
 
 ## The TUI lib for the no_std, no_alloc hard-mode Rust user!
 
