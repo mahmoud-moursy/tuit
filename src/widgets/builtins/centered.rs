@@ -1,5 +1,5 @@
 use crate::Error::RequestRescale;
-use crate::prelude::{Metadata, Terminal, TerminalConst, Widget};
+use crate::prelude::{ Terminal, TerminalConst, Widget};
 use crate::terminal::{Rectangle, UpdateInfo, UpdateResult};
 use crate::widgets::BoundingBox;
 
@@ -19,7 +19,7 @@ impl<T> Centered<T> {
 
 impl<T: BoundingBox> Widget for Centered<T> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
-        let bounding_box = self.bounding_box(&terminal)?;
+        let bounding_box = self.bounding_box_in(&terminal)?;
         let view = terminal.view(bounding_box).ok_or(RequestRescale {
             new_width: bounding_box.right(),
             new_height: bounding_box.bottom(),
@@ -29,7 +29,7 @@ impl<T: BoundingBox> Widget for Centered<T> {
     }
 
     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let bounding_box = self.bounding_box(&terminal)?;
+        let bounding_box = self.bounding_box_in(&terminal)?;
         let view = terminal.view_mut(bounding_box).ok_or(RequestRescale {
             new_width: bounding_box.right(),
             new_height: bounding_box.bottom(),
@@ -40,9 +40,9 @@ impl<T: BoundingBox> Widget for Centered<T> {
 }
 
 impl<T: BoundingBox> BoundingBox for Centered<T> {
-    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle> {
-        let (terminal_width, terminal_height) = terminal.dimensions();
-        let (widget_width, widget_height) = self.child.bounding_box(&terminal)?.dimensions();
+    fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle> {
+        let (terminal_width, terminal_height) = rect.dimensions();
+        let (widget_width, widget_height) = self.child.bounding_box(rect)?.dimensions();
 
         let horizontal_center = terminal_width / 2;
         let vertical_center = terminal_height / 2;

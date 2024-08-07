@@ -63,6 +63,7 @@ mod test {
     use crate::prelude::*;
     use crate::terminal::{Cell, Rectangle};
     use crate::terminal::ConstantSize;
+    use crate::widgets::builtins::WithLayout;
 
     #[test]
     fn views() {
@@ -79,5 +80,15 @@ mod test {
             *terminal.cell_mut(5, 5).expect("Cell should have been valid?"),
             Cell::new('t')
         );
+    }
+
+    #[test]
+    fn centered_empty() {
+        use crate::widgets::builtins::dummy::Dummy;
+
+        let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
+        let empty = Dummy.centered();
+        
+        empty.drawn(&mut terminal).expect("Should not fail!");
     }
 }

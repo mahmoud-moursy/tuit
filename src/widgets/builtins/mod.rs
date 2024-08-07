@@ -6,6 +6,8 @@ pub use text::Text;
 pub use uv::Uv;
 pub use margin::Margin;
 pub use centered::Centered;
+pub use stacked::Stacked;
+use crate::widgets::BoundingBox;
 
 /// The code for the [`Sweeper`] widget.
 pub mod sweeper;
@@ -24,3 +26,37 @@ mod margin;
 pub mod dummy;
 /// The code for the [`Centered`] widget.
 pub mod centered;
+/// The code for the [`Stacked`] widget.
+pub mod stacked;
+
+impl<T: BoundingBox> From<T> for Centered<T> {
+    fn from(value: T) -> Self {
+        Self::new(value)
+    }
+}
+
+impl<T: BoundingBox> From<T> for Margin<T> {
+    fn from(value: T) -> Self {
+        Self::new(value)
+    }
+}
+
+/// An auto-implemented trait for widgets that provides some convenience methods for layouts.
+pub trait WithLayout: Sized {
+    /// Adds a margin by the specified distance -- can be negative to expand the widget.
+    fn with_margin(self, margin: isize) -> Margin<Self> {
+        Margin::new(self).margin(margin)
+    }
+
+    /// Centers the widget.
+    fn centered(self) -> Centered<Self> {
+        Centered::new(self)
+    }
+    
+    /// Stacks the widget on top of another widget.
+    fn on_top_of(self, other: Self) -> Stacked<Self, Self> {
+        Stacked::new(self, other)
+    }
+}
+
+impl<T: BoundingBox> WithLayout for T {}

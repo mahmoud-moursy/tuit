@@ -147,7 +147,13 @@ pub trait BoundingBox: Widget {
     ///
     /// Keep in mind, the y-axis is flipped in Tuit, so [`Rectangle::bottom`] is actually the larger value,
     /// not [`Rectangle::top`].
-    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle>;
+    ///
+    /// # Errors
+    ///
+    /// Sometimes it's not possible to return a valid [`Rectangle`] for the bounding box. Widgets should
+    /// try their best to fit the bounds that they are given (e.g. by truncating text, etc.), but in case
+    /// it is not possible to validly display the widget, the widget should return an [`Error`](crate::Error).
+    fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle>;
     /// The [`BoundingBox::completely_covers`] method allows the widget to communicate whether it
     /// completely covers the space specified by the specified [`Rectangle`].
     ///
@@ -156,17 +162,127 @@ pub trait BoundingBox: Widget {
     fn completely_covers(&self, rectangle: Rectangle) -> bool;
 
     /// The [`BoundingBox::covered_in`] method allows the widget to communicate whether it
-    /// completely covers the space specified by its own bounding box in the specified
-    /// [`TerminalConst`].
-    ///
-    /// For example, if the widget is circular, it will return [`false`] because it doesn't
-    /// completely cover the space in its bounding box.
+/// completely covers the space specified by its own bounding box in the specified
+/// [`TerminalConst`].
+///
+/// For example, if the widget is circular, it will return [`false`] because it doesn't
+/// completely cover the space in its bounding box.
+///
+/// # Parameters
+///
+/// - `terminal`: A reference to a [`TerminalConst`] instance that provides the necessary information about the terminal's size and dimensions.
+///
+/// # Return Value
+///
+/// This function returns a boolean value that indicates whether the widget completely covers the space specified by its own bounding box in the given [`TerminalConst`]. If the widget's bounding box cannot be determined or if it does not completely cover the space, the function returns [`false`]. Otherwise, it returns [`true`].
+
+/// # Examples
+///
+/// ```
+/// use tuit::widgets::{BoundingBox, Widget};
+/// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst};
+/// use tuit::prelude::*;
+///
+/// use tuit::widgets::builtins::dummy::EmptyWidget;
+///
+/// // Create a widget that completely covers the terminal.
+/// struct FullTerminalWidget;
+///
+/// impl EmptyWidget for FullTerminalWidget {}
+///
+/// impl BoundingBox for FullTerminalWidget {
+///     fn bounding_box(&self, _rect: Rectangle) -> tuit::Result<Rectangle> {
+///         Ok(Rectangle::new((0, 0), (20, 20)))
+///     }
+///
+///     fn completely_covers(&self, _rectangle: Rectangle) -> bool {
+///         // The widget completely covers the terminal, so it completely covers any rectangle.
+///         true
+///     }
+/// }
+///
+/// let full_terminal_widget = FullTerminalWidget;
+/// let terminal: ConstantSize<20, 20> = ConstantSize::new();
+///
+/// assert_eq!(full_terminal_widget.covered_in(&terminal), true);
+/// ```
+///
+/// ```
+/// use tuit::widgets::{BoundingBox, Widget};
+/// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst};
+/// use tuit::prelude::*;
+///
+/// use tuit::widgets::builtins::dummy::EmptyWidget;
+///
+/// // Create a widget that does not completely cover the terminal.
+/// struct PartialTerminalWidget;
+///
+/// impl EmptyWidget for PartialTerminalWidget {}
+///
+/// impl BoundingBox for PartialTerminalWidget {
+///     fn bounding_box(&self, _rect: Rectangle) -> tuit::Result<Rectangle> {
+///         Ok(Rectangle::new((0, 0), (10, 10)))
+///     }
+///
+///     fn completely_covers(&self, _rectangle: Rectangle) -> bool {
+///         // The widget is not rectangular in shape, so it does not completely cover any rectangle.
+///         false
+///     }
+/// }
+///
+/// let partial_terminal_widget = PartialTerminalWidget;
+/// let terminal: ConstantSize<20, 20> = ConstantSize::new();
+///
+/// assert_eq!(partial_terminal_widget.covered_in(&terminal), false);
+/// ```
     fn covered_in(&self, terminal: impl TerminalConst) -> bool {
-        let Ok(bounding_box) = self.bounding_box(terminal) else {
+        let Ok(bounding_box) = self.bounding_box(terminal.bounding_box()) else {
             return false
         };
-        
+
         self.completely_covers(bounding_box)
+    }
+
+    /// Get the bounding box of the widget in the specified [`Metadata`].
+    ///
+    /// This is a convenience method that calls [`BoundingBox::bounding_box`] with the [`Metadata::bounding_box`] of the specified terminal.
+    ///
+    /// # Errors
+    ///
+    /// This will return an [`Error`] if the [`BoundingBox::bounding_box`] method fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tuit::widgets::{BoundingBox, Widget};
+    /// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst};
+    /// use tuit::prelude::*;
+    ///
+    /// use tuit::widgets::builtins::dummy::EmptyWidget;
+    ///
+    /// // Create a widget that completely covers the terminal.
+    /// struct FullTerminalWidget;
+    ///
+    /// impl EmptyWidget for FullTerminalWidget {}
+    ///
+    /// impl BoundingBox for FullTerminalWidget {
+    ///     fn bounding_box(&self, rect: Rectangle) -> tuit::Result<Rectangle> {
+    ///         Ok(Rectangle::new(rect.left_top(), rect.right_bottom())) // basically the same as passing `Ok(rect)`.
+    ///     }
+    ///
+    ///     fn completely_covers(&self, _rectangle: Rectangle) -> bool {
+    ///         // The widget always covers every rectangle without leaving any `Cell` untouched.
+    ///         true
+    ///     }
+    /// }
+    ///
+    /// let full_terminal_widget = FullTerminalWidget;
+    /// let terminal: ConstantSize<20, 20> = ConstantSize::new();
+    ///
+    /// assert_eq!(full_terminal_widget.bounding_box_in(&terminal).expect("Ok"), Rectangle::new((0, 0), (20, 20)));
+    /// ```
+    fn bounding_box_in(&self, terminal: impl Metadata) -> crate::Result<Rectangle> {
+        self.bounding_box(terminal.bounding_box())
     }
 }
 

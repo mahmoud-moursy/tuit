@@ -8,7 +8,7 @@ pub struct Margin<T> {
     /// The child of the margin.
     child: T,
     /// Padding in all directions
-    pub margin: usize
+    pub margin: isize
 }
 
 impl<T> Margin<T> {
@@ -23,7 +23,7 @@ impl<T> Margin<T> {
 
     /// Give the [`Margin`] a fixed amount of padding
     #[must_use]
-    pub const fn margin(mut self, margin: usize) -> Self {
+    pub const fn margin(mut self, margin: isize) -> Self {
         self.margin = margin;
 
         self
@@ -41,7 +41,7 @@ impl<T> Margin<T> {
 
     fn margin_view<U: Metadata>(&self, terminal: U) -> crate::Result<View<U>>
     where T: BoundingBox {
-        let rect = self.bounding_box(&terminal)?;
+        let rect = self.bounding_box_in(&terminal)?;
 
         let view = View::new(terminal, rect).ok_or(Error::OutOfBoundsCoordinate {
             x: Some(rect.right()),
@@ -55,15 +55,13 @@ impl<T> Margin<T> {
 impl<T> BoundingBox for Margin<T>
 where T: BoundingBox {
     #[allow(clippy::cast_possible_wrap)]
-    fn bounding_box(&self, terminal: impl Metadata) -> crate::Result<Rectangle> {
-        terminal
-            .bounding_box()
-            .extend(-(self.margin as isize))
-            .ok_or(Error::OutOfBoundsCoordinate {
-                x: None,
-                y: None,
+    fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle> {
+        rect
+            .extend(-self.margin)
+            .ok_or(Error::RequestRescale {
+                new_width: rect.width().saturating_add_signed(self.margin),
+                new_height: rect.height().saturating_add_signed(self.margin),
             })
-
     }
 
     // The margin does not draw over the surrounding space,

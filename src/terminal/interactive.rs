@@ -54,15 +54,18 @@ pub enum UpdateInfo {
     NoInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 /// `UpdateResult` includes information about the object's status. Objects are unable to destruct themselves,
 /// and thus are reliant on the implementor to get rid of them once their lifecycle is over.
+/// 
+/// In the case that you are handling multiple widgets under the same [`Widget::update`] method,
+/// you can use ordering to determine which [`UpdateResult`] to return.
 pub enum UpdateResult {
     /// No event has occurred, the object will continue to live.
-    NoEvent,
+    NoEvent = 0,
     /// The widget has been interacted with during the last update.
     /// (i.e. it has been clicked on, or a keystroke affected it).
-    Interacted,
+    Interacted = 1,
     /// The object's lifecycle has ended, and it should now be destructured.
-    LifecycleEnd,
+    LifecycleEnd = 2,
 }

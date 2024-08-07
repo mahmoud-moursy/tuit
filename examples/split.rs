@@ -7,7 +7,7 @@ use tuit::style::{Ansi4, Colour};
 use tuit::terminal::{ConstantSize, ViewSplit};
 use tuit::widgets::builtins::{Margin, Sweeper, Text};
 
-fn main() -> tuit::Result<()> {
+fn main() {
     let mut terminal: ConstantSize<50,20> = ConstantSize::new();
 
     let yellow = Sweeper::of_colour(Colour::Ansi16(Ansi4::Yellow));
@@ -32,6 +32,4 @@ fn main() -> tuit::Result<()> {
     long_left_text.drawn(&mut left).ok();
     
     terminal.display(stdout()).expect("Can't fail");
-    
-    Ok(())
 }
