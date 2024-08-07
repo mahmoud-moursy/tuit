@@ -150,6 +150,7 @@ dependencies = [
  "ndarray",
  "owo-colors",
  "thiserror-core",
+ "tuit",
 ]
 
 [[package]]

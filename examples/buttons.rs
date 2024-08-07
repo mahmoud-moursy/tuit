@@ -15,7 +15,7 @@ fn main() {
 
     sweeper.drawn(&mut terminal).unwrap();
 
-    let mut buttons = Buttons::new(&["hellottttt", "World", "!@HG@!"]);
+    let mut buttons = Buttons::new(&["hellot", "World", "!@HG@!"]);
 
     let yellow = Sweeper::of_colour(Colour::Ansi16(Ansi4::Yellow));
     let sweeper_subsection = buttons.bounding_box_in(&terminal).unwrap();

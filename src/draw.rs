@@ -22,9 +22,13 @@
 //! }
 //! ```
 
+#[cfg(feature = "ansi_terminal")]
 use core::fmt::{Formatter, Write};
+#[cfg(feature = "ansi_terminal")]
 use anyhow::anyhow;
-use crate::terminal::{Cell, TerminalConst};
+#[cfg(feature = "ansi_terminal")]
+use crate::terminal::Cell;
+use crate::terminal::TerminalConst;
 
 /// This trait is written by the implementor and is responsible for rendering the terminal's data
 /// to the screen.

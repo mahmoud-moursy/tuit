@@ -21,6 +21,32 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
 
     /// Draws the bottom widget, and returns its update result. This is better than using [`Widget::draw`]
     /// because it can return a leftover result from the last call to [`Widget::draw`].
+    ///
+    /// # Errors
+    ///
+    /// This method will return an error if the top widget's bounding box is larger than the terminal's
+    /// bounding box, or if the widget fails to draw.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use tuit::prelude::*;
+    /// use tuit::terminal::ConstantSize;
+    /// use tuit::widgets::builtins::{Stacked, Text};
+    ///
+    /// use tuit::terminal::UpdateInfo;
+    ///
+    ///
+    /// let top_text = Text::new("Top text");
+    /// let bottom_text = Text::new("Bottom text");
+    ///
+    /// let stacked = Stacked::new(top_text, bottom_text);
+    ///
+    /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
+    ///
+    /// stacked.draw_top(UpdateInfo::NoInfo, &mut terminal).unwrap();
+    /// stacked.draw_bottom(UpdateInfo::NoInfo, &mut terminal).unwrap();
+    /// ```
     pub fn draw_bottom(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
     where
         TOP: BoundingBox,
@@ -41,7 +67,7 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     /// # Errors
     ///
     /// This method will return an error if the top widget's bounding box is larger than the terminal's
-    /// bounding box.
+    /// bounding box, or if the widget fails to draw.
     ///
     /// # Example
     ///
@@ -51,8 +77,8 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     /// use tuit::widgets::builtins::{Stacked, Text};
     ///
     /// use tuit::terminal::UpdateInfo;
-    /// 
-    /// 
+    ///
+    ///
     /// let top_text = Text::new("Top text");
     /// let bottom_text = Text::new("Bottom text");
     ///

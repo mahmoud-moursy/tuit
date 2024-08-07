@@ -17,8 +17,9 @@ anyhow = "^1.0"
 owo-colors = { version = "^4.0", optional = true }
 ndarray = { version = "^0.16", default-features = false, optional = true }
 
-[profile.test]
-
+[dev-dependencies] # So, this is a bit weird, but it basically automatically
+                   # adds features to `cargo test` and `cargo run`.
+tuit = { path = ".", features = ["ansi_terminal", "extras"] }
 
 [features]
 default = ["builtin_widgets"]
