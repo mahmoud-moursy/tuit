@@ -1,11 +1,9 @@
 //! An example demonstrating the [`Rescale`] terminal.
 
-use std::io::stdout;
 use tuit::allocations::terminal::extras::rescale::Rescale;
-use tuit::draw::AnsiTerminal;
-use tuit::terminal::Rescalable;
 use tuit::prelude::*;
 use tuit::std::stdout_terminal::StdoutTerminal;
+use tuit::terminal::Rescalable;
 use tuit::widgets::builtins::Uv;
 
 fn main() {

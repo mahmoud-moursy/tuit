@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::style::{Ansi4, Colour, Style};
+use crate::style::Style;
 use crate::terminal::{Rectangle, Terminal, TerminalConst, UpdateInfo, UpdateResult};
 use crate::widgets::{BoundingBox, Widget};
 
@@ -174,6 +174,9 @@ impl BoundingBox for Buttons<'_> {
         let mut idx = 0;
 
         // FIXME: Optimize this so that it doesn't have to do a big ugly for loop.
+        // We literally just copy the code from the draw method, but change it so that it logs
+        // the furthest out x and y coordinates. This is probably not the most efficient way to do
+        // this, but it's the only way I can think of right now.
         for button in self.buttons {
             let max_len = button.len().min(term_bounding_box.width());
 
@@ -206,6 +209,8 @@ impl BoundingBox for Buttons<'_> {
         let mut idx = 0;
 
         // FIXME: Optimize this so that it doesn't have to do a big ugly for loop.
+        // We literally just copy the code from the draw method, but change it so that diverges
+        // early if any Cell has been skipped.
         for button in self.buttons {
             let max_len = button.len().min(term_bounding_box.width());
 

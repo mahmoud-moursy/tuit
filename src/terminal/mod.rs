@@ -233,13 +233,12 @@ pub trait TerminalConst: Metadata {
     /// use std::io::stdout;
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
+    /// use tuit::std::stdout_terminal::StdoutTerminal;
     ///
     /// let mut my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
-    /// let mut stdout = stdout();
-    ///
-    /// #[cfg(feature = "ansi_terminal")]
-    /// my_terminal.display(stdout).expect("Failed to display the terminal");
+    /// #[cfg(feature = "stdout_terminal")]
+    /// my_terminal.display(StdoutTerminal::default()).expect("Failed to display the terminal");
     /// ```
     ///
     /// # Errors
@@ -265,6 +264,7 @@ pub trait TerminalMut: Metadata {
     /// ```
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
+    /// use tuit::std::stdout_terminal::StdoutTerminal;
     ///
     /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
@@ -273,10 +273,8 @@ pub trait TerminalMut: Metadata {
     /// // Set the top-right character to 'h'.
     /// my_character_ref.character = 'h';
     ///
-    /// // NOTE: You need to enable the "stdout_terminal" feature for Stdout to implement TerminalDisplayTarget
-    /// let std_out = std::io::stdout();
-    ///
-    /// terminal.display(std_out).expect("Failed to display terminal");
+    /// // NOTE: You need to enable the "stdout_terminal" feature for StdoutTerminal
+    /// terminal.display(StdoutTerminal::default()).expect("Failed to display terminal");
     /// ```
     fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
         let (width, height) = self.dimensions();

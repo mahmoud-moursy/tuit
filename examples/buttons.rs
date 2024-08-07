@@ -1,12 +1,11 @@
 //! This example shows how to use the [`Buttons`] widget.
 
-use tuit::draw::AnsiTerminal;
-use tuit::terminal::ConstantSize;
-use tuit::widgets::builtins::buttons::Buttons;
 use tuit::prelude::*;
 use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::style::{Ansi4, Colour};
+use tuit::terminal::ConstantSize;
 use tuit::widgets::BoundingBox;
+use tuit::widgets::builtins::buttons::Buttons;
 use tuit::widgets::builtins::Sweeper;
 
 fn main() {

@@ -1,11 +1,10 @@
 //! This example shows how to use the [`Stacked`] widget.
 
-use std::io::stdout;
-use tuit::terminal::ConstantSize;
-use tuit::widgets::builtins::{Sweeper, Text, WithLayout};
 use tuit::prelude::*;
 use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::style::{Ansi4, Colour, Style};
+use tuit::terminal::ConstantSize;
+use tuit::widgets::builtins::{Sweeper, Text, WithLayout};
 
 fn main() {
     let sweeper = Sweeper::of_colour(Colour::Ansi16(Ansi4::Cyan));

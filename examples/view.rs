@@ -1,13 +1,11 @@
 //! Demonstrates mutable views.
 
-use std::io::stdout;
-
 use tuit::prelude::*;
 use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::style::Colour;
 use tuit::terminal::ConstantSize;
-use tuit::widgets::builtins::Uv;
 use tuit::terminal::Rectangle;
+use tuit::widgets::builtins::Uv;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {

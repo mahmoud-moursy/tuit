@@ -1,7 +1,5 @@
 //! Show how split views can be used.
 
-use std::io::stdout;
-use tuit::draw::AnsiTerminal;
 use tuit::prelude::*;
 use tuit::std::stdout_terminal::StdoutTerminal;
 use tuit::style::{Ansi4, Colour};
