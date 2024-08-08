@@ -4,6 +4,7 @@ use crate::terminal::{Rectangle, UpdateInfo, UpdateResult};
 use crate::widgets::BoundingBox;
 
 /// The [`Stacked`] widget lets you lay out one widget on top of another.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Stacked<TOP, BOT> {
     /// The widget that is on top.
     pub higher_widget: TOP,
@@ -51,7 +52,7 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
-        let lower_view = self.lower_view(terminal.bounding_box())?;
+        let lower_view = self.lower_view_rect(terminal.bounding_box())?;
 
         let lower_view = terminal.view_mut(lower_view).ok_or(Error::OutOfBoundsCoordinate {
             x: Some(lower_view.right()),
@@ -93,7 +94,7 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
-        let higher_view = self.higher_view(terminal.bounding_box())?;
+        let higher_view = self.higher_view_rect(terminal.bounding_box())?;
 
         let higher_view = terminal.view_mut(higher_view).ok_or(Error::OutOfBoundsCoordinate {
             x: Some(higher_view.right()),
@@ -115,26 +116,56 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
         (res_higher, res_lower)
     }
 
-    fn higher_view(&self, bounds: Rectangle) -> crate::Result<Rectangle>
-    where TOP: BoundingBox {
-        // We're not really moving this around, so we can just call the bounding box method.
-        // Lol.
-        self.higher_widget.bounding_box(bounds)
+    /// Returns the bounding box of the higher widget.
+    pub fn higher_view_rect(&self, bounds: Rectangle) -> crate::Result<Rectangle>
+    where
+        TOP: BoundingBox,
+        BOT: BoundingBox {
+        let lower_view = self.lower_widget.bounding_box(bounds)?;
+        let higher_view = self.higher_widget.bounding_box(bounds)?;
+
+        // Widen the widget
+        let higher_right = higher_view.right();
+        let lower_right = lower_view.right();
+
+        let right_max = higher_right.max(lower_right);
+
+        let higher_view_widened = higher_view.right_to(right_max);
+
+        if !bounds.contains_rect(higher_view_widened) {
+            return Err(Error::RequestRescale {
+                new_width: higher_view_widened.right(),
+                new_height: higher_view_widened.bottom(),
+            })
+        }
+
+        Ok(higher_view_widened)
     }
-    
-    fn lower_view(&self, bounds: Rectangle) -> crate::Result<Rectangle>
+
+    /// Returns the bounding box of the lower widget.
+    pub fn lower_view_rect(&self, bounds: Rectangle) -> crate::Result<Rectangle>
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
         // Shorter variable names are welcome. Please submit a PR if you can think of a better name.
-        let higher_view_left_bottom = self.higher_view(bounds)?.left_bottom();
+        let higher_view = self.higher_widget.bounding_box(bounds)?;
         let lower_view_uncorrected = self.lower_widget.bounding_box(bounds)?;
-        let lower_view_corrected = lower_view_uncorrected.at(higher_view_left_bottom);
+        // Widen the widget
+        let higher_right = higher_view.right();
+        let lower_right = lower_view_uncorrected.right();
 
-        if !bounds.contains_rect(lower_view_corrected) {
+        let right_max = higher_right.max(lower_right);
+
+        let lower_view_corrected = lower_view_uncorrected.at(higher_view.left_bottom());
+
+        let lower_view_widened = lower_view_corrected.right_to(right_max);
+
+        let final_view = lower_view_widened;
+
+        if !bounds.contains_rect(final_view) {
             return Err(Error::RequestRescale {
-                new_width: lower_view_corrected.right(),
-                new_height: lower_view_corrected.bottom(),
+                new_width: final_view.right(),
+                new_height: final_view.bottom(),
             })
         }
 
@@ -144,8 +175,8 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
 
 impl<TOP: BoundingBox, BOT: BoundingBox> Widget for Stacked<TOP, BOT> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
-        let higher_view = self.higher_view(terminal.bounding_box())?;
-        let lower_view = self.lower_view(terminal.bounding_box())?;
+        let higher_view = self.higher_view_rect(terminal.bounding_box())?;
+        let lower_view = self.lower_view_rect(terminal.bounding_box())?;
 
         let higher_view = terminal.view(higher_view).ok_or(Error::OutOfBoundsCoordinate {
             x: Some(higher_view.right()),
@@ -190,7 +221,7 @@ impl<TOP: BoundingBox, BOT: BoundingBox> BoundingBox for Stacked<TOP, BOT> {
 
         let left_top = self.higher_widget.bounding_box(terminal_rect)?.left_top();
 
-        let rect = Rectangle::of_size((width, height)).at(left_top);
+        let rect = Rectangle::of_size((width+1, height)).at(left_top);
 
         if !terminal_rect.contains_rect(rect) {
             return Err(Error::RequestRescale {
@@ -207,11 +238,11 @@ impl<TOP: BoundingBox, BOT: BoundingBox> BoundingBox for Stacked<TOP, BOT> {
             return false;
         };
 
-        let Ok(higher_view) = self.higher_view(bounds) else {
+        let Ok(higher_view) = self.higher_view_rect(bounds) else {
             return false;
         };
 
-        let Ok(lower_view) = self.lower_view(bounds) else {
+        let Ok(lower_view) = self.lower_view_rect(bounds) else {
             return false;
         };
 

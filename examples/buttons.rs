@@ -1,7 +1,7 @@
 //! This example shows how to use the [`Buttons`] widget.
 
 use tuit::prelude::*;
-use tuit::std::stdout_terminal::StdoutTerminal;
+use tuit::std::stdout_render::StdoutRender;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::BoundingBox;
@@ -15,11 +15,11 @@ fn main() {
 
     sweeper.drawn(&mut terminal).unwrap();
 
-    let mut buttons = Buttons::new(&["hellot", "World", "!@HG@!"]);
+    let mut buttons = Buttons::new(&["hellot", "World", "!@HG@!", "BBBBBBBBBB", "BBBBBBBBBB123"]);
 
     let yellow = Sweeper::of_colour(Colour::Ansi16(Ansi4::Yellow));
     let sweeper_subsection = buttons.bounding_box_in(&terminal).unwrap();
-    let terminal_subsection = terminal.view_mut(sweeper_subsection).unwrap();
+    let terminal_subsection = terminal.view_mut(sweeper_subsection).expect("Should be valid view");
 
     yellow.drawn(terminal_subsection).unwrap();
 
@@ -28,5 +28,5 @@ fn main() {
 
     buttons.drawn(&mut terminal).unwrap();
 
-    terminal.display(StdoutTerminal::default()).unwrap();
+    terminal.display(StdoutRender::default()).unwrap();
 }

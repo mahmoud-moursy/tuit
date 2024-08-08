@@ -1,7 +1,7 @@
 //! Show how split views can be used.
 
 use tuit::prelude::*;
-use tuit::std::stdout_terminal::StdoutTerminal;
+use tuit::std::stdout_render::StdoutRender;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::{ConstantSize, ViewSplit};
 use tuit::widgets::builtins::{Margin, Sweeper, Text};
@@ -11,12 +11,12 @@ fn main() {
 
     let yellow = Sweeper::of_colour(Colour::Ansi16(Ansi4::Yellow));
     let magenta = Sweeper::of_colour(Colour::Ansi16(Ansi4::Magenta));
-    let blue = Margin::new(Sweeper::of_colour(Colour::Ansi16(Ansi4::Blue))).margin(2);
+    let blue = Sweeper::of_colour(Colour::Ansi16(Ansi4::Blue)).with_margin(2);
 
-    let long_left_text = Margin::new(Text::new(
+    let long_left_text = Text::new(
         "Here's some really long text that will probably, or at least I hope, wrap around when drawn on the left side of the terminal! It even has some extra padding to add space! Wow, isn't that cool!?"
-    )).margin(2);
-    let short_right_text = Margin::new(Text::new("The guy next to me is too loud...")).margin(2);
+    ).with_margin(2);
+    let short_right_text = Text::new("The guy next to me is too loud...").with_margin(2);
     
     let mut split = ViewSplit::new(&mut terminal);
 
@@ -30,5 +30,5 @@ fn main() {
     blue.drawn(&mut left).ok();
     long_left_text.drawn(&mut left).ok();
     
-    terminal.display(StdoutTerminal::default()).expect("Can't fail");
+    terminal.display(StdoutRender::default()).expect("Can't fail");
 }

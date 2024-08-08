@@ -31,15 +31,15 @@ impl Ruler {
         let (width, height) = terminal.dimensions();
         let characters = terminal.cells_mut();
 
-        let bar: &mut dyn Iterator<Item = &mut Cell> = match self.1 {
+        let row: &mut dyn Iterator<Item = &mut Cell> = match self.1 {
             Direction::Up => &mut characters.take(width),
             Direction::Down => &mut characters.skip((height - 1) * width),
             _ => unreachable!(),
         };
 
         #[allow(clippy::cast_possible_truncation)]
-        for (x, cell) in bar.enumerate() {
-            // Truncation here is impossible, unless you are on an architecture below 32-bits.
+        for (x, cell) in row.enumerate() {
+            // Truncation here is basically impossible.
             cell.character = char::from_digit(x as u32 % self.0, self.0)
                 .expect("Should never fail. Tried to convert an invalid digit into a character!");
         }
@@ -51,17 +51,28 @@ impl Ruler {
 
         let x_offset = match self.1 {
             Direction::Left => 0,
-            Direction::Right => width - 1,
+            Direction::Right => 1,
+            _ => unreachable!(),
+        };
+
+        let col: &mut dyn Iterator<Item = &mut Cell> = match self.1 {
+            Direction::Left => &mut characters.step_by(width),
+            Direction::Right => &mut characters.step_by(width).skip(width),
             _ => unreachable!(),
         };
 
         #[allow(clippy::cast_possible_truncation)]
-        for y in 0..height {
-            characters.nth(x_offset).expect("Character should always be valid").character =
-                char::from_digit(y as u32 % self.0, self.0).expect(
-                    "Should never fail. Tried to convert an invalid digit into a character!",
-                );
+        for (y, cell) in col.enumerate() {
+            // Truncation here is basically impossible.
+            cell.character = char::from_digit(y as u32 % self.0, self.0)
+                .expect("Should never fail. Tried to convert an invalid digit into a character!");
         }
+        // for y in 0..height {
+        //     col.nth(width - x_offset).expect("Character should always be valid").character =
+        //         char::from_digit(y as u32 % self.0, self.0).expect(
+        //             "Should never fail. Tried to convert an invalid digit into a character!",
+        //         );
+        // }
     }
 }
 

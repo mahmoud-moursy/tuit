@@ -37,7 +37,7 @@ use crate::terminal::TerminalConst;
 ///
 /// The method receives a reference to a type that implements the [`TerminalConst`] trait, and uses the data within to render the terminal.
 ///
-/// ```feature,stdout_terminal
+/// ```feature,stdout_render
 /// use tuit::draw::Target;
 /// use tuit::terminal::ConstantSize;
 ///

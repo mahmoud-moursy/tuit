@@ -7,13 +7,15 @@ use crate::widgets::BoundingBox;
 ///
 /// Child widgets need to implement [`BoundingBox`].
 pub struct Centered<T> {
-    child: T
+    child: T,
+    centered_x: bool,
+    centered_y: bool,
 }
 
 impl<T> Centered<T> {
     /// Make a new [`Centered`] widget.
     pub const fn new(child: T) -> Self {
-        Self { child }
+        Self { child, centered_x: true, centered_y: true }
     }
 }
 
@@ -47,10 +49,19 @@ impl<T: BoundingBox> BoundingBox for Centered<T> {
         let horizontal_center = terminal_width / 2;
         let vertical_center = terminal_height / 2;
 
-        let left = horizontal_center - (widget_width / 2);
+        let left = if self.centered_x {
+            horizontal_center - (widget_width / 2)
+        } else {
+            rect.left()
+        };
         let right = left + widget_width;
 
-        let top = vertical_center - (widget_height / 2);
+
+        let top = if self.centered_y {
+            vertical_center -(widget_height / 2)
+        } else {
+            rect.top()
+        };
         let bottom = top + widget_height;
 
         Ok(Rectangle::new((left, top), (right, bottom)))

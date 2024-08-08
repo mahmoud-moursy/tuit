@@ -1,7 +1,7 @@
 //! This example shows how to use the [`Stacked`] widget.
 
 use tuit::prelude::*;
-use tuit::std::stdout_terminal::StdoutTerminal;
+use tuit::std::stdout_render::StdoutRender;
 use tuit::style::{Ansi4, Colour, Style};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::{Sweeper, Text, WithLayout};
@@ -23,5 +23,5 @@ fn main() {
     sweeper.drawn(&mut terminal).unwrap();
     stacked.drawn(&mut terminal).unwrap();
 
-    terminal.display(StdoutTerminal::default()).unwrap();
+    terminal.display(StdoutRender::default()).unwrap();
 }

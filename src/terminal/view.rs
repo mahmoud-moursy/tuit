@@ -29,7 +29,7 @@ where T: Metadata {
 impl<T> TerminalConst for View<T>
 where T: TerminalConst {
     fn cells(&self) -> impl Iterator<Item=&Cell> {
-        let parent_dimensions = self.parent.dimensions();
+        let parent_dimensions @ (width, height) = self.parent.dimensions();
         let view_top = self.rect.top();
         let view_left = self.rect.left();
         let cells = self.parent.cells();
@@ -37,7 +37,7 @@ where T: TerminalConst {
         ViewIterator {
             child: cells
                 .skip(view_left)
-                .skip(view_top * parent_dimensions.0),
+                .skip(view_top * width),
             current_coord: (0,0),
             parent_dimensions,
             view_rect: self.rect
@@ -59,7 +59,7 @@ where T: TerminalConst {
 impl<T> TerminalMut for View<T>
 where T: TerminalMut {
     fn cells_mut(&mut self) -> impl Iterator<Item=&mut Cell> {
-        let parent_dimensions = self.parent.dimensions();
+        let parent_dimensions @ (width, height) = self.parent.dimensions();
         let view_top = self.rect.top();
         let view_left = self.rect.left();
         let cells = self.parent.cells_mut();
@@ -67,7 +67,7 @@ where T: TerminalMut {
         ViewIterator {
             child: cells
                 .skip(view_left)
-                .skip(view_top * parent_dimensions.0),
+                .skip(view_top * width),
             current_coord: (0,0),
             parent_dimensions,
             view_rect: self.rect

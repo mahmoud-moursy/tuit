@@ -24,7 +24,7 @@ impl<I: Iterator> Iterator for ViewIterator<I> {
             *x = 1;
             *y += 1;
 
-            if *y > height {
+            if *y >= height {
                 return None;
             }
 

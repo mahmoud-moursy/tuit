@@ -1,7 +1,7 @@
 //! Demonstrates centered prompts.
 
 use tuit::prelude::*;
-use tuit::std::stdout_terminal::StdoutTerminal;
+use tuit::std::stdout_render::StdoutRender;
 use tuit::style::{Ansi4, Colour::Ansi16};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::centered_prompt::CenteredPrompt;
@@ -9,7 +9,7 @@ use tuit::widgets::builtins::sweeper::Sweeper;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {
-    println!("You must apply the stdout_terminal feature to view this example. Use `cargo --features stdout_terminal`");
+    println!("You must apply the stdout_render feature to view this example. Use `cargo --features stdout_render`");
 }
 
 #[cfg(feature = "ansi_terminal")]
@@ -21,7 +21,7 @@ fn main() {
     // text.drawn(&mut terminal)
     //     .expect("This method CAN fail, but only if the prompt is too large. Here, it is not.");
 
-    let mut stdio = StdoutTerminal::default();
+    let mut stdio = StdoutRender::default();
 
     let sweeper = Sweeper::of_colour(Ansi16(Ansi4::BrightCyan));
 

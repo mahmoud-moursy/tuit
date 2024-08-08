@@ -130,7 +130,7 @@ impl<T: AsRef<str>> Widget for Buttons<'_, T> {
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
         let term_bounding_box = terminal.bounding_box();
-        let mut terminal_cells = terminal.cells_mut().enumerate();
+        let mut terminal_cells = terminal.cells_mut().enumerate().peekable();
 
         for (button_idx, button) in self.buttons.iter().enumerate() {
             let selected = Some(button_idx) == self.hovered_button;
@@ -142,27 +142,37 @@ impl<T: AsRef<str>> Widget for Buttons<'_, T> {
 
             let max_len = button.as_ref().len().min(term_bounding_box.width());
 
-            let mut button_chars = button.as_ref()[..max_len].chars().enumerate().peekable();
+            let (next_idx, _next_cell) = terminal_cells.peek().ok_or(Error::OutOfBoundsCoordinate {
+                x: None,
+                y: None,
+            })?;
 
-            while let Some((chr_dep, _character)) = button_chars.peek() {
-                let (idx, current_cell) = terminal_cells.next().ok_or(Error::OutOfBoundsCoordinate {
+            let (cursor_x, cursor_y) = term_bounding_box.index_into(*next_idx).ok_or(Error::OutOfBoundsCharacter(*next_idx))?;
+
+            let button_chars = button.as_ref()[..max_len].chars().peekable();
+
+            if button.as_ref().len() + cursor_x > term_bounding_box.width() {
+                // Skips until next line, only if the button fits on one line.
+                if button.as_ref().len() <= term_bounding_box.width() {
+                    while let Some((idx, _cell)) = terminal_cells.peek() {
+                        let (_x, y) = term_bounding_box.index_into(*idx).ok_or(Error::OutOfBoundsCharacter(*idx))?;
+
+                        if y != cursor_y {
+                            break;
+                        }
+
+                        terminal_cells.next();
+                    }
+                }
+                // If it does not fit on one line, then we need to truncate the button.
+                // We already did this above, so we don't need to do it again.
+            }
+
+            for current_character in button_chars {
+                let (_idx, current_cell) = terminal_cells.next().ok_or(Error::OutOfBoundsCoordinate {
                     x: None,
                     y: None,
                 })?;
-
-
-                let (x, _y) = term_bounding_box.index_into(idx).ok_or(Error::OutOfBoundsCharacter(idx))?;
-
-                if button.as_ref().len() + x - chr_dep >= term_bounding_box.width() {
-                    // Skips until next line, only if the button fits on one line.
-                    if button.as_ref().len() < term_bounding_box.width() {
-                        continue;
-                    }
-                    // If it does not fit on one line, then we need to truncate the button.
-                    // We already did this above, so we don't need to do it again.
-                }
-
-                let (_dep, current_character) = button_chars.next().expect("This should always be Some");
 
                 current_cell.character = current_character;
                 current_cell.style = base_style.inherits(current_cell.style);
@@ -177,8 +187,10 @@ impl<T: AsRef<str>> BoundingBox for Buttons<'_, T> {
     fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle> {
         let term_bounding_box = rect;
 
-        let (mut x, mut y) = (0, 0);
+        let (mut width, mut height) = (0, 0);
         let mut idx = 0;
+
+        height += 1; // Account for the first line.
 
         // FIXME: Optimize this so that it doesn't have to do a big ugly for loop.
         // We literally just copy the code from the draw method, but change it so that it logs
@@ -186,28 +198,43 @@ impl<T: AsRef<str>> BoundingBox for Buttons<'_, T> {
         // this, but it's the only way I can think of right now.
         for button in self.buttons {
             let max_len = button.as_ref().len().min(term_bounding_box.width());
+            let next_idx = idx + 1;
 
-            let mut button_chars = button.as_ref()[..max_len].chars().enumerate().peekable();
+            let (cursor_x, cursor_y) = rect.index_into(next_idx).ok_or(Error::OutOfBoundsCharacter(next_idx))?;
 
-            while let Some((chr_dep, _character)) = button_chars.peek() {
-                idx += 1;
-                let chr_dep = *chr_dep;
-                let (new_x, new_y) = term_bounding_box.index_into(idx).ok_or(Error::OutOfBoundsCharacter(idx))?;
+            let button_chars = button.as_ref()[..max_len].chars().enumerate().peekable();
 
-                if button.as_ref().len() + new_x - chr_dep >= term_bounding_box.width() {
-                    if button.as_ref().len() < term_bounding_box.width() {
-                        continue;
+            if button.as_ref().len() + cursor_x > rect.width() {
+                // Skips until next line, only if the button fits on one line.
+                if button.as_ref().len() <= rect.width() {
+                    while let Some((x, y)) = rect.index_into(idx) {
+                        if y != cursor_y {
+                            break;
+                        }
+
+                        idx += 1;
                     }
                 }
-
-                x = x.max(new_x);
-                y = y.max(new_y);
-
-                button_chars.next().expect("This should always be Some");
+                // If it does not fit on one line, then we need to truncate the button.
+                // We already did this above, so we don't need to do it again.
             }
+
+            for _current_character in button_chars {
+                idx += 1;
+
+                let (x, y) = rect.index_into(idx).ok_or(Error::OutOfBoundsCharacter(idx))?;
+
+                width = width.max(x+1);
+                height = height.max(y);
+            }
+
+            let (x, y) = rect.index_into(idx).ok_or(Error::OutOfBoundsCharacter(idx))?;
+
+            width = width.max(x);
+            height = height.max(y);
         }
 
-        Ok(Rectangle::of_size((x, y)))
+        Ok(Rectangle::of_size((width, height)))
     }
 
     fn completely_covers(&self, rectangle: Rectangle) -> bool {

@@ -141,10 +141,12 @@ pub mod view;
 pub mod view_iterator;
 /// The [`ViewSplit`] struct, which is used to split the terminal along its axes.
 pub mod view_split;
+/// The [`Debug`] terminal, which prints out the terminal's state every time it is drawn or writes
+/// an Ansi4::Red to the background of modified cells.
+pub mod debug;
 
 #[cfg(feature = "owo_colors")]
 mod owo_colors;
-mod debug;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)
@@ -233,12 +235,12 @@ pub trait TerminalConst: Metadata {
     /// use std::io::stdout;
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
-    /// use tuit::std::stdout_terminal::StdoutTerminal;
+    /// use tuit::std::stdout_render::StdoutRender;
     ///
     /// let mut my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// #[cfg(feature = "stdout_terminal")]
-    /// my_terminal.display(StdoutTerminal::default()).expect("Failed to display the terminal");
+    /// my_terminal.display(StdoutRender::default()).expect("Failed to display the terminal");
     /// ```
     ///
     /// # Errors
@@ -264,7 +266,7 @@ pub trait TerminalMut: Metadata {
     /// ```
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
-    /// use tuit::std::stdout_terminal::StdoutTerminal;
+    /// use tuit::std::stdout_render::StdoutRender;
     ///
     /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
@@ -273,8 +275,8 @@ pub trait TerminalMut: Metadata {
     /// // Set the top-right character to 'h'.
     /// my_character_ref.character = 'h';
     ///
-    /// // NOTE: You need to enable the "stdout_terminal" feature for StdoutTerminal
-    /// terminal.display(StdoutTerminal::default()).expect("Failed to display terminal");
+    /// // NOTE: You need to enable the "stdout_render" feature for StdoutTerminal
+    /// terminal.display(StdoutRender::default()).expect("Failed to display terminal");
     /// ```
     fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
         let (width, height) = self.dimensions();
@@ -380,45 +382,6 @@ impl Rectangle {
             left_top: (x_smaller, y_smaller),
             right_bottom: (x_larger, y_larger),
         }
-    }
-
-    /// Get the (x,y) coordinates of the specified index.
-    /// 
-    /// # Errors
-    /// Will return `None` if the index is out of bounds.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use tuit::terminal::Rectangle;
-    /// 
-    /// let rect = Rectangle::of_size((20, 20));
-    /// let (x, y) = rect.index_into(10).unwrap();
-    /// 
-    /// assert_eq!(x, 10);
-    /// assert_eq!(y, 0);
-    /// 
-    /// let (x, y) = rect.index_into(25).unwrap();
-    /// 
-    /// assert_eq!(x, 5);
-    /// assert_eq!(y, 1);
-    ///
-    /// let (x, y) = rect.index_into(20).unwrap();
-    ///
-    /// assert_eq!(x, 0);
-    /// assert_eq!(y, 1);
-    /// ```
-    #[must_use] pub const fn index_into(&self, index: usize) -> Option<(usize, usize)> {
-        let (width, height) = self.dimensions();
-
-        if index > width * height {
-            return None
-        }
-
-        let x = index % width;
-        let y = index / width;
-
-        Some((x, y))
     }
     
     /// Create a [`Rectangle`] with top-left at (0,0)
@@ -835,34 +798,34 @@ impl Rectangle {
         Some(self.bottom_to(shift))
     }
 
-    /// Extend the dimensions of the [`Rectangle`] on both the top and bottom edges.
+    /// Trim the dimensions of the [`Rectangle`] on both the top and bottom edges.
     ///
     /// # Errors
     /// Will return `None` if either of the edges' new coordinates is below zero.
     #[must_use]
-    pub const fn extend_y(self, distance: isize) -> Option<Self> {
-        let Some(this) = self.trim_top(-distance) else {
+    pub const fn trim_y(self, distance: isize) -> Option<Self> {
+        let Some(this) = self.trim_top(distance) else {
             return None
         };
 
-        let Some(this) = this.trim_bottom(-distance) else {
+        let Some(this) = this.trim_bottom(distance) else {
             return None
         };
 
         Some(this)
     }
 
-    /// Extend the dimensions of the [`Rectangle`] on both the right and left edges.
+    /// Trim the dimensions of the [`Rectangle`] on both the right and left edges.
     ///
     /// # Errors
     /// Will return `None` if either of the edges' new coordinates is below zero.
     #[must_use]
-    pub const fn extend_x(self, distance: isize) -> Option<Self> {
-        let Some(this) = self.trim_left(-distance) else {
+    pub const fn trim_x(self, distance: isize) -> Option<Self> {
+        let Some(this) = self.trim_left(distance) else {
             return None
         };
 
-        let Some(this) = this.trim_right(-distance) else {
+        let Some(this) = this.trim_right(distance) else {
             return None
         };
 
@@ -875,14 +838,53 @@ impl Rectangle {
     /// Will return if `None` if the new edges' coordinates flow are less than zero.
     #[must_use]
     pub const fn extend(self, distance: isize) -> Option<Self> {
-        let Some(this) = self.extend_x(distance) else {
+        let Some(this) = self.trim_x(-distance) else {
             return None
         };
 
-        let Some(this) = this.extend_y(distance) else {
+        let Some(this) = this.trim_y(-distance) else {
             return None
         };
 
         Some(this)
+    }
+
+    /// Get the (x,y) coordinates of the specified index.
+    ///
+    /// # Errors
+    /// Will return `None` if the index is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tuit::terminal::Rectangle;
+    ///
+    /// let rect = Rectangle::of_size((20, 20));
+    /// let (x, y) = rect.index_into(10).unwrap();
+    ///
+    /// assert_eq!(x, 10);
+    /// assert_eq!(y, 0);
+    ///
+    /// let (x, y) = rect.index_into(25).unwrap();
+    ///
+    /// assert_eq!(x, 5);
+    /// assert_eq!(y, 1);
+    ///
+    /// let (x, y) = rect.index_into(20).unwrap();
+    ///
+    /// assert_eq!(x, 0);
+    /// assert_eq!(y, 1);
+    /// ```
+    #[must_use] pub const fn index_into(&self, index: usize) -> Option<(usize, usize)> {
+        let (width, height) = self.dimensions();
+
+        if index > width * height {
+            return None
+        }
+
+        let x = index % width;
+        let y = index / width;
+
+        Some((x, y))
     }
 }

@@ -2,5 +2,5 @@
 
 extern crate std;
 /// A terminal that outputs to [`std::io::stdout`].
-pub mod stdout_terminal;
+pub mod stdout_render;
 mod errors;

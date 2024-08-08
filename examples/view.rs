@@ -1,15 +1,16 @@
 //! Demonstrates mutable views.
 
 use tuit::prelude::*;
-use tuit::std::stdout_terminal::StdoutTerminal;
+use tuit::std::stdout_render::StdoutRender;
 use tuit::style::Colour;
 use tuit::terminal::ConstantSize;
 use tuit::terminal::Rectangle;
-use tuit::widgets::builtins::Uv;
+use tuit::widgets::builtins::{Ruler, Uv};
+use tuit::widgets::Direction;
 
 #[cfg(not(feature = "ansi_terminal"))]
 fn main() {
-    println!("You must apply the stdout_terminal feature to view this example. Use `cargo --features stdout_terminal`");
+    println!("You must apply the stdout_render feature to view this example. Use `cargo --features stdout_render`");
 }
 
 // a regression causes this
@@ -24,9 +25,15 @@ fn main() -> anyhow::Result<()> {
 
     uv.drawn(&mut terminal)?;
 
+    let ruler = Ruler::new(10, Direction::Left).expect("Can't fail");
+    ruler.drawn(&mut terminal)?;
+    
+    let ruler = Ruler::new(10, Direction::Down).expect("Can't fail");
+    ruler.drawn(&mut terminal)?;
+
     let mut view_text = "V I E W T E X T ".chars().cycle();
     let mut view = terminal
-        .view_mut(Rectangle::of_size((95, 15)).at((5, 5)))
+        .view_mut(Rectangle::of_size((95, 15)).at((3, 1)))
         .expect("Should always create a view successfully");
 
     for cell in view.cells_mut() {
@@ -34,7 +41,7 @@ fn main() -> anyhow::Result<()> {
         cell.character = view_text.next().expect("Won't fail yo. like... ever... trust me bro.");
     }
 
-    terminal.display(StdoutTerminal::default())?;
+    terminal.display(StdoutRender::default())?;
 
     Ok(())
 }

@@ -8,7 +8,7 @@ use crate::terminal::Cell;
 /// ```
 /// use tuit::terminal;
 /// use tuit::prelude::*;
-/// use tuit::std::stdout_terminal::StdoutTerminal;
+/// use tuit::std::stdout_render::StdoutRender;
 /// use tuit::widgets::builtins::CenteredText;
 ///
 /// let mut terminal: terminal::ConstantSize<20, 20> = terminal::ConstantSize::new();
@@ -18,7 +18,7 @@ use crate::terminal::Cell;
 /// // Look up `Widget::drawn` in the documentation.
 /// widget.drawn(&mut terminal).expect("Should not fail!");
 ///
-/// terminal.display(StdoutTerminal::default()).expect("Failed to draw terminal");
+/// terminal.display(StdoutRender::default()).expect("Failed to draw terminal");
 /// ```
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct ConstantSize<const WIDTH: usize, const HEIGHT: usize> {
