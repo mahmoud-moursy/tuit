@@ -235,12 +235,12 @@ pub trait TerminalConst: Metadata {
     /// use std::io::stdout;
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
-    /// use tuit::std::stdout_render::StdoutRender;
+    /// use tuit::std::stdout_render::StdoutRenderer;
     ///
     /// let mut my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
     /// #[cfg(feature = "stdout_terminal")]
-    /// my_terminal.display(StdoutRender::default()).expect("Failed to display the terminal");
+    /// my_terminal.display(StdoutRenderer::default()).expect("Failed to display the terminal");
     /// ```
     ///
     /// # Errors
@@ -266,7 +266,7 @@ pub trait TerminalMut: Metadata {
     /// ```
     /// use tuit::terminal::ConstantSize;
     /// use tuit::prelude::*;
-    /// use tuit::std::stdout_render::StdoutRender;
+    /// use tuit::std::stdout_render::StdoutRenderer;
     ///
     /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
@@ -276,7 +276,7 @@ pub trait TerminalMut: Metadata {
     /// my_character_ref.character = 'h';
     ///
     /// // NOTE: You need to enable the "stdout_render" feature for StdoutTerminal
-    /// terminal.display(StdoutRender::default()).expect("Failed to display terminal");
+    /// terminal.display(StdoutRenderer::default()).expect("Failed to display terminal");
     /// ```
     fn cell_mut(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
         let (width, height) = self.dimensions();

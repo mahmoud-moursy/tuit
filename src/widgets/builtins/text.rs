@@ -1,17 +1,17 @@
-use crate::Error;
 use crate::prelude::Terminal;
 use crate::prelude::TerminalConst;
 use crate::prelude::Widget;
 use crate::style::Style;
-use crate::terminal::{UpdateInfo, UpdateResult, Rectangle};
-use crate::widgets::{BoundingBox, };
+use crate::terminal::{Rectangle, UpdateInfo, UpdateResult};
+use crate::widgets::BoundingBox;
+use crate::Error;
 
 /// Text at the top-left of the terminal.
 pub struct Text<'a> {
     /// The text to display.
     pub text: &'a str,
     /// The style with which to display it.
-    pub style: Style
+    pub style: Style,
 }
 
 impl<'a> Text<'a> {
@@ -50,7 +50,7 @@ impl<'a> Text<'a> {
     pub const fn new(text: &'a str) -> Self {
         Self {
             text,
-            style: Style::new()
+            style: Style::new(),
         }
     }
 
@@ -67,7 +67,7 @@ impl<'a> Text<'a> {
     /// assert_eq!(text_widget.style, style);
     /// ```
     #[must_use]
-    pub const fn styled(mut self, style: Style) -> Self{
+    pub const fn styled(mut self, style: Style) -> Self {
         self.style = style;
 
         self
@@ -75,17 +75,23 @@ impl<'a> Text<'a> {
 }
 
 impl Widget for Text<'_> {
-    fn update(&mut self, _update_info: UpdateInfo, _terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
+    fn update(
+        &mut self,
+        _update_info: UpdateInfo,
+        _terminal: impl TerminalConst,
+    ) -> crate::Result<UpdateResult> {
         Ok(UpdateResult::NoEvent)
     }
 
-    fn draw(&self, _update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    fn draw(
+        &self,
+        _update_info: UpdateInfo,
+        mut terminal: impl Terminal,
+    ) -> crate::Result<UpdateResult> {
         let mut cells = terminal.cells_mut();
 
         for (idx, character) in self.text.chars().enumerate() {
-            let current_cell = cells
-                .next()
-                .ok_or(Error::OutOfBoundsCharacter(idx))?;
+            let current_cell = cells.next().ok_or(Error::OutOfBoundsIndex(idx))?;
 
             current_cell.character = character;
             current_cell.style = self.style.inherits(current_cell.style);

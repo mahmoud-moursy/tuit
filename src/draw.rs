@@ -96,10 +96,10 @@ impl Renderer for DummyTarget {
 
 #[cfg(feature = "ansi_terminal")]
 /// A [`Renderer`] that takes in a writer and outputs ANSI escape codes to it to use for formatting.
-pub struct AnsiTerminal<T>(pub T);
+pub struct AnsiRenderer<T>(pub T);
 
 #[cfg(feature = "ansi_terminal")]
-impl<T: Write> Renderer for AnsiTerminal<T> {
+impl<T: Write> Renderer for AnsiRenderer<T> {
     fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
         let terminal_width = terminal.width();
 

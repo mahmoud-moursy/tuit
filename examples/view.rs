@@ -1,7 +1,7 @@
 //! Demonstrates mutable views.
 
 use tuit::prelude::*;
-use tuit::std::stdout_render::StdoutRender;
+use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::Colour;
 use tuit::terminal::ConstantSize;
 use tuit::terminal::Rectangle;
@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
         cell.character = view_text.next().expect("Won't fail yo. like... ever... trust me bro.");
     }
 
-    terminal.display(StdoutRender::default())?;
+    terminal.display(StdoutRenderer::default())?;
 
     Ok(())
 }

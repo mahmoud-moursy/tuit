@@ -1,7 +1,7 @@
 //! Demonstrates centered prompts.
 
 use tuit::prelude::*;
-use tuit::std::stdout_render::StdoutRender;
+use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::{Ansi4, Colour::Ansi16};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::centered_prompt::CenteredPrompt;
@@ -21,7 +21,7 @@ fn main() {
     // text.drawn(&mut terminal)
     //     .expect("This method CAN fail, but only if the prompt is too large. Here, it is not.");
 
-    let mut stdio = StdoutRender::default();
+    let mut stdio = StdoutRenderer::default();
 
     let sweeper = Sweeper::of_colour(Ansi16(Ansi4::BrightCyan));
 

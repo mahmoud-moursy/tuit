@@ -1,7 +1,7 @@
 //! Demonstrates the Text widget.
 
 use tuit::prelude::*;
-use tuit::std::stdout_render::StdoutRender;
+use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::{Sweeper, Text};
@@ -14,5 +14,5 @@ fn main() {
     sweeper.drawn(&mut terminal).ok();
     text.drawn(&mut terminal).ok();
 
-    terminal.display(StdoutRender::default()).expect("Infallible.");
+    terminal.display(StdoutRenderer::default()).expect("Infallible.");
 }

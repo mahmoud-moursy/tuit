@@ -46,10 +46,10 @@ impl Ruler {
     }
 
     fn vertical_draw(&self, mut terminal: impl Terminal) {
-        let (width, height) = terminal.dimensions();
-        let mut characters = terminal.cells_mut();
+        let (width, _height) = terminal.dimensions();
+        let characters = terminal.cells_mut();
 
-        let x_offset = match self.1 {
+        let _x_offset = match self.1 {
             Direction::Left => 0,
             Direction::Right => 1,
             _ => unreachable!(),

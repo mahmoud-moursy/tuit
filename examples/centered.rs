@@ -1,7 +1,7 @@
 //! Show how the [`Centered`] widget can be used.
 
 use tuit::prelude::*;
-use tuit::std::stdout_render::StdoutRender;
+use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::BoundingBox;
@@ -19,7 +19,8 @@ fn main() {
     buttons.selected_button_style = buttons.selected_button_style.bg(Colour::Ansi16(Ansi4::Red)).underlined().font_weight(600);
     buttons.unselected_button_style = buttons.unselected_button_style.bg(Colour::Ansi16(Ansi4::BrightRed));
 
-    let prompt = Text::new("Continue? Test Test Test")
+    let prompt = Text::new("Continue?")
+        .with_margin(2)
         .on_top_of(buttons.centered())
         .centered();
 
@@ -33,5 +34,5 @@ fn main() {
 
     println!("{:?}", prompt.bounding_box_in(&terminal).unwrap());
 
-    terminal.display(StdoutRender::default()).expect("Can't fail");
+    terminal.display(StdoutRenderer::default()).expect("Can't fail");
 }

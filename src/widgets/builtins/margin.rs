@@ -3,7 +3,8 @@ use crate::prelude::{Metadata, Terminal, TerminalConst};
 use crate::terminal::{Rectangle, UpdateInfo, UpdateResult, View};
 use crate::widgets::{BoundingBox, Widget};
 
-/// Add padding to your widgets!
+/// Add a [`Margin`] to your widgets! Works by expanding the bounding box, meaning that it may fail
+/// to draw in certain cases. Try using [`Padding`](crate::widgets::Padding).
 pub struct Margin<T> {
     /// The child of the margin.
     child: T,
@@ -67,7 +68,6 @@ impl<T> Margin<T> {
 
 impl<T> BoundingBox for Margin<T>
 where T: BoundingBox {
-    #[allow(clippy::cast_possible_wrap)]
     fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle> {
         let margin_rect = self
             .child

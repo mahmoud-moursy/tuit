@@ -5,10 +5,10 @@ use crate::terminal::Cell;
 /// A zero-allocation terminal of constant size. The terminal's size is determined at compile time,
 /// and can't be changed at runtime.
 ///
-/// ```
+/// ```rust
 /// use tuit::terminal;
 /// use tuit::prelude::*;
-/// use tuit::std::stdout_render::StdoutRender;
+/// use tuit::std::stdout_render::StdoutRenderer;
 /// use tuit::widgets::builtins::CenteredText;
 ///
 /// let mut terminal: terminal::ConstantSize<20, 20> = terminal::ConstantSize::new();
@@ -18,7 +18,7 @@ use crate::terminal::Cell;
 /// // Look up `Widget::drawn` in the documentation.
 /// widget.drawn(&mut terminal).expect("Should not fail!");
 ///
-/// terminal.display(StdoutRender::default()).expect("Failed to draw terminal");
+/// terminal.display(StdoutRenderer::default()).expect("Failed to draw terminal");
 /// ```
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct ConstantSize<const WIDTH: usize, const HEIGHT: usize> {

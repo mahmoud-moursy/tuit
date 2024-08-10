@@ -9,6 +9,14 @@
 - Currently, several layout widgets exist, like `Stacked`, `Centered`, and `Margin`. See the [docs](https://docs.rs/tuit/latest) for more information.
 - There is a `Buttons` widget and a `Text` widget. See the [docs](https://docs.rs/tuit/latest) for more information.
 
+
+- The licence is currently GPL-3.0+ — this is because it is s a lot easier to go from GPL-3 to a 
+  more permissive licence, but not the other way around. For the foreseeable future, I will be releasing
+  future releases under the GPL-3.0+ licence, but I am open to suggestions.
+
+
+- If you have any concerns, you can open an [issue](https://github.com/T-O-R-U-S/tuit/issues/new).
+
 ## The TUI lib for the no_std, no_alloc hard-mode Rust user!
 
 Tuit does not provide a complete suite of utilities to handle terminals. It can be

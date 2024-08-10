@@ -1,7 +1,7 @@
-use crate::Error;
 use crate::style::Style;
 use crate::terminal::{Rectangle, Terminal, TerminalConst, UpdateInfo, UpdateResult};
 use crate::widgets::{BoundingBox, Widget};
+use crate::Error;
 
 /// A widget that displays a list of buttons, left-to-right.
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Default)]
@@ -142,20 +142,23 @@ impl<T: AsRef<str>> Widget for Buttons<'_, T> {
 
             let max_len = button.as_ref().len().min(term_bounding_box.width());
 
-            let (next_idx, _next_cell) = terminal_cells.peek().ok_or(Error::OutOfBoundsCoordinate {
-                x: None,
-                y: None,
-            })?;
+            let (next_idx, _next_cell) = terminal_cells
+                .peek()
+                .ok_or(Error::OutOfBoundsCoordinate { x: None, y: None })?;
 
-            let (cursor_x, cursor_y) = term_bounding_box.index_into(*next_idx).ok_or(Error::OutOfBoundsCharacter(*next_idx))?;
+            let (cursor_x, cursor_y) = term_bounding_box
+                .index_into(*next_idx)
+                .ok_or(Error::OutOfBoundsIndex(*next_idx))?;
 
-            let button_chars = button.as_ref()[..max_len].chars().peekable();
+            let button_chars = button.as_ref()[..max_len].chars();
 
             if button.as_ref().len() + cursor_x > term_bounding_box.width() {
                 // Skips until next line, only if the button fits on one line.
                 if button.as_ref().len() <= term_bounding_box.width() {
                     while let Some((idx, _cell)) = terminal_cells.peek() {
-                        let (_x, y) = term_bounding_box.index_into(*idx).ok_or(Error::OutOfBoundsCharacter(*idx))?;
+                        let (_x, y) = term_bounding_box
+                            .index_into(*idx)
+                            .ok_or(Error::OutOfBoundsIndex(*idx))?;
 
                         if y != cursor_y {
                             break;
@@ -169,10 +172,9 @@ impl<T: AsRef<str>> Widget for Buttons<'_, T> {
             }
 
             for current_character in button_chars {
-                let (_idx, current_cell) = terminal_cells.next().ok_or(Error::OutOfBoundsCoordinate {
-                    x: None,
-                    y: None,
-                })?;
+                let (_idx, current_cell) = terminal_cells
+                    .next()
+                    .ok_or(Error::OutOfBoundsCoordinate { x: None, y: None })?;
 
                 current_cell.character = current_character;
                 current_cell.style = base_style.inherits(current_cell.style);
@@ -200,14 +202,16 @@ impl<T: AsRef<str>> BoundingBox for Buttons<'_, T> {
             let max_len = button.as_ref().len().min(term_bounding_box.width());
             let next_idx = idx + 1;
 
-            let (cursor_x, cursor_y) = rect.index_into(next_idx).ok_or(Error::OutOfBoundsCharacter(next_idx))?;
+            let (cursor_x, cursor_y) = rect
+                .index_into(next_idx)
+                .ok_or(Error::OutOfBoundsIndex(next_idx))?;
 
-            let button_chars = button.as_ref()[..max_len].chars().enumerate().peekable();
+            let button_chars = button.as_ref()[..max_len].chars().enumerate();
 
             if button.as_ref().len() + cursor_x > rect.width() {
                 // Skips until next line, only if the button fits on one line.
                 if button.as_ref().len() <= rect.width() {
-                    while let Some((x, y)) = rect.index_into(idx) {
+                    while let Some((_x, y)) = rect.index_into(idx) {
                         if y != cursor_y {
                             break;
                         }
@@ -222,13 +226,17 @@ impl<T: AsRef<str>> BoundingBox for Buttons<'_, T> {
             for _current_character in button_chars {
                 idx += 1;
 
-                let (x, y) = rect.index_into(idx).ok_or(Error::OutOfBoundsCharacter(idx))?;
+                let (x, y) = rect
+                    .index_into(idx)
+                    .ok_or(Error::OutOfBoundsIndex(idx))?;
 
-                width = width.max(x+1);
+                width = width.max(x + 1);
                 height = height.max(y);
             }
 
-            let (x, y) = rect.index_into(idx).ok_or(Error::OutOfBoundsCharacter(idx))?;
+            let (x, y) = rect
+                .index_into(idx)
+                .ok_or(Error::OutOfBoundsIndex(idx))?;
 
             width = width.max(x);
             height = height.max(y);
@@ -253,7 +261,7 @@ impl<T: AsRef<str>> BoundingBox for Buttons<'_, T> {
                 let chr_dep = *chr_dep;
                 idx += 1;
                 let Some((x, _y)) = term_bounding_box.index_into(idx) else {
-                    return true
+                    return true;
                 };
 
                 if button.as_ref().len() + x - chr_dep >= term_bounding_box.width() {

@@ -1,7 +1,7 @@
 //! This example shows how to use the [`Buttons`] widget.
 
 use tuit::prelude::*;
-use tuit::std::stdout_render::StdoutRender;
+use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::{Ansi4, Colour};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::BoundingBox;
@@ -28,5 +28,5 @@ fn main() {
 
     buttons.drawn(&mut terminal).unwrap();
 
-    terminal.display(StdoutRender::default()).unwrap();
+    terminal.display(StdoutRenderer::default()).unwrap();
 }

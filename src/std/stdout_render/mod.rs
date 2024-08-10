@@ -7,22 +7,22 @@ use anyhow::anyhow;
 use crate::draw::Renderer;
 use crate::terminal::TerminalConst;
 
-/// Use [`StdoutRender::default`] to create a new [`StdoutRender`].
+/// Use [`StdoutRenderer::default`] to create a new [`StdoutRenderer`].
 /// 
 /// # Example
 /// ```
-/// use tuit::std::stdout_render::StdoutRender;
+/// use tuit::std::stdout_render::StdoutRenderer;
 /// use tuit::prelude::*;
 /// use tuit::terminal::ConstantSize;
 ///
-/// let mut stdout = StdoutRender::default();
+/// let mut stdout = StdoutRenderer::default();
 /// let mut terminal = ConstantSize::<20, 20>::new();
 ///
 /// stdout.render(&terminal).expect("Failed to draw to stdout");
 /// ```
-pub struct StdoutRender(pub std::io::Stdout);
+pub struct StdoutRenderer(pub std::io::Stdout);
 
-impl Default for StdoutRender {
+impl Default for StdoutRenderer {
     fn default() -> Self {
         Self(std::io::stdout())
     }
@@ -33,7 +33,7 @@ impl Default for StdoutRender {
 // That is... `core::fmt::Write`. It DOES, however, implement `std::io::Write`, which is an entirely
 // separate trait that does almost exactly the same thing (except for change the error type).
 // This is why we have to do... this. :(
-impl Renderer for StdoutRender {
+impl Renderer for StdoutRenderer {
     fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
         let terminal_width = terminal.width();
 

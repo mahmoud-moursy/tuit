@@ -55,7 +55,7 @@ pub enum Error {
     /// It does not include x,y co-ordinates, just the index into the character
     /// buffer slice.
     #[error("Attempted to access a character that was out of bounds at index {0}")]
-    OutOfBoundsCharacter(usize),
+    OutOfBoundsIndex(usize),
     /// This error is for when an out-of-bounds index occurs within any [`TerminalConst`]/[`Widget`] method.
     /// It includes the x,y coordinates used to index into the slice.
     #[error(
@@ -96,4 +96,30 @@ pub enum Error {
     /// that is not fully implemented.
     #[error("This area has not been implemented!")]
     Todo,
+}
+
+impl Error {
+    /// Returns an [`Error::OutOfBoundsCoordinate`] with both x and y coordinates set to `None`.
+    #[must_use]
+    pub const fn oob() -> Self {
+        Self::OutOfBoundsCoordinate { x: None, y: None }
+    }
+    /// Returns an [`Error::OutOfBoundsCoordinate`] with x and y coordinates set to `Some` using the
+    /// provided values.
+    #[must_use]
+    pub const fn oob_with((x, y): (usize, usize)) -> Self {
+        Self::OutOfBoundsCoordinate { x: Some(x), y: Some(y) }
+    }
+
+    /// Returns an [`Error::OutOfBoundsIndex`] with the provided index.
+    #[must_use]
+    pub const fn oobi(index: usize) -> Self {
+        Self::OutOfBoundsIndex(index)
+    }
+
+    /// Returns an [`Error::RequestRescale`] with the provided width and height.
+    #[must_use]
+    pub const fn rescale((x, y): (usize, usize)) -> Self {
+        Self::RequestRescale { new_width: x, new_height: y }
+    }
 }

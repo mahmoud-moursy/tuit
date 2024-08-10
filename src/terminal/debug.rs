@@ -15,8 +15,8 @@ pub struct Debug<T, D> {
 impl<T: Terminal, D: Renderer> Debug<T, D> {
     /// Create a new [`Debug`] wrapper.
     #[must_use]
-    pub const fn new(terminal: T, display: D) -> Debug<T, D> {
-        Debug { terminal, display }
+    pub const fn new(terminal: T, display: D) -> Self {
+        Self { terminal, display }
     }
 
     /// Get the inner terminal.
@@ -27,13 +27,13 @@ impl<T: Terminal, D: Renderer> Debug<T, D> {
 }
 
 #[cfg(feature = "std")]
-use crate::std::stdout_render::StdoutRender;
+use crate::std::stdout_render::StdoutRenderer;
 
 #[cfg(feature = "std")]
-impl<T: Terminal> Debug<T, StdoutRender> {
-    /// Make a StdoutTerminal wrapper.
+impl<T: Terminal> Debug<T, StdoutRenderer> {
+    /// Make a [`StdoutRenderer`] wrapper.
     pub fn stdout(terminal: T) -> Self {
-        Self::new(terminal, StdoutRender::default())
+        Self::new(terminal, StdoutRenderer::default())
     }
 }
 
