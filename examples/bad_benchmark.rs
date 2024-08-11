@@ -4,7 +4,7 @@ use std::time::Instant;
 
 use tuit::allocations::terminal::constant_boxed::ConstantBoxed;
 use tuit::terminal::{Rectangle, TerminalMut};
-use tuit::widgets::builtins::{CenteredPrompt, Text, Uv};
+use tuit::widgets::builtins::{ Text, Uv};
 use tuit::widgets::Widget;
 
 const TARGET_FPS: u16 = 60;
@@ -14,7 +14,7 @@ fn main() {
 
     let uv = Uv;
     let text = Text::new("Hello! I am a text!");
-    let centered_prompt = CenteredPrompt::new("Test!", &["fire", "fire", "fire", "fire"]);
+    let centered_prompt = Text::new("Test!");
 
     for _ in 0..100 {
         let start = Instant::now();

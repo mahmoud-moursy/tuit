@@ -5,6 +5,7 @@ pub use uv::Uv;
 pub use margin::Margin;
 pub use centered::Centered;
 pub use stacked::Stacked;
+pub use shelved::Shelved;
 pub use buttons::Buttons;
 pub use shrink_wrap::ShrinkWrap;
 pub use backdrop::Backdrop;
@@ -111,6 +112,11 @@ pub trait WithLayout: Sized {
     /// Stacks the widget on top of another widget.
     fn on_top_of<T>(self, other: T) -> Stacked<Self, T> {
         Stacked::new(self, other)
+    }
+    
+    /// Shelves the widget next to another widget.
+    fn next_to<T>(self, other: T) -> Shelved<Self, T> {
+        Shelved::new(self, other)
     }
 }
 
