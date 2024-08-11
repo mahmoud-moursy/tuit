@@ -22,11 +22,11 @@
 //! }
 //! ```
 
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 use core::fmt::{Formatter, Write};
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 use anyhow::anyhow;
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 use crate::terminal::Cell;
 use crate::terminal::TerminalConst;
 
@@ -94,11 +94,11 @@ impl Renderer for DummyTarget {
     }
 }
 
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 /// A [`Renderer`] that takes in a writer and outputs ANSI escape codes to it to use for formatting.
 pub struct AnsiRenderer<T>(pub T);
 
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 impl<T: Write> Renderer for AnsiRenderer<T> {
     fn render(&mut self, terminal: impl TerminalConst) -> crate::Result<()> {
         let terminal_width = terminal.width();
@@ -127,7 +127,7 @@ impl<T: Write> Renderer for AnsiRenderer<T> {
     }
 }
 
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 impl core::fmt::Display for Cell {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         use owo_colors::OwoColorize;

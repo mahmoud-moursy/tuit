@@ -8,12 +8,12 @@ pub struct ShrinkWrap<T> {
     /// The child widget
     child: T,
     /// How much padding to apply
-    pub padding: isize
+    pub padding: usize
 }
 
 impl<T> ShrinkWrap<T> {
 
-    /// Create a new [`ShrinkWrap`] with a child widget. Use [`ShrinkWrap::padding`] to set padding.
+    /// Create a new [`ShrinkWrap`] with a child widget. Use [`ShrinkWrap::shrink`] to set padding.
     /// You can also set the `padding` field directly on the [`ShrinkWrap`].
     #[must_use]
     pub const fn new(child: T) -> Self {
@@ -25,7 +25,7 @@ impl<T> ShrinkWrap<T> {
 
     /// Set the padding for the widget.
     #[must_use]
-    pub const fn padding(mut self, padding: isize) -> Self {
+    pub const fn shrink(mut self, padding: usize) -> Self {
         self.padding = padding;
 
         self
@@ -75,11 +75,11 @@ impl<T: Widget> Widget for ShrinkWrap<T> {
 impl<T: Widget> BoundingBox for ShrinkWrap<T> {
     fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle> {
         rect
-            .trim_x(self.padding)
-            .and_then(|rect| rect.trim_y(self.padding))
+            .trim_x(self.padding as isize)
+            .and_then(|rect| rect.trim_y(self.padding as isize))
             .ok_or(Error::RequestRescale {
-                new_width: rect.width().saturating_add_signed(self.padding),
-                new_height: rect.height().saturating_add_signed(self.padding),
+                new_width: rect.width().saturating_add_signed(self.padding as isize),
+                new_height: rect.height().saturating_add_signed(self.padding as isize),
             })
     }
 

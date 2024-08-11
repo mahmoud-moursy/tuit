@@ -8,7 +8,7 @@ use tuit::terminal::Rectangle;
 use tuit::widgets::builtins::{Ruler, Uv};
 use tuit::widgets::Direction;
 
-#[cfg(not(feature = "ansi_terminal"))]
+#[cfg(not(feature = "ansi_renderer"))]
 fn main() {
     println!("You must apply the stdout_render feature to view this example. Use `cargo --features stdout_render`");
 }
@@ -17,7 +17,7 @@ fn main() {
 // lint to return a false-positive,
 // so I disabled it.
 #[allow(clippy::needless_borrows_for_generic_args)]
-#[cfg(feature = "ansi_terminal")]
+#[cfg(feature = "ansi_renderer")]
 fn main() -> anyhow::Result<()> {
     let mut terminal: ConstantSize<100, 20> = ConstantSize::new();
 

@@ -8,7 +8,8 @@ pub use margin::Margin;
 pub use centered::Centered;
 pub use stacked::Stacked;
 pub use buttons::Buttons;
-pub use padding::ShrinkWrap;
+pub use shrink_wrap::ShrinkWrap;
+pub use backdrop::Backdrop;
 use crate::widgets::BoundingBox;
 
 /// The code for the [`Sweeper`] widget.
@@ -34,7 +35,9 @@ pub mod stacked;
 /// The code for the [`Buttons`] widget.
 pub mod buttons;
 /// The code for the [`ShrinkWrap`] widget.
-pub mod padding;
+pub mod shrink_wrap;
+/// The code for the [`Backdrop`] widget.
+pub mod backdrop;
 
 impl<T: BoundingBox> From<T> for Centered<T> {
     fn from(value: T) -> Self {
@@ -52,42 +55,29 @@ impl<T: BoundingBox> From<T> for Margin<T> {
 pub trait WithLayout: Sized {
     /// Adds a margin by the specified distance -- can be negative to expand the widget.
     ///
-    /// # Bad example
-    ///
-    /// ```rust
-    /// use tuit::prelude::*;
-    /// use tuit::prelude::WithLayout;
-    /// use tuit::terminal::ConstantSize;
-    /// use tuit::widgets::builtins::Text;
-    ///
-    /// let my_text = Text::new("This is very, very likely to cause a crash because the text will");
-    /// let exploding_text = my_text.with_margin(2); // uh oh...
-    ///
-    /// let mut innocent_terminal: ConstantSize<20, 20> = ConstantSize::new();
-    ///
-    /// exploding_text.drawn(&mut innocent_terminal).expect_err("Should fail. :(");
-    /// ```
-    ///
-    /// # Good example
+    /// # Example
     ///
     /// ```rust
     /// use tuit::prelude::*;
     /// use tuit::terminal::ConstantSize;
     /// use tuit::widgets::builtins::Text;
     ///
-    /// let exploding_text = Text::new("I should be centered!").with_margin(2);
-    /// let innocent_text = exploding_text.centered();
+    /// let text = Text::new("I should be centered!").with_margin(2);
     ///
-    /// let mut innocent_terminal: ConstantSize<50, 20> = ConstantSize::new();
+    /// let mut terminal: ConstantSize<50, 20> = ConstantSize::new();
     ///
-    /// innocent_text.drawn(&mut innocent_terminal).expect("Should draw successfully :)");
+    /// text.drawn(&mut terminal).expect("Should draw successfully :)");
+    ///
+    /// let mut very_tiny_terminal: ConstantSize<5, 5> = ConstantSize::new();
+    ///
+    /// text.drawn(&mut very_tiny_terminal).expect_err("Should not have enough space.");
     /// ```
     fn with_margin(self, margin: isize) -> Margin<Self> {
         Margin::new(self).margin(margin)
     }
 
-    /// Adds a padding by the specified distance -- can be negative to expand the widget.
-    fn with_padding(self, padding: isize) -> ShrinkWrap<Self> { ShrinkWrap::new(self).padding(padding) }
+    /// Adds a padding by the specified distance by applying a [`ShrinkWrap`].
+    fn with_shrink(self, shrink: usize) -> ShrinkWrap<Self> { ShrinkWrap::new(self).shrink(shrink) }
 
     /// Centers the widget.
     fn centered(self) -> Centered<Self> {

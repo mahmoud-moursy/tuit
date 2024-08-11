@@ -101,7 +101,7 @@ pub trait Widget {
     ///
     /// # Errors
     ///
-    /// The function will return an [`Err`] when the *widget* that is being updated experiences an error.
+    /// The function will return an [`Err`] when the *[`Widget`]* that is being updated experiences an error.
     fn update(
         &mut self,
         update_info: UpdateInfo,
@@ -114,6 +114,9 @@ pub trait Widget {
     ///
     /// This will return an [`Err`] if the [`Widget`] fails to correctly draw itself. The underlying error may
     /// provide more information on why the failure occurred.
+    /// 
+    /// Assume that the terminal is in an invalid state when this function returns an [`Err`], so
+    /// you should try redrawing again, perhaps without the widget that failed.
     fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal)
             -> crate::Result<UpdateResult>;
 

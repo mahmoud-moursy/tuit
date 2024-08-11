@@ -362,6 +362,7 @@ impl Rectangle {
         let x_larger;
         let y_larger;
 
+        // The [`usize::max`] and [`usize::min`] functions are not `const`...
         if first_x > second_x {
             x_larger = first_x;
             x_smaller = second_x;
@@ -619,6 +620,19 @@ impl Rectangle {
         self.right_bottom = (self.left_top.0 + width, self.left_top.1 + height);
 
         self
+    }
+
+    /// Offset the [`Rectangle`] by the specified (x,y) coordinates.
+    #[must_use]
+    pub const fn offset(self, (x_offset, y_offset): (isize, isize)) -> Option<Self> {
+        let left = self.left().checked_add_signed(x_offset);
+        let top = self.top().checked_add_signed(y_offset);
+
+        let (Some(left), Some(top)) = (left, top) else {
+            return None
+        };
+
+        Some(self.at((left, top)))
     }
 
     /// Get the center of the rectangle on the x-axis.
