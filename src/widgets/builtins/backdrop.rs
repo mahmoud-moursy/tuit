@@ -1,8 +1,9 @@
-use crate::Error;
 use crate::prelude::{Terminal, TerminalConst};
 use crate::style::{Colour, Style};
-use crate::terminal::{TerminalMut, UpdateInfo, UpdateResult, View};
+use crate::terminal::{UpdateInfo, UpdateResult, View};
+use crate::widgets::builtins::Sweeper;
 use crate::widgets::{BoundingBox, Widget};
+use crate::Error;
 
 /// A widget that draws a backdrop behind its children.
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug)]
@@ -44,11 +45,9 @@ where T: BoundingBox{
     fn draw(&self, _update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let child_bounding_box = self.child.bounding_box_in(&terminal)?;
         let mut view = View::new(terminal, child_bounding_box).ok_or(Error::oob())?;
+        let sweeper = Sweeper::new(self.style);
 
-        for cell in view.cells_mut() {
-            cell.character = ' ';
-            cell.style = self.style;
-        }
+        sweeper.drawn(&mut view)?;
 
         Ok(UpdateResult::NoEvent)
     }

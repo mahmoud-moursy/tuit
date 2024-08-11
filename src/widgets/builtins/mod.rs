@@ -10,6 +10,7 @@ pub use stacked::Stacked;
 pub use buttons::Buttons;
 pub use shrink_wrap::ShrinkWrap;
 pub use backdrop::Backdrop;
+use crate::style::{Colour, Style};
 use crate::widgets::BoundingBox;
 
 /// The code for the [`Sweeper`] widget.
@@ -100,6 +101,11 @@ pub trait WithLayout: Sized {
 
     /// Adds a padding by the specified distance by applying a [`ShrinkWrap`].
     fn with_shrink(self, shrink: usize) -> ShrinkWrap<Self> { ShrinkWrap::new(self).shrink(shrink) }
+
+    /// Add a backdrop using the specified colour
+    fn use_backdrop(&self, bg_colour: Colour) -> Backdrop<Self> {
+        Backdrop::new(self).with_style(Style::new().bg(bg_colour))
+    }
 
     /// Centers the widget.
     fn centered(self) -> Centered<Self> {

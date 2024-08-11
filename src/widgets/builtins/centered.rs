@@ -17,6 +17,18 @@ impl<T> Centered<T> {
     pub const fn new(child: T) -> Self {
         Self { child, centered_x: true, centered_y: true }
     }
+
+    /// Consume the [`Centered`] widget and return the inner widget.
+    #[must_use]
+    pub fn into_inner(self) -> T {
+        self.child
+    }
+
+    /// Get a reference to the inner widget.
+    #[must_use]
+    pub const fn inner(&self) -> &T {
+        &self.child
+    }
 }
 
 impl<T: BoundingBox> Widget for Centered<T> {

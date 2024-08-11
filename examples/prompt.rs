@@ -2,7 +2,7 @@
 
 use tuit::prelude::*;
 use tuit::std::stdout_render::StdoutRenderer;
-use tuit::style::{Ansi4, Colour::Ansi16};
+use tuit::style::{Ansi4, Colour::Ansi16, Style};
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::sweeper::Sweeper;
 use tuit::widgets::builtins::{Buttons, Text};
@@ -14,7 +14,7 @@ fn main() {
 
 #[cfg(feature = "ansi_renderer")]
 fn main() {
-    let mut terminal: ConstantSize<58, 14> = ConstantSize::new();
+    let mut terminal: ConstantSize<57, 14> = ConstantSize::new();
     //
     // let text = CenteredText::new("Hello world!");
     //
@@ -24,14 +24,19 @@ fn main() {
     let mut renderer = StdoutRenderer::default();
 
     let sweeper = Sweeper::of_colour(Ansi16(Ansi4::BrightCyan));
+    sweeper.drawn(&mut terminal).ok();
 
     let query = Text::new("Continue?").with_margin(1);
-    let buttons = Buttons::new(&[" Yes ", " No "]).select_last().centered();
+    let mut buttons = Buttons::new(&[" Yes ", " No "]);
+
+    buttons.selected_button_style = Style::new().fg(Ansi16(Ansi4::BrightWhite)).inverted();
+
+    let buttons = buttons.select_last();
 
     let prompt = query.on_top_of(buttons).centered();
 
+    prompt.use_backdrop(Ansi16(Ansi4::Yellow)).drawn(&mut terminal).expect("Infallible");
 
-    sweeper.drawn(&mut terminal).ok();
     prompt.drawn(&mut terminal).ok();
 
     renderer.render(terminal).ok();
