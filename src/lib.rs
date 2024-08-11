@@ -9,13 +9,13 @@
 //!
 //! ```
 //! use tuit::terminal::ConstantSize;
-//! use tuit::widgets::builtins::CenteredText;
+//! use tuit::widgets::builtins::Text;
 //! use tuit::prelude::*;
 //!
 //! let mut terminal = ConstantSize::<20, 20>::new();
-//! let prompt = CenteredText::new("Hello world!");
+//! let text = Text::new("Hello world!");
 //!
-//! prompt.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
+//! text.drawn(&mut terminal).expect("This won't fail."); // Draws "Hello world!" in the center of the screen.
 //! ```
 #![allow(clippy::collapsible_if)]
 #![no_std]

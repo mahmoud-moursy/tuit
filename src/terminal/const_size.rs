@@ -9,11 +9,11 @@ use crate::terminal::Cell;
 /// use tuit::terminal;
 /// use tuit::prelude::*;
 /// use tuit::std::stdout_render::StdoutRenderer;
-/// use tuit::widgets::builtins::CenteredText;
+/// use tuit::widgets::builtins::Text;
 ///
 /// let mut terminal: terminal::ConstantSize<20, 20> = terminal::ConstantSize::new();
 ///
-/// let mut widget: CenteredText = CenteredText::new("Hello world!");
+/// let mut widget = Text::new("Hello world!").centered();
 ///
 /// // Look up `Widget::drawn` in the documentation.
 /// widget.drawn(&mut terminal).expect("Should not fail!");
