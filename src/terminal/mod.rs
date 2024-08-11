@@ -141,8 +141,8 @@ pub mod view;
 pub mod view_iterator;
 /// The [`ViewSplit`] struct, which is used to split the terminal along its axes.
 pub mod view_split;
-/// The [`Debug`] terminal, which prints out the terminal's state every time it is drawn or writes
-/// an Ansi4::Red to the background of modified cells.
+/// The [`Debug`] terminal, which prints out the terminal's state every time [`TerminalConst::cell`] is called or writes
+/// an [`Ansi4::Red`](crate::style::Ansi4) to the background of modified cells.
 pub mod debug;
 
 #[cfg(feature = "owo_colors")]

@@ -41,6 +41,8 @@ pedantic = "deny"
 nursery = "deny"
 perf = "warn"
 
+needless_borrows_for_generic_args = { level = "allow", priority = 1 } # This returns a false positive as of Clippy 1.80, so I have disabled it.
+
 collapsible_if = { level = "allow", priority = 1 }
 
 undocumented_unsafe_blocks = { level = "deny", priority = 1 } # Unsafe is forbidden in the library anyway, but it might not be in the future.

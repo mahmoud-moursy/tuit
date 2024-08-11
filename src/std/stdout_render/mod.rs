@@ -29,7 +29,7 @@ impl Default for StdoutRenderer {
 }
 
 // Why does this duplicate exist, you ask?
-// Well, it's because the standrad library's `std::io::Stdout` does not implement `Write`.
+// Well, it's because the standard library's `std::io::Stdout` does not implement `Write`.
 // That is... `core::fmt::Write`. It DOES, however, implement `std::io::Write`, which is an entirely
 // separate trait that does almost exactly the same thing (except for change the error type).
 // This is why we have to do... this. :(

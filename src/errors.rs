@@ -111,6 +111,7 @@ impl Error {
         Self::OutOfBoundsCoordinate { x: Some(x), y: Some(y) }
     }
 
+    //noinspection SpellCheckingInspection
     /// Returns an [`Error::OutOfBoundsIndex`] with the provided index.
     #[must_use]
     pub const fn oobi(index: usize) -> Self {

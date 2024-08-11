@@ -4,7 +4,7 @@ use crate::terminal::{Rectangle, UpdateInfo, UpdateResult, View};
 use crate::widgets::{BoundingBox, Widget};
 
 /// Add a [`Margin`] to your widgets! Works by expanding the bounding box, meaning that it may fail
-/// to draw in certain cases. Try using [`Padding`](crate::widgets::Padding).
+/// to draw in certain cases. Try using [`ShrinkWrap`](crate::widgets::builtins::ShrinkWrap).
 pub struct Margin<T> {
     /// The child of the margin.
     child: T,
@@ -47,10 +47,10 @@ impl<T> Margin<T> {
 
         let child_left = rect_left.checked_add_signed(self.margin).ok_or(Error::oob())?;
         let child_top = rect_top.checked_add_signed(self.margin).ok_or(Error::oob())?;
-        
+
         let child_right = rect_right.checked_add_signed(-self.margin).ok_or(Error::oob())?;
         let child_bottom = rect_bottom.checked_add_signed(-self.margin).ok_or(Error::oob())?;
-        
+
         let child = Rectangle::new((child_left, child_top), (child_right, child_bottom));
 
         // let child_left = rect_left.checked_add_signed(self.margin).ok_or(Error::OutOfBoundsCoordinate {

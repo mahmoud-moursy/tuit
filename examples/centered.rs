@@ -15,8 +15,6 @@ fn main() {
 
     let yellow = Sweeper::of_colour(Colour::Ansi16(Ansi4::Yellow));
 
-    yellow.drawn(&mut terminal).unwrap();
-
     let mut buttons = Buttons::new(&[" No ", " Yes "]).select_last();
 
     buttons.selected_button_style = buttons.selected_button_style.bg(Colour::Ansi16(Ansi4::Red)).underlined().font_weight(600);
@@ -25,7 +23,7 @@ fn main() {
     let mut continue_str = String::from("T");
 
     loop {
-        yellow.drawn(&mut terminal).unwrap();
+        yellow.drawn(&mut terminal).expect("Infallible");
 
         let prompt = Text::new(&continue_str)
             .with_margin(2)
@@ -41,6 +39,6 @@ fn main() {
         terminal.display(StdoutRenderer::default()).expect("Oop! Ran out of space!");
         println!();
 
-        continue_str.push_str("T");
+        continue_str.push('T');
     }
 }

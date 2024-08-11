@@ -1,6 +1,6 @@
 //! A probably inefficient implementation of a dynamically allocating, rescalable terminal.
 //!
-//! It is bundled in `extra` because it pulls in the ndarray dependency.
+//! It is bundled in `extra` because it pulls in the `ndarray` dependency.
 
 use ndarray::{Array, Array2, Axis, Dim, Shape};
 

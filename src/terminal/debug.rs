@@ -13,7 +13,7 @@ pub struct Debug<T, D> {
 }
 
 impl<T: Terminal, D: Renderer> Debug<T, D> {
-    /// Create a new [`Debug`] wrapper.
+    /// Create a new [`struct@Debug`] wrapper.
     #[must_use]
     pub const fn new(terminal: T, display: D) -> Self {
         Self { terminal, display }

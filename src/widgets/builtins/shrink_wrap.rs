@@ -3,7 +3,7 @@ use crate::prelude::{Terminal, TerminalConst, Widget};
 use crate::terminal::{Metadata, Rectangle, UpdateInfo, UpdateResult, View};
 use crate::widgets::BoundingBox;
 
-/// Adds padding to a [`BoundingBox`](crate::widgets::BoundingBox) widget by pretending that the terminal is smaller than it actually is
+/// Adds padding to a [`BoundingBox`] widget by pretending that the terminal is smaller than it actually is
 pub struct ShrinkWrap<T> {
     /// The child widget
     child: T,

@@ -20,8 +20,8 @@ fn main() {
 
     let mut terminal: ConstantSize<30, 9> = ConstantSize::new();
 
-    sweeper.drawn(&mut terminal).unwrap();
-    stacked.drawn(&mut terminal).unwrap();
+    sweeper.drawn(&mut terminal).expect("Infallible");
+    stacked.drawn(&mut terminal).expect("Infallible");
 
-    terminal.display(StdoutRenderer::default()).unwrap();
+    terminal.display(StdoutRenderer::default()).expect("Should be Ok");
 }

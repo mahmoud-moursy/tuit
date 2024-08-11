@@ -130,6 +130,7 @@ impl Widget for CenteredPrompt<'_> {
         Err(Error::Todo)
     }
 
+    //noinspection SpellCheckingInspection
     fn draw(
         &self,
         update_info: UpdateInfo,

@@ -17,7 +17,7 @@ impl Default for Ruler {
 impl Ruler {
     /// Initializes a Ruler with the given radix.
     ///
-    /// Returns [`None`] if supplied radix is invalid (radix must be in range 2..=36)
+    /// Returns [`None`] if supplied radix is invalid (radix must be in range `2..=36`)
     #[must_use]
     pub const fn new(radix: u32, direction: Direction) -> Option<Self> {
         if radix <= 36 && radix >= 2 {
@@ -60,19 +60,12 @@ impl Ruler {
             Direction::Right => &mut characters.step_by(width).skip(width),
             _ => unreachable!(),
         };
-
-        #[allow(clippy::cast_possible_truncation)]
+        
         for (y, cell) in col.enumerate() {
             // Truncation here is basically impossible.
             cell.character = char::from_digit(y as u32 % self.0, self.0)
                 .expect("Should never fail. Tried to convert an invalid digit into a character!");
         }
-        // for y in 0..height {
-        //     col.nth(width - x_offset).expect("Character should always be valid").character =
-        //         char::from_digit(y as u32 % self.0, self.0).expect(
-        //             "Should never fail. Tried to convert an invalid digit into a character!",
-        //         );
-        // }
     }
 }
 

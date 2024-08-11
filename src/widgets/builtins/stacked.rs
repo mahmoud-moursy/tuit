@@ -117,6 +117,10 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     }
 
     /// Returns the bounding box of the higher widget.
+    /// 
+    /// # Errors
+    /// 
+    /// Will return an error if the bounding box of the lower widget is not contained within the bounds of the terminal.
     pub fn higher_view_rect(&self, bounds: Rectangle) -> crate::Result<Rectangle>
     where
         TOP: BoundingBox,
@@ -143,6 +147,10 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     }
 
     /// Returns the bounding box of the lower widget.
+    /// 
+    /// # Errors
+    /// 
+    /// Will return an error if the bounding box of the lower widget is not contained within the bounds of the terminal.
     pub fn lower_view_rect(&self, bounds: Rectangle) -> crate::Result<Rectangle>
     where
         TOP: BoundingBox,
