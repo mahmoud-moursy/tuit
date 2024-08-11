@@ -39,6 +39,7 @@ use crate::{
     terminal::TerminalConst,
     widgets::Widget,
 };
+use crate::terminal::Rectangle;
 
 /// This enum contains errors that may occur at runtime
 #[derive(Debug, Error)]
@@ -122,5 +123,14 @@ impl Error {
     #[must_use]
     pub const fn rescale((x, y): (usize, usize)) -> Self {
         Self::RequestRescale { new_width: x, new_height: y }
+    }
+
+    /// Returns an [`Error::RequestRescale`] using the provided [`Rectangle`]'s dimensions.
+    #[must_use]
+    pub const fn rescale_to(rectangle: Rectangle) -> Self {
+        Self::RequestRescale {
+            new_width: rectangle.width(),
+            new_height: rectangle.height(),
+        }
     }
 }

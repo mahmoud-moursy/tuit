@@ -33,6 +33,8 @@ pub mod buttons;
 pub mod shrink_wrap;
 /// The code for the [`Backdrop`] widget.
 pub mod backdrop;
+/// The code for the [`Shelved`] widget.
+pub mod shelved;
 
 impl<T: BoundingBox> From<T> for Centered<T> {
     fn from(value: T) -> Self {

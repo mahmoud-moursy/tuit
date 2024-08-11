@@ -137,10 +137,7 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
         let higher_view_widened = higher_view.right_to(right_max);
 
         if !bounds.contains_rect(higher_view_widened) {
-            return Err(Error::RequestRescale {
-                new_width: higher_view_widened.right(),
-                new_height: higher_view_widened.bottom(),
-            })
+            return Err(Error::rescale_to(higher_view_widened));
         }
 
         Ok(higher_view_widened)
@@ -229,7 +226,7 @@ impl<TOP: BoundingBox, BOT: BoundingBox> BoundingBox for Stacked<TOP, BOT> {
 
         let left_top = self.higher_widget.bounding_box(terminal_rect)?.left_top();
 
-        let rect = Rectangle::of_size((width+1, height)).at(left_top);
+        let rect = Rectangle::of_size((width, height)).at(left_top);
 
         if !terminal_rect.contains_rect(rect) {
             return Err(Error::RequestRescale {
