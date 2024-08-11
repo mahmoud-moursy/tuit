@@ -4,7 +4,6 @@ use tuit::prelude::*;
 use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::{Ansi4, Colour::Ansi16};
 use tuit::terminal::ConstantSize;
-use tuit::widgets::builtins::centered_prompt::CenteredPrompt;
 use tuit::widgets::builtins::sweeper::Sweeper;
 use tuit::widgets::builtins::{Buttons, Text};
 
@@ -30,8 +29,8 @@ fn main() {
     let buttons = Buttons::new(&[" Yes ", " No "]).select_last().centered();
 
     let prompt = query.on_top_of(buttons).centered();
-    
-    
+
+
     sweeper.drawn(&mut terminal).ok();
     prompt.drawn(&mut terminal).ok();
 

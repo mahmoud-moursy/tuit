@@ -114,7 +114,7 @@ pub trait Widget {
     ///
     /// This will return an [`Err`] if the [`Widget`] fails to correctly draw itself. The underlying error may
     /// provide more information on why the failure occurred.
-    /// 
+    ///
     /// Assume that the terminal is in an invalid state when this function returns an [`Err`], so
     /// you should try redrawing again, perhaps without the widget that failed.
     fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal)

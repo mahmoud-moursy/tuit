@@ -53,7 +53,7 @@ impl<T: BoundingBox> From<T> for Margin<T> {
 
 /// An auto-implemented trait for widgets that provides some convenience methods for layouts.
 pub trait WithLayout: Sized {
-    /// Adds a margin by the specified distance -- can be negative to expand the widget.
+    /// Adds a margin by the specified distance.
     ///
     /// # Example
     ///
@@ -62,7 +62,7 @@ pub trait WithLayout: Sized {
     /// use tuit::terminal::ConstantSize;
     /// use tuit::widgets::builtins::Text;
     ///
-    /// let text = Text::new("I should be centered!").with_margin(2);
+    /// let text = Text::new("I should have a margin!").with_margin(2);
     ///
     /// let mut terminal: ConstantSize<50, 20> = ConstantSize::new();
     ///
@@ -72,6 +72,28 @@ pub trait WithLayout: Sized {
     ///
     /// text.drawn(&mut very_tiny_terminal).expect_err("Should not have enough space.");
     /// ```
+    ///
+    /// # Example with negatives
+    ///
+    /// ```rust
+    /// use tuit::prelude::*;
+    /// use tuit::terminal::ConstantSize;
+    /// use tuit::widgets::builtins::Text;
+    ///
+    /// let mut terminal: ConstantSize<50, 20> = ConstantSize::new();
+    ///
+    /// let centered_text = Text::new("I should be slightly bigger!").centered();
+    /// let overflow_text = Text::new("I will fail to render!");
+    ///
+    /// centered_text.with_margin(-2).drawn(&mut terminal).expect("Rendered successfully");
+    /// overflow_text.with_margin(-2).drawn(&mut terminal).expect_err("Failed to render");
+    /// ```
+    ///
+    /// The reason for this is that when you set the margin to a negative value, the [`Widget`](crate::widgets::Widget)
+    /// will try and expand out into space that doesn't exist (below zero). When the [`Widget`](crate::widgets::Widget)
+    /// is [`Centered`], there is space around it that allows it to expand.
+    ///
+    /// TODO: Include diagram!
     fn with_margin(self, margin: isize) -> Margin<Self> {
         Margin::new(self).margin(margin)
     }

@@ -239,7 +239,7 @@ pub trait TerminalConst: Metadata {
     ///
     /// let mut my_terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
-    /// #[cfg(feature = "stdout_terminal")]
+    /// #[cfg(feature = "std")]
     /// my_terminal.display(StdoutRenderer::default()).expect("Failed to display the terminal");
     /// ```
     ///
