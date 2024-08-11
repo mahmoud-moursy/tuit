@@ -16,10 +16,10 @@ fn main() {
     let hi = Text::new("Yello!").with_margin(2);
     let there = Text::new("There!").with_margin(2);
     let hi_there = hi.next_to(there).with_margin(2);
-    let hello = Text::new("Hello!").with_margin(2).on_top_of(hi_there);
+    let hello = Text::new("Hello!").with_margin(2);
     let world = Text::new("World!").with_margin(2);
 
-    let hello_world = hello.next_to(world).centered().with_margin(2);
+    let hello_world = hello.next_to(world).centered().with_margin(2).on_top_of(hi_there);
 
     hello_world.use_backdrop(Ansi16(Ansi4::Yellow)).drawn(&mut terminal).expect("Always ok");
     hello_world.drawn(&mut terminal).ok();
