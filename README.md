@@ -37,6 +37,26 @@ are a few options that both avoid and use allocation (note that the `alloc` feat
 required for certain dynamically resizing terminals, but there is also a no-alloc `MaxSize` which can
 finitely scale until the specified parameters).
 
+### Idea Backburner
+
+- The way `tuit` is made, you can compose `BoundingBox` widgets together to create a full layout.
+- ...so what if you could create a TUI application that chains them together?
+- ...in a Unix-style fashion, allowing you to create a TUI application that is a composition of
+  widgets, and then you can run it as a command-line program.
+
+- I formally dub it "wedge"
+
+```bash
+wedge text "Hello, world!"
+| wedge above
+$(wedge button "Button 1")
+| wedge center
+```
+
+Surely no one has thought of this before, right?
+
+The revelation came to me and I just had to write it down somewhere.
+
 ### MSRV Policy
 
 Current minimum required version: Rust Stable 1.80

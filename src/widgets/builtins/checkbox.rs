@@ -30,6 +30,7 @@ impl<'a> Checkbox<'a> {
     #[must_use]
     pub const fn checked(mut self) -> Self {
         self.checked = true;
+        
         self
     }
     
@@ -39,6 +40,7 @@ impl<'a> Checkbox<'a> {
     #[must_use]
     pub const fn unchecked(mut self) -> Self {
         self.checked = false;
+        
         self
     }
 }

@@ -3,8 +3,9 @@ use core::ops::{BitOr, Deref, DerefMut};
 use crate::draw::Renderer;
 use crate::prelude::{Metadata, Terminal, TerminalConst, TerminalMut};
 use crate::style::{Ansi4, Style};
-use crate::terminal::Cell;
+use crate::terminal::{Cell, UpdateInfo, UpdateResult};
 use crate::terminal::Rectangle;
+use crate::widgets::Widget;
 
 impl BitOr for Ansi4 {
     type Output = u8;
@@ -68,4 +69,15 @@ impl<T: DerefMut<Target: Renderer>> Renderer for T {
         self.deref_mut().render(terminal)
     }
 }
+
+impl<T: DerefMut<Target: Widget>> Widget for T {
+    fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
+        self.deref_mut().update(update_info, terminal)
+    }
+
+    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        self.deref().draw(update_info, terminal)
+    }
+}
+
 impl<T: TerminalConst + TerminalMut + Metadata> Terminal for T {}

@@ -52,14 +52,14 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
-        let lower_view = self.lower_view_rect(terminal.bounding_box())?;
+        let lower_view_rect = self.lower_view_rect(terminal.bounding_box())?;
 
-        let lower_view = terminal.view_mut(lower_view).ok_or(Error::OutOfBoundsCoordinate {
-            x: Some(lower_view.right()),
-            y: Some(lower_view.bottom())
+        let lower_view = terminal.view_mut(lower_view_rect).ok_or(Error::OutOfBoundsCoordinate {
+            x: Some(lower_view_rect.right()),
+            y: Some(lower_view_rect.bottom())
         })?;
 
-        self.lower_widget.draw(update_info, lower_view)
+        self.lower_widget.draw(update_info.mouse_relative_to(lower_view_rect), lower_view)
     }
 
     /// Draws the top widget, and returns its update result. This is better than using [`Widget::draw`]
@@ -94,14 +94,14 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
-        let higher_view = self.higher_view_rect(terminal.bounding_box())?;
+        let higher_view_rect = self.higher_view_rect(terminal.bounding_box())?;
 
-        let higher_view = terminal.view_mut(higher_view).ok_or(Error::OutOfBoundsCoordinate {
-            x: Some(higher_view.right()),
-            y: Some(higher_view.bottom())
+        let higher_view = terminal.view_mut(higher_view_rect).ok_or(Error::OutOfBoundsCoordinate {
+            x: Some(higher_view_rect.right()),
+            y: Some(higher_view_rect.bottom())
         })?;
 
-        self.higher_widget.draw(update_info, higher_view)
+        self.higher_widget.draw(update_info.mouse_relative_to(higher_view_rect), higher_view)
     }
 
     /// Draws both widgets, and returns their update results. This is better than using [`Widget::draw`]
@@ -206,11 +206,8 @@ impl<TOP: BoundingBox, BOT: BoundingBox> Widget for Stacked<TOP, BOT> {
     }
 
     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let higher_view_rect = self.higher_view_rect(terminal.bounding_box())?;
-        let lower_view_rect = self.lower_view_rect(terminal.bounding_box())?;
-
-        let res_higher = self.draw_top(update_info.mouse_relative_to(higher_view_rect), &mut terminal)?;
-        let res_lower = self.draw_bottom(update_info.mouse_relative_to(lower_view_rect), &mut terminal)?;
+        let res_higher = self.draw_top(update_info, &mut terminal)?;
+        let res_lower = self.draw_bottom(update_info, &mut terminal)?;
 
         Ok(res_lower.max(res_higher))
     }

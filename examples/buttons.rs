@@ -3,7 +3,7 @@
 use tuit::prelude::*;
 use tuit::std::stdout_render::StdoutRenderer;
 use tuit::style::Colour::Ansi16;
-use tuit::style::{Ansi4, Colour};
+use tuit::style::Ansi4;
 use tuit::terminal::ConstantSize;
 use tuit::widgets::builtins::buttons::Buttons;
 use tuit::widgets::builtins::Sweeper;
@@ -17,7 +17,7 @@ fn main() {
     sweeper.drawn(&mut terminal).expect("Infallible");
 
     // noinspection SpellCheckingInspection
-    let mut buttons = Buttons::new(&["hellot", "World", "!@HG@!", "BBBBBBBBBB", "BBBBBBBBBB123"]);
+    let mut buttons = Buttons::new(&["Hello", "World", "!@HG@!", "BBBBBBBBBB", "BBBBBBBBBB123"]);
     
     buttons.use_backdrop(Ansi16(Ansi4::Yellow)).drawn(terminal).expect("Infallible");
 
