@@ -36,6 +36,8 @@ pub mod shrink_wrap;
 pub mod backdrop;
 /// The code for the [`Shelved`] widget.
 pub mod shelved;
+/// The code for the [`Checkbox`] widget.
+pub mod checkbox;
 
 impl<T: BoundingBox> From<T> for Centered<T> {
     fn from(value: T) -> Self {

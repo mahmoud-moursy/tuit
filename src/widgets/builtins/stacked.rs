@@ -180,22 +180,22 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
 
 impl<TOP: BoundingBox, BOT: BoundingBox> Widget for Stacked<TOP, BOT> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
-        let higher_view = self.higher_view_rect(terminal.bounding_box())?;
-        let lower_view = self.lower_view_rect(terminal.bounding_box())?;
+        let higher_view_rect = self.higher_view_rect(terminal.bounding_box())?;
+        let lower_view_rect = self.lower_view_rect(terminal.bounding_box())?;
 
-        let higher_view = terminal.view(higher_view).ok_or(Error::OutOfBoundsCoordinate {
-            x: Some(higher_view.right()),
-            y: Some(higher_view.bottom())
+        let higher_view = terminal.view(higher_view_rect).ok_or(Error::OutOfBoundsCoordinate {
+            x: Some(higher_view_rect.right()),
+            y: Some(higher_view_rect.bottom())
         })?;
 
-        let higher_update = self.higher_widget.update(update_info, higher_view);
+        let higher_update = self.higher_widget.update(update_info.mouse_relative_to(higher_view_rect), higher_view);
 
-        let lower_view = terminal.view(lower_view).ok_or(Error::OutOfBoundsCoordinate {
-            x: Some(lower_view.right()),
-            y: Some(lower_view.bottom())
+        let lower_view = terminal.view(lower_view_rect).ok_or(Error::OutOfBoundsCoordinate {
+            x: Some(lower_view_rect.right()),
+            y: Some(lower_view_rect.bottom())
         })?;
 
-        let lower_update = self.lower_widget.update(update_info, lower_view);
+        let lower_update = self.lower_widget.update(update_info.mouse_relative_to(lower_view_rect), lower_view);
 
         let res_higher = higher_update?;
         let res_lower = lower_update?;
@@ -206,8 +206,11 @@ impl<TOP: BoundingBox, BOT: BoundingBox> Widget for Stacked<TOP, BOT> {
     }
 
     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let res_higher = self.draw_top(update_info, &mut terminal)?;
-        let res_lower = self.draw_bottom(update_info, &mut terminal)?;
+        let higher_view_rect = self.higher_view_rect(terminal.bounding_box())?;
+        let lower_view_rect = self.lower_view_rect(terminal.bounding_box())?;
+
+        let res_higher = self.draw_top(update_info.mouse_relative_to(higher_view_rect), &mut terminal)?;
+        let res_lower = self.draw_bottom(update_info.mouse_relative_to(lower_view_rect), &mut terminal)?;
 
         Ok(res_lower.max(res_higher))
     }

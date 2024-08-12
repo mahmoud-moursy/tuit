@@ -162,11 +162,13 @@ impl<LEFT, RIGHT> Shelved<LEFT, RIGHT> {
 
 impl<LEFT: BoundingBox, RIGHT: BoundingBox> Widget for Shelved<LEFT, RIGHT> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
+        let left_view_rect = self.left_view_rect(terminal.bounding_box())?;
         let left_view = self.get_view_left(&terminal)?;
-        let left_update =  self.left_widget.update(update_info, left_view)?;
+        let left_update =  self.left_widget.update(update_info.mouse_relative_to(left_view_rect), left_view)?;
 
+        let right_view_rect = self.right_view_rect(terminal.bounding_box())?;
         let right_view = self.get_view_right(&terminal)?;
-        let right_update = self.right_widget.update(update_info, right_view)?;
+        let right_update = self.right_widget.update(update_info.mouse_relative_to(right_view_rect), right_view)?;
 
         self.leftover_result = Some(left_update.min(right_update));
 
@@ -174,12 +176,13 @@ impl<LEFT: BoundingBox, RIGHT: BoundingBox> Widget for Shelved<LEFT, RIGHT> {
     }
 
     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        let left_view_rect = self.left_view_rect(terminal.bounding_box())?;
         let left_view = self.get_view_left(&mut terminal)?;
-        let left_update = self.left_widget.draw(update_info, left_view)?;
+        let left_update = self.left_widget.draw(update_info.mouse_relative_to(left_view_rect), left_view)?;
 
+        let right_view_rect = self.right_view_rect(terminal.bounding_box())?;
         let right_view = self.get_view_right(&mut terminal)?;
-
-        let right_update = self.right_widget.draw(update_info, right_view)?;
+        let right_update = self.right_widget.draw(update_info.mouse_relative_to(right_view_rect), right_view)?;
 
         Ok(left_update.max(right_update))
     }

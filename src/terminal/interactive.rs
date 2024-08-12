@@ -3,30 +3,31 @@
 //! [`interactive::KeyState`], as well as the [`UpdateInfo`] and [`UpdateResult`] structs.
 
 use core::time::Duration;
+use crate::terminal::Rectangle;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 /// This enum represents the various buttons on the mouse.
 pub enum MouseButton {
-    /// The left click button
-    LeftClick,
-    /// The right click button
-    RightClick,
+    /// The primary mouse button, usually the left click button.
+    Primary,
+    /// The secondary mouse button, usually the right click button.
+    Secondary,
     /// Any auxiliary mouse buttons (for example, additional side buttons).
     AuxiliaryButton(u16),
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 /// [`KeyState`] encompasses the current states that a keyboard key can be in (just pressed, currently held, and just released)
 pub enum KeyState {
-    /// Key has just been pressed
-    KeyDown,
     /// Key has just been released
-    KeyUp,
+    KeyUp = 0,
+    /// Key has just been pressed
+    KeyDown = 1,
     /// Key is currently held
-    KeyHeld,
+    KeyHeld = 2,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Default)]
 /// `UpdateInfo` encapsulates the information sent after an update
 pub enum UpdateInfo {
     /// This event triggers when a cell (character) gets clicked. It includes the X co-ordinate,
@@ -50,8 +51,32 @@ pub enum UpdateInfo {
     /// This is used to inform widgets that the terminal has been resized so that they can
     /// re-calculate their dimensions or any other cached data reliant on the terminal's size.
     TerminalResized,
+    #[default]
     /// This is used when there is no information to report to widgets that need to be updated.
     NoInfo,
+}
+
+impl UpdateInfo {
+    /// Get the mouse position relative to a given [`Rectangle`].
+    #[must_use]
+    pub const fn mouse_relative_to(self, rect: Rectangle) -> Self {
+        match self {
+            Self::CellClicked(x, y, button)
+            => {
+                let Some(x) = x.checked_sub(rect.left()) else {
+                    return Self::NoInfo
+                };
+
+                let Some(y) = y.checked_sub(rect.top()) else {
+                    return Self::NoInfo
+                };
+
+                Self::CellClicked(x, y, button)
+            }
+
+            _ => self
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]

@@ -47,9 +47,7 @@ impl<T> ShrinkWrap<T> {
           U: Metadata {
         let bounding_box = self.bounding_box_in(&terminal)?;
         let view = View::new(terminal, bounding_box);
-        let view_with_err = view.ok_or(Error::RequestRescale { new_width: bounding_box.right(), new_height: bounding_box.bottom() });
-
-        view_with_err
+        view.ok_or_else(|| Error::rescale_to(bounding_box))
     }
 
     /// Consume [`self`] and return the child widget.
@@ -60,15 +58,17 @@ impl<T> ShrinkWrap<T> {
 
 impl<T: Widget> Widget for ShrinkWrap<T> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
+        let bounding_box = self.bounding_box_in(&terminal)?;
         let view = self.get_inner_view(terminal)?;
 
-        self.child.update(update_info, view)
+        self.child.update(update_info.mouse_relative_to(bounding_box), view)
     }
 
     fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        let bounding_box = self.bounding_box_in(&terminal)?;
         let view = self.get_inner_view(terminal)?;
 
-        self.child.draw(update_info, view)
+        self.child.draw(update_info.mouse_relative_to(bounding_box), view)
     }
 }
 
