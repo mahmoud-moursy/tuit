@@ -47,8 +47,19 @@ impl<'a> Checkbox<'a> {
 
 impl Widget for Checkbox<'_> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
+        #[cfg(feature = "debug")]
+        log::trace!("Checkbox update: {:?}", update_info);
+        
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::Primary) => {
+                #[cfg(feature = "debug")]
+                log::trace!("Checkbox clicked at ({}, {})", x, y);
+                
+                let bb = self.bounding_box_in(&terminal)?;
+                
+                #[cfg(feature = "debug")]
+                log::trace!("Checkbox bounding box: {:?}", bb);
+                
                 if self.bounding_box_in(&terminal)?.contains((x, y)) {
                     self.checked = !self.checked;
 

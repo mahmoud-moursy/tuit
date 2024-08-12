@@ -586,8 +586,8 @@ impl Rectangle {
         let topmost = self.top();
         let bottommost = self.bottom();
 
-        let x_in_bounds = x >= leftmost && x <= rightmost;
-        let y_in_bounds = y >= topmost && y <= bottommost;
+        let x_in_bounds = x >= leftmost && x < rightmost;
+        let y_in_bounds = y >= topmost && y < bottommost;
 
         x_in_bounds && y_in_bounds
     }
@@ -607,6 +607,8 @@ impl Rectangle {
     pub const fn contains_rect(&self, rect: Self) -> bool {
         let (left_top, right_bottom) = (rect.left_top(), rect.right_bottom());
 
+        let right_bottom = (right_bottom.0 - 1, right_bottom.1 - 1);
+        
         self.contains(left_top) && self.contains(right_bottom)
     }
 
