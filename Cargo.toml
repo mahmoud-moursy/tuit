@@ -1,6 +1,6 @@
 [package]
 name = "tuit"
-version = "0.3.0-a1+checkboxes"
+version = "0.3.0-a2+checkboxes"
 edition = "2021"
 description = "A no_std, no_alloc TUI library"
 categories = ["no-std::no-alloc", "command-line-interface"]

@@ -20,7 +20,7 @@ pub struct Checkbox<'a> {
 impl<'a> Checkbox<'a> {
     const CHECKED: &'static str = "[x] ";
     const UNCHECKED: &'static str = "[ ] ";
-    const WIDTH: usize = Self::CHECKED.len();
+    const CHECKBOX_WIDTH: usize = Self::CHECKED.len();
 
     /// Create a new [`Checkbox`] with the specified value.
     #[must_use]
