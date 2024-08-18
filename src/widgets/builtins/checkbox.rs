@@ -18,6 +18,10 @@ pub struct Checkbox<'a> {
 }
 
 impl<'a> Checkbox<'a> {
+    const CHECKED: &'static str = "[x] ";
+    const UNCHECKED: &'static str = "[ ] ";
+    const WIDTH: usize = Self::CHECKED.len();
+
     /// Create a new [`Checkbox`] with the specified value.
     #[must_use]
     pub const fn new(entry: &'a str) -> Self {
@@ -53,12 +57,12 @@ impl Widget for Checkbox<'_> {
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::Primary) => {
                 #[cfg(feature = "debug")]
-                log::trace!("Checkbox clicked at ({}, {})", x, y);
+                {
+                    log::trace!("Checkbox saw click at ({x}, {y})");
+                    let bb = self.bounding_box_in(&terminal)?;
+                    log::trace!("Checkbox bounding box: {bb:?}");
+                }
 
-                let bb = self.bounding_box_in(&terminal)?;
-
-                #[cfg(feature = "debug")]
-                log::trace!("Checkbox bounding box: {:?}", bb);
 
                 if self.bounding_box_in(&terminal)?.contains((x, y)) {
                     self.checked = !self.checked;
@@ -78,7 +82,7 @@ impl Widget for Checkbox<'_> {
     }
 
     fn draw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let box_text = if self.checked { "[x] " } else { "[ ] " };
+        let box_text = if self.checked { Self::CHECKED } else { Self::UNCHECKED };
         let mut box_widget = Text::new(box_text);
         box_widget.style = self.box_style;
 
@@ -93,7 +97,7 @@ impl Widget for Checkbox<'_> {
 
 impl BoundingBox for Checkbox<'_> {
     fn bounding_box(&self, rect: Rectangle) -> crate::Result<Rectangle> {
-        let box_widget = Text::new("[_] ");
+        let box_widget = Text::new(Self::UNCHECKED);
         let entry = Text::new(self.entry);
 
         let checkbox = box_widget.next_to(entry);
@@ -102,7 +106,7 @@ impl BoundingBox for Checkbox<'_> {
     }
 
     fn completely_covers(&self, rect: Rectangle) -> bool {
-        let box_widget = Text::new("[_] ");
+        let box_widget = Text::new(Self::UNCHECKED);
         let entry = Text::new(self.entry);
 
         let checkbox = box_widget.next_to(entry);
