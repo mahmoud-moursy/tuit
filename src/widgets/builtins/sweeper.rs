@@ -37,7 +37,6 @@ impl Widget for Sweeper {
 
     fn draw(
         &self,
-        _update_info: UpdateInfo,
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
         for character in terminal.cells_mut() {

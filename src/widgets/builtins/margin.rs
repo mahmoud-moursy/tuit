@@ -194,9 +194,9 @@ where T: BoundingBox {
         self.child.update(update_info, view)
     }
 
-    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    fn draw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let view = self.margin_view(terminal)?;
 
-        self.child.draw(update_info, view)
+        self.child.draw(view)
     }
 }

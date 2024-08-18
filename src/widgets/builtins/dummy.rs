@@ -10,7 +10,7 @@ impl Widget for Dummy {
         Ok(UpdateResult::NoEvent)
     }
 
-    fn draw(&self, _update_info: UpdateInfo, _terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    fn draw(&self, _terminal: impl Terminal) -> crate::Result<UpdateResult> {
         Ok(UpdateResult::NoEvent)
     }
 }

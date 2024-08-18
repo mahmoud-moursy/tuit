@@ -30,17 +30,17 @@ impl<'a> Checkbox<'a> {
     #[must_use]
     pub const fn checked(mut self) -> Self {
         self.checked = true;
-        
+
         self
     }
-    
+
     /// Uncheck the [`Checkbox`]!
     ///
     /// `[x]` -> `[ ]`
     #[must_use]
     pub const fn unchecked(mut self) -> Self {
         self.checked = false;
-        
+
         self
     }
 }
@@ -49,17 +49,17 @@ impl Widget for Checkbox<'_> {
     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> crate::Result<UpdateResult> {
         #[cfg(feature = "debug")]
         log::trace!("Checkbox update: {:?}", update_info);
-        
+
         match update_info {
             UpdateInfo::CellClicked(x, y, MouseButton::Primary) => {
                 #[cfg(feature = "debug")]
                 log::trace!("Checkbox clicked at ({}, {})", x, y);
-                
+
                 let bb = self.bounding_box_in(&terminal)?;
-                
+
                 #[cfg(feature = "debug")]
                 log::trace!("Checkbox bounding box: {:?}", bb);
-                
+
                 if self.bounding_box_in(&terminal)?.contains((x, y)) {
                     self.checked = !self.checked;
 
@@ -77,7 +77,7 @@ impl Widget for Checkbox<'_> {
         Ok(UpdateResult::NoEvent)
     }
 
-    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    fn draw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let box_text = if self.checked { "[x] " } else { "[ ] " };
         let mut box_widget = Text::new(box_text);
         box_widget.style = self.box_style;
@@ -87,7 +87,7 @@ impl Widget for Checkbox<'_> {
 
         let checkbox = box_widget.next_to(entry);
 
-        checkbox.draw(update_info, terminal)
+        checkbox.draw(terminal)
     }
 }
 

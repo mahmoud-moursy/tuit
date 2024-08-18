@@ -59,7 +59,7 @@ impl Direction {
 ///         Ok(UpdateResult::NoEvent)
 ///     }
 ///
-///     fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal)-> tuit::Result<UpdateResult> {
+///     fn draw(&self, mut terminal: impl Terminal)-> tuit::Result<UpdateResult> {
 ///         // Set the terminal's top-left character to my_char.
 ///         terminal.cell_mut(0, 0).map(|x| x.character = self.my_char);
 ///
@@ -76,7 +76,7 @@ pub trait Widget {
     /// #     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> tuit::Result<UpdateResult> {
     /// #         Ok(UpdateResult::NoEvent)
     /// #     }
-    /// #     fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
+    /// #     fn draw(&self, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
     /// #         Ok(UpdateResult::NoEvent)
     /// #     }
     /// # }
@@ -117,7 +117,7 @@ pub trait Widget {
     ///
     /// Assume that the terminal is in an invalid state when this function returns an [`Err`], so
     /// you should try redrawing again, perhaps without the widget that failed.
-    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal)
+    fn draw(&self, terminal: impl Terminal)
             -> crate::Result<UpdateResult>;
 
     /// This method is called by the implementor when redrawing is requested.
@@ -130,7 +130,7 @@ pub trait Widget {
     ///
     /// This will return an [`Err`] if the [`Widget`] cannot redraw itself.
     fn drawn(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        self.draw(UpdateInfo::NoInfo, terminal)
+        self.draw(terminal)
     }
 }
 
@@ -182,16 +182,22 @@ pub trait BoundingBox: Widget {
 /// # Examples
 ///
 /// ```
+/// use tuit::Error;
 /// use tuit::widgets::{BoundingBox, Widget};
-/// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst};
+/// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst, UpdateInfo, UpdateResult};
 /// use tuit::prelude::*;
-///
-/// use tuit::widgets::builtins::dummy::EmptyWidget;
 ///
 /// // Create a widget that completely covers the terminal.
 /// struct FullTerminalWidget;
 ///
-/// impl EmptyWidget for FullTerminalWidget {}
+/// impl Widget for FullTerminalWidget {
+///     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> tuit::Result<UpdateResult> {
+///         Err(Error::Todo)
+///     }
+///     fn draw(&self, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
+///         Err(Error::Todo)
+///     }
+/// }
 ///
 /// impl BoundingBox for FullTerminalWidget {
 ///     fn bounding_box(&self, _rect: Rectangle) -> tuit::Result<Rectangle> {
@@ -211,16 +217,23 @@ pub trait BoundingBox: Widget {
 /// ```
 ///
 /// ```
+/// use tuit::Error;
 /// use tuit::widgets::{BoundingBox, Widget};
-/// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst};
+/// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst, UpdateInfo, UpdateResult};
 /// use tuit::prelude::*;
-///
-/// use tuit::widgets::builtins::dummy::EmptyWidget;
 ///
 /// // Create a widget that does not completely cover the terminal.
 /// struct PartialTerminalWidget;
 ///
-/// impl EmptyWidget for PartialTerminalWidget {}
+/// impl Widget for PartialTerminalWidget {
+///     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> tuit::Result<UpdateResult> {
+///         Err(Error::Todo)
+///     }
+///
+///     fn draw(&self, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
+///         Err(Error::Todo)
+///     }
+/// }
 ///
 /// impl BoundingBox for PartialTerminalWidget {
 ///     fn bounding_box(&self, _rect: Rectangle) -> tuit::Result<Rectangle> {
@@ -257,16 +270,23 @@ pub trait BoundingBox: Widget {
     /// # Examples
     ///
     /// ```
+    /// use tuit::Error;
     /// use tuit::widgets::{BoundingBox, Widget};
-    /// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst};
+    /// use tuit::terminal::{ConstantSize, Rectangle, TerminalConst, UpdateInfo, UpdateResult};
     /// use tuit::prelude::*;
-    ///
-    /// use tuit::widgets::builtins::dummy::EmptyWidget;
     ///
     /// // Create a widget that completely covers the terminal.
     /// struct FullTerminalWidget;
     ///
-    /// impl EmptyWidget for FullTerminalWidget {}
+    /// impl Widget for FullTerminalWidget {
+    ///     fn update(&mut self, update_info: UpdateInfo, terminal: impl TerminalConst) -> tuit::Result<UpdateResult> {
+    ///         Err(Error::Todo)
+    ///     }
+    ///
+    ///     fn draw(&self, terminal: impl Terminal) -> tuit::Result<UpdateResult> {
+    ///         Err(Error::Todo)
+    ///     }
+    /// }
     ///
     /// impl BoundingBox for FullTerminalWidget {
     ///     fn bounding_box(&self, rect: Rectangle) -> tuit::Result<Rectangle> {

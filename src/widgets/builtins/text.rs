@@ -85,7 +85,6 @@ impl Widget for Text<'_> {
 
     fn draw(
         &self,
-        _update_info: UpdateInfo,
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
         let mut cells = terminal.cells_mut();

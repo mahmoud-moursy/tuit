@@ -42,7 +42,7 @@ where T: BoundingBox{
         Ok(UpdateResult::NoEvent)
     }
 
-    fn draw(&self, _update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    fn draw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let child_bounding_box = self.child.bounding_box_in(&terminal)?;
         let mut view = View::new(terminal, child_bounding_box).ok_or(Error::oob())?;
         let sweeper = Sweeper::new(self.style);

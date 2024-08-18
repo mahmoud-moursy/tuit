@@ -75,8 +75,8 @@ impl<T: DerefMut<Target: Widget>> Widget for T {
         self.deref_mut().update(update_info, terminal)
     }
 
-    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        self.deref().draw(update_info, terminal)
+    fn draw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        self.deref().draw(terminal)
     }
 }
 

@@ -126,7 +126,6 @@ impl<T: AsRef<str>> Widget for Buttons<'_, T> {
 
     fn draw(
         &self,
-        _update_info: UpdateInfo,
         mut terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
         let term_bounding_box = terminal.bounding_box();

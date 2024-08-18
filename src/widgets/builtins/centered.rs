@@ -42,14 +42,14 @@ impl<T: BoundingBox> Widget for Centered<T> {
         self.child.update(update_info, view)
     }
 
-    fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
+    fn draw(&self, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let bounding_box = self.bounding_box_in(&terminal)?;
         let view = terminal.view_mut(bounding_box).ok_or(RequestRescale {
             new_width: bounding_box.right(),
             new_height: bounding_box.bottom(),
         })?;
 
-        self.child.draw(update_info, view)
+        self.child.draw(view)
     }
 }
 

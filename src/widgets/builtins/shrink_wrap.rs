@@ -64,11 +64,10 @@ impl<T: Widget> Widget for ShrinkWrap<T> {
         self.child.update(update_info.mouse_relative_to(bounding_box), view)
     }
 
-    fn draw(&self, update_info: UpdateInfo, terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let bounding_box = self.bounding_box_in(&terminal)?;
+    fn draw(&self, terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let view = self.get_inner_view(terminal)?;
 
-        self.child.draw(update_info.mouse_relative_to(bounding_box), view)
+        self.child.draw(view)
     }
 }
 

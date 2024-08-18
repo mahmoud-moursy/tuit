@@ -21,7 +21,7 @@ impl Widget for Uv {
     }
 
 
-    fn draw(&self, _update_info: UpdateInfo, mut terminal: impl Terminal) ->
+    fn draw(&self, mut terminal: impl Terminal) ->
                                                                       crate::Result<UpdateResult> {
         let width = terminal.width();
         let height = terminal.height();

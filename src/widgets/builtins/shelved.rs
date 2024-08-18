@@ -57,13 +57,13 @@ impl<LEFT, RIGHT> Shelved<LEFT, RIGHT> {
     ///
     /// This method will return an error if the left widget's bounding box is larger than the terminal's
     /// bounding box, or if the widget fails to draw.
-    pub fn draw_left(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
+    pub fn draw_left(&self, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
     where
         LEFT: BoundingBox,
         RIGHT: BoundingBox {
         let left_view = self.get_view_left(&mut terminal)?;
 
-        self.left_widget.draw(update_info, left_view)
+        self.left_widget.draw(left_view)
     }
 
     /// Draws the right widget, and returns its update result. This is better than using [`Widget::draw`]
@@ -73,24 +73,24 @@ impl<LEFT, RIGHT> Shelved<LEFT, RIGHT> {
     ///
     /// This method will return an error if the right widget's bounding box is larger than the terminal's
     /// bounding box, or if the widget fails to draw.
-    pub fn draw_right(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
+    pub fn draw_right(&self, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
     where
         LEFT: BoundingBox,
         RIGHT: BoundingBox {
         let right_view = self.get_view_right(&mut terminal)?;
 
-        self.right_widget.draw(update_info, right_view)
+        self.right_widget.draw(right_view)
     }
 
     /// Draws both widgets, and returns their update results. This is better than using [`Widget::draw`]
     /// because it returns draw update results from both widgets.
-    pub fn draw_both(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> (crate::Result<UpdateResult>, crate::Result<UpdateResult>)
+    pub fn draw_both(&self, mut terminal: impl Terminal) -> (crate::Result<UpdateResult>, crate::Result<UpdateResult>)
     where
         LEFT: BoundingBox,
         RIGHT: BoundingBox
     {
-        let res_left = self.draw_left(update_info, &mut terminal);
-        let res_right = self.draw_right(update_info, &mut terminal);
+        let res_left = self.draw_left(&mut terminal);
+        let res_right = self.draw_right(&mut terminal);
 
         (res_left, res_right)
     }
@@ -175,14 +175,12 @@ impl<LEFT: BoundingBox, RIGHT: BoundingBox> Widget for Shelved<LEFT, RIGHT> {
         Ok(left_update.max(right_update))
     }
 
-    fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let left_view_rect = self.left_view_rect(terminal.bounding_box())?;
+    fn draw(&self, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
         let left_view = self.get_view_left(&mut terminal)?;
-        let left_update = self.left_widget.draw(update_info.mouse_relative_to(left_view_rect), left_view)?;
+        let left_update = self.left_widget.draw(left_view)?;
 
-        let right_view_rect = self.right_view_rect(terminal.bounding_box())?;
         let right_view = self.get_view_right(&mut terminal)?;
-        let right_update = self.right_widget.draw(update_info.mouse_relative_to(right_view_rect), right_view)?;
+        let right_update = self.right_widget.draw(right_view)?;
 
         Ok(left_update.max(right_update))
     }

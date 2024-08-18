@@ -45,10 +45,10 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     ///
     /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
-    /// stacked.draw_top(UpdateInfo::NoInfo, &mut terminal).unwrap();
-    /// stacked.draw_bottom(UpdateInfo::NoInfo, &mut terminal).unwrap();
+    /// stacked.draw_top(&mut terminal).unwrap();
+    /// stacked.draw_bottom(&mut terminal).unwrap();
     /// ```
-    pub fn draw_bottom(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
+    pub fn draw_bottom(&self,mut terminal: impl Terminal) -> crate::Result<UpdateResult>
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
@@ -59,7 +59,7 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
             y: Some(lower_view_rect.bottom())
         })?;
 
-        self.lower_widget.draw(update_info.mouse_relative_to(lower_view_rect), lower_view)
+        self.lower_widget.draw(lower_view)
     }
 
     /// Draws the top widget, and returns its update result. This is better than using [`Widget::draw`]
@@ -87,10 +87,10 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
     ///
     /// let mut terminal: ConstantSize<20, 20> = ConstantSize::new();
     ///
-    /// stacked.draw_top(UpdateInfo::NoInfo, &mut terminal).unwrap();
-    /// stacked.draw_bottom(UpdateInfo::NoInfo, &mut terminal).unwrap();
+    /// stacked.draw_top(&mut terminal).unwrap();
+    /// stacked.draw_bottom(&mut terminal).unwrap();
     /// ```
-    pub fn draw_top(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
+    pub fn draw_top(&self, mut terminal: impl Terminal) -> crate::Result<UpdateResult>
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
@@ -101,17 +101,17 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
             y: Some(higher_view_rect.bottom())
         })?;
 
-        self.higher_widget.draw(update_info.mouse_relative_to(higher_view_rect), higher_view)
+        self.higher_widget.draw(higher_view)
     }
 
     /// Draws both widgets, and returns their update results. This is better than using [`Widget::draw`]
     /// because it returns draw update results from both widgets.
-    pub fn draw_both(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> (crate::Result<UpdateResult>, crate::Result<UpdateResult>)
+    pub fn draw_both(&self, mut terminal: impl Terminal) -> (crate::Result<UpdateResult>, crate::Result<UpdateResult>)
     where
         TOP: BoundingBox,
         BOT: BoundingBox {
-        let res_higher = self.draw_top(update_info, &mut terminal);
-        let res_lower = self.draw_bottom(update_info, &mut terminal);
+        let res_higher = self.draw_top(&mut terminal);
+        let res_lower = self.draw_bottom(&mut terminal);
 
         (res_higher, res_lower)
     }
@@ -215,9 +215,9 @@ impl<TOP: BoundingBox, BOT: BoundingBox> Widget for Stacked<TOP, BOT> {
         Ok(res_lower.max(res_higher))
     }
 
-    fn draw(&self, update_info: UpdateInfo, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
-        let res_higher = self.draw_top(update_info, &mut terminal)?;
-        let res_lower = self.draw_bottom(update_info, &mut terminal)?;
+    fn draw(&self, mut terminal: impl Terminal) -> crate::Result<UpdateResult> {
+        let res_higher = self.draw_top(&mut terminal)?;
+        let res_lower = self.draw_bottom(&mut terminal)?;
 
         Ok(res_lower.max(res_higher))
     }

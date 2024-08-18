@@ -80,7 +80,6 @@ impl Widget for Ruler {
 
     fn draw(
         &self,
-        _update_info: UpdateInfo,
         terminal: impl Terminal,
     ) -> crate::Result<UpdateResult> {
         match self.1 {
