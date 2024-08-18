@@ -18,9 +18,18 @@ pub struct Checkbox<'a> {
 }
 
 impl<'a> Checkbox<'a> {
-    const CHECKED: &'static str = "[x] ";
-    const UNCHECKED: &'static str = "[ ] ";
-    const CHECKBOX_WIDTH: usize = Self::CHECKED.len();
+    /// The checked part of the [`Checkbox`]... as in, the "`[x] `" part.
+    pub const CHECKED: &'static str = "[x] ";
+    /// The unchecked part of the [`Checkbox`]... as in, the "`[ ] `" part.
+    pub const UNCHECKED: &'static str = {
+        let unchecked = "[ ] ";
+
+        assert!(unchecked.len() == Self::CHECKBOX_WIDTH, "Checkbox::UNCHECKED must be exactly Checkbox::CHECKED characters long");
+
+        unchecked
+    };
+    /// The width of the checkbox part of the [`Checkbox`]... as in, the "`[x] `" part.
+    pub const CHECKBOX_WIDTH: usize = Self::CHECKED.len();
 
     /// Create a new [`Checkbox`] with the specified value.
     #[must_use]
