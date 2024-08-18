@@ -176,6 +176,16 @@ impl<TOP, BOT> Stacked<TOP, BOT> {
 
         Ok(lower_view_corrected)
     }
+
+    /// Consumes the [`Stacked`] widget and returns the two widgets that it contains.
+    pub fn into_inner(self) -> (TOP, BOT) {
+        (self.higher_widget, self.lower_widget)
+    }
+    
+    /// Returns a reference to the two widgets that the [`Stacked`] widget contains.
+    pub const fn inner(&self) -> (&TOP, &BOT) {
+        (&self.higher_widget, &self.lower_widget)
+    }
 }
 
 impl<TOP: BoundingBox, BOT: BoundingBox> Widget for Stacked<TOP, BOT> {
