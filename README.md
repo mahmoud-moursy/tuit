@@ -33,9 +33,9 @@ state, you are the one ultimately in control of program logic.
 At the base of Tuit is an abstraction on the terminal; the virtual terminal.
 
 Virtual terminals are anything that implements the `tuit::terminal::Terminal`, and there
-are a few options that both avoid and use allocation (note that the `alloc` feature is
+are a few options that either avoid or use allocation (note that the `alloc` feature is
 required for certain dynamically resizing terminals, but there is also a no-alloc `MaxSize` which can
-finitely scale until the specified parameters).
+finitely scale until the specified maximum size).
 
 ### Idea Backburner
 
