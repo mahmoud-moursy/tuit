@@ -145,8 +145,8 @@ pub mod view_split;
 /// an [`Ansi4::Red`](crate::style::Ansi4) to the background of modified cells.
 pub mod debug;
 
-#[cfg(feature = "owo_colors")]
-mod owo_colors;
+// #[cfg(feature = "owo_colors")]
+// mod owo_colors;
 #[cfg(feature = "anstyle")]
 mod anstyle;
 

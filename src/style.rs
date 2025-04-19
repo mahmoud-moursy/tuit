@@ -318,13 +318,13 @@ impl Style {
 
     /// Used to set the terminal style to "underlined".
     #[must_use]
-    pub const fn underlined(mut self) -> Self {
+    pub const fn underlined(self) -> Self {
         self.underline(true)
     }
 
     /// Used to set the terminal style to explicitly *not* underlined.
     #[must_use]
-    pub const fn not_underlined(mut self) -> Self {
+    pub const fn not_underlined(self) -> Self {
         self.underline(false)
     }
 
@@ -341,13 +341,13 @@ impl Style {
 
     /// Sets the font weight to **700**, [which is considered bold according to the CSS specification](https://drafts.csswg.org/css-fonts/#font-weight-numeric-values).
     #[must_use]
-    pub const fn bold(mut self) -> Self {
+    pub const fn bold(self) -> Self {
         self.font_weight(700)
     }
 
     /// Sets the font weight to **400**, [which is considered "normal" according to the CSS specification](https://drafts.csswg.org/css-fonts/#font-weight-numeric-values)
     #[must_use]
-    pub const fn regular(mut self) -> Self {
+    pub const fn regular(self) -> Self {
         self.font_weight(400)
     }
 
@@ -356,7 +356,7 @@ impl Style {
     /// It's important to note that **"thin"** as defined by CSS is a font-weight of **100**, which is almost-illegible.
     /// The **true name of font weight 200** according to the spec is **"extra light"**, but in this context, "light" can be confused for colour.
     #[must_use]
-    pub const fn thin(mut self) -> Self {
+    pub const fn thin(self) -> Self {
         self.font_weight(200)
     }
 
@@ -374,7 +374,7 @@ impl Style {
     ///
     /// Refer to [`Style`] for an explanation on what inversion is.
     #[must_use]
-    pub const fn inverted(mut self) -> Self {
+    pub const fn inverted(self) -> Self {
         self.inversion(true)
     }
 
@@ -382,7 +382,7 @@ impl Style {
     ///
     /// Refer to [`Style`] for an explanation on what inversion is.
     #[must_use]
-    pub const fn not_inverted(mut self) -> Self {
+    pub const fn not_inverted(self) -> Self {
         self.inversion(false)
     }
 
@@ -400,7 +400,7 @@ impl Style {
     ///
     /// Refer to [`Style`] for an explanation on strikethrough.
     #[must_use]
-    pub const fn strikethrough(mut self) -> Self {
+    pub const fn strikethrough(self) -> Self {
         self.with_strikethrough(true)
     }
 
@@ -408,7 +408,7 @@ impl Style {
     ///
     /// Refer to [`Style`] for an explanation on strikethrough.
     #[must_use]
-    pub const fn not_strikethrough(mut self) -> Self {
+    pub const fn not_strikethrough(self) -> Self {
         self.with_strikethrough(false)
     }
 

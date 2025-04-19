@@ -108,7 +108,7 @@ impl<T: Write> Renderer for AnsiRenderer<T> {
         for (idx, character_cell) in characters.enumerate() {
             if idx % terminal_width == 0 {
                 let style: anstyle::Style = character_cell.style.into();
-                write!(self.0, "{style:#}").map_err(|e| anyhow!(e))?;;
+                write!(self.0, "{style:#}").map_err(|e| anyhow!(e))?;
                 writeln!(self.0).map_err(|e| anyhow!(e))?;
                 write!(self.0, "{style}").map_err(|e| anyhow!(e))?;
             }
