@@ -107,7 +107,10 @@ impl<T: Write> Renderer for AnsiRenderer<T> {
 
         for (idx, character_cell) in characters.enumerate() {
             if idx % terminal_width == 0 {
+                let style: anstyle::Style = character_cell.style.into();
+                write!(self.0, "{style:#}").map_err(|e| anyhow!(e))?;;
                 writeln!(self.0).map_err(|e| anyhow!(e))?;
+                write!(self.0, "{style}").map_err(|e| anyhow!(e))?;
             }
 
             let mut character_cell = *character_cell;
@@ -130,10 +133,8 @@ impl<T: Write> Renderer for AnsiRenderer<T> {
 #[cfg(feature = "ansi_renderer")]
 impl core::fmt::Display for Cell {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        use owo_colors::OwoColorize;
+        let style: anstyle::Style = self.style.into();
 
-        let owo_style: owo_colors::Style = self.style.into();
-
-        write!(f, "{}", self.character.style(owo_style))
+        write!(f, "{style}{}", self.character)
     }
 }

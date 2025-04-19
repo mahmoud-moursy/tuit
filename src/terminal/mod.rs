@@ -147,6 +147,8 @@ pub mod debug;
 
 #[cfg(feature = "owo_colors")]
 mod owo_colors;
+#[cfg(feature = "anstyle")]
+mod anstyle;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 /// This struct represents a character in the terminal (as well as all the styling that it may have)

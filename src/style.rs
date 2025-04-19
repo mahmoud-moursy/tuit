@@ -28,6 +28,7 @@ pub enum Ansi4 {
     Blue = 4,
     Magenta = 5,
     Cyan = 6,
+    /// Hint: "white" as defined by the spec is closer to gray. For true white, use [`Ansi4::BrightWhite`]
     White = 7,
     BrightBlack = 8,
     BrightRed = 9,
@@ -72,6 +73,7 @@ pub enum Colour {
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
+#[non_exhaustive]
 /// This struct contains a cell's styling data.
 /// If a field is set to none, it will use the data from the last cell in the terminal that had it set.
 /// If a field is None for all cells, then it will assume the terminal default style.
@@ -96,7 +98,9 @@ pub struct Style {
     ///
     /// When it is None, assume the colour to be unset (use the colour of the preceding cell)
     pub bg_colour: Option<Colour>,
-    /// The font weight of the terminal cell
+    /// The [font weight](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight) of the terminal cell.
+    ///
+    /// Refer to [these mappings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight#common_weight_name_mapping) for an idea of the meaning of each font weight.
     ///
     /// When it is None, assume the font weight to be unset (use the font weight of the preceding cell)
     pub font_weight: Option<u16>,
@@ -109,6 +113,14 @@ pub struct Style {
     ///
     /// When it is None, assume the inversion to be unset (use the inversion setting of the preceding cell)
     pub invert: Option<bool>,
+    /// Whether the character cell is struck through (has a line running through it ~~like this~~).
+    ///
+    /// When it is None, assume the strikethrough to be unset (use the strikethrough setting of the preceding cell)
+    pub strikethrough: Option<bool>,
+    /// Where to *italicize* the cell or not.
+    ///
+    /// When it is None, assume the italicization to be unset (use the italicization setting of the preceding cell)
+    pub italic: Option<bool>,
 }
 
 impl Style {
@@ -125,6 +137,8 @@ impl Style {
             font_weight: None,
             underline: None,
             invert: None,
+            strikethrough: None,
+            italic: None
         }
     }
 
@@ -305,25 +319,45 @@ impl Style {
     /// Used to set the terminal style to "underlined".
     #[must_use]
     pub const fn underlined(mut self) -> Self {
-        self.underline = Some(true);
-
-        self
+        self.underline(true)
     }
 
     /// Used to set the terminal style to explicitly *not* underlined.
     #[must_use]
     pub const fn not_underlined(mut self) -> Self {
-        self.underline = Some(false);
-
-        self
+        self.underline(false)
     }
 
-    /// Used to set the terminal style's font weight.
+    /// Used to set the terminal style's font weight to a specific value.
+    ///
+    /// Refer to [these mappings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight#common_weight_name_mapping) for an idea
+    /// of what the values mean.
     #[must_use]
     pub const fn font_weight(mut self, weight: u16) -> Self {
         self.font_weight = Some(weight);
 
         self
+    }
+
+    /// Sets the font weight to **700**, [which is considered bold according to the CSS specification](https://drafts.csswg.org/css-fonts/#font-weight-numeric-values).
+    #[must_use]
+    pub const fn bold(mut self) -> Self {
+        self.font_weight(700)
+    }
+
+    /// Sets the font weight to **400**, [which is considered "normal" according to the CSS specification](https://drafts.csswg.org/css-fonts/#font-weight-numeric-values)
+    #[must_use]
+    pub const fn regular(mut self) -> Self {
+        self.font_weight(400)
+    }
+
+    /// Sets the font weight to **200**, [which is considered ***light*** according to the CSS specification](https://drafts.csswg.org/css-fonts/#font-weight-numeric-values)
+    ///
+    /// It's important to note that **"thin"** as defined by CSS is a font-weight of **100**, which is almost-illegible.
+    /// The **true name of font weight 200** according to the spec is **"extra light"**, but in this context, "light" can be confused for colour.
+    #[must_use]
+    pub const fn thin(mut self) -> Self {
+        self.font_weight(200)
     }
 
     /// Used to set the terminal style's inversion to a user-specified value.
@@ -341,19 +375,67 @@ impl Style {
     /// Refer to [`Style`] for an explanation on what inversion is.
     #[must_use]
     pub const fn inverted(mut self) -> Self {
-        self.invert = Some(true);
-
-        self
+        self.inversion(true)
     }
 
-    /// Used to set the terminal style's inversion to specifically *false*.
+    /// Used to set the terminal colour's inversion to specifically *false*.
     ///
     /// Refer to [`Style`] for an explanation on what inversion is.
     #[must_use]
     pub const fn not_inverted(mut self) -> Self {
-        self.invert = Some(false);
+        self.inversion(false)
+    }
+
+    /// Used to set the terminal's colour inversion to a user-defined value.
+    ///
+    /// Refer to [`Style`] for an explanation on strikethrough.
+    #[must_use]
+    pub const fn with_strikethrough(mut self, strikethrough: bool) -> Self {
+        self.strikethrough = Some(strikethrough);
 
         self
+    }
+
+    /// Used to set the terminal's colour inversion to specifically *true*.
+    ///
+    /// Refer to [`Style`] for an explanation on strikethrough.
+    #[must_use]
+    pub const fn strikethrough(mut self) -> Self {
+        self.with_strikethrough(true)
+    }
+
+    /// Used to set the terminal's colour inversion to specifically *false*.
+    ///
+    /// Refer to [`Style`] for an explanation on strikethrough.
+    #[must_use]
+    pub const fn not_strikethrough(mut self) -> Self {
+        self.with_strikethrough(false)
+    }
+
+    /// Used to set the terminal's italicization to a user-defined value.
+    ///
+    /// Refer to [`Style`] for an explanation on italicization.
+    #[must_use]
+    pub const fn italicization(mut self, italic: bool) -> Self {
+        self.italic = Some(italic);
+
+        self
+    }
+
+    /// Used to set the terminal's italicization to specifically **true**
+    ///
+    /// Refer to [`Style`] for an explanation on italicization.
+    #[must_use]
+    pub const fn italic(self) -> Self {
+        self.italicization(true)
+    }
+
+    /// Used to set the terminal's italicization to specifically **false**
+    ///
+    /// Refer to [`Style`] for an explanation on italicization.
+    #[must_use]
+    pub const fn upright(self) -> Self {
+        self.italicization(false)
     }
 
     /// Will replace all `None` properties in a style with defined properties from the right-hand style.
@@ -398,6 +480,8 @@ impl Style {
             font_weight: or!(self.font_weight, fallback.font_weight),
             underline: or!(self.underline, fallback.underline),
             invert: or!(self.invert, fallback.invert),
+            strikethrough: or!(self.strikethrough, fallback.strikethrough),
+            italic: or!(self.italic, fallback.italic),
         }
     }
 }
